@@ -1,0 +1,59 @@
+.referral-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-3);
+  width: 100%;
+}
+
+.referral-kpi-grid .stat-card {
+  padding: var(--sp-3) var(--sp-4);
+  gap: var(--sp-2);
+}
+
+.referral-kpi-grid .stat-card__header {
+  gap: var(--sp-2);
+}
+
+.referral-kpi-grid .stat-card__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+}
+
+.referral-kpi-grid .stat-card__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.referral-kpi-grid .stat-card__label {
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.referral-kpi-grid .stat-card__value {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  line-height: 1.1;
+}
+
+.referral-kpi-grid .stat-card__meta {
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .referral-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .referral-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

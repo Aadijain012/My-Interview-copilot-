@@ -1,0 +1,459 @@
+/* Offer Details Modal Styles */
+.offer-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: offerModalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes offerModalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.offer-modal-card {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: offerModalZoomIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@keyframes offerModalZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Light Theme Styling */
+.offer-modal-overlay.light-theme .offer-modal-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.offer-modal-overlay.light-theme .offer-modal-title {
+  color: #0f172a;
+}
+
+.offer-modal-overlay.light-theme .offer-modal-subtitle {
+  color: #64748b;
+}
+
+.offer-modal-overlay.light-theme .offer-modal-close-btn {
+  color: #64748b;
+  background: transparent;
+}
+
+.offer-modal-overlay.light-theme .offer-modal-close-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.offer-modal-overlay.light-theme .offer-modal-promo-section {
+  background: #eff6ff;
+  border: 1.5px dashed #3b82f6;
+}
+
+.offer-modal-overlay.light-theme .offer-modal-field-label {
+  color: #1e40af;
+}
+
+.offer-modal-overlay.light-theme .offer-modal-promo-code {
+  color: #1d4ed8;
+}
+
+.offer-modal-overlay.light-theme .offer-modal-detail-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.offer-modal-overlay.light-theme .offer-modal-detail-label {
+  color: #64748b;
+}
+
+.offer-modal-overlay.light-theme .offer-modal-detail-value {
+  color: #0f172a;
+}
+
+.offer-modal-overlay.light-theme .offer-plan-badge {
+  background: #e2e8f0;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+}
+
+.offer-modal-overlay.light-theme .offer-modal-secondary-btn {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.offer-modal-overlay.light-theme .offer-modal-secondary-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Dark Theme Styling */
+.offer-modal-overlay.dark-theme .offer-modal-card {
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f9fafb;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 35px rgba(59, 130, 246, 0.15);
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-title {
+  color: #f9fafb;
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-subtitle {
+  color: #9ca3af;
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-close-btn {
+  color: #9ca3af;
+  background: transparent;
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-promo-section {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1.5px dashed #60a5fa;
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-field-label {
+  color: #93c5fd;
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-promo-code {
+  color: #60a5fa;
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-detail-item {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-detail-label {
+  color: #94a3b8;
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-detail-value {
+  color: #f1f5f9;
+}
+
+.offer-modal-overlay.dark-theme .offer-plan-badge {
+  background: rgba(30, 41, 59, 0.9);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-secondary-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+/* Header Components */
+.offer-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.offer-modal-header-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.offer-modal-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+}
+
+.offer-modal-title {
+  font-size: 19px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+}
+
+.offer-modal-subtitle {
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.offer-modal-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+/* Promo Code Box */
+.offer-modal-promo-section {
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.offer-modal-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.offer-modal-promo-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.offer-modal-promo-code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  user-select: all;
+}
+
+.offer-modal-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.offer-modal-copy-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.offer-modal-copy-btn.copied {
+  background: #059669;
+}
+
+/* Details Grid */
+.offer-modal-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.offer-modal-detail-item {
+  padding: 12px 14px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.offer-modal-detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.offer-modal-detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.offer-modal-detail-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.offer-modal-detail-value.highlight {
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-detail-value.highlight {
+  color: #60a5fa;
+}
+
+.offer-modal-detail-value.discount-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #16a34a;
+  font-weight: 800;
+}
+
+.offer-modal-overlay.dark-theme .offer-modal-detail-value.discount-badge {
+  color: #4ade80;
+}
+
+.offer-modal-detail-value.banner-text {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.offer-modal-plans-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.offer-plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.offer-plan-badge.all-plans {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.offer-modal-overlay.dark-theme .offer-plan-badge.all-plans {
+  background: rgba(6, 95, 70, 0.4);
+  color: #6ee7b7;
+  border-color: rgba(110, 231, 183, 0.3);
+}
+
+.schedule-row {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.schedule-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.schedule-time {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.schedule-time.expire {
+  color: #dc2626 !important;
+  font-weight: 600 !important;
+}
+
+.offer-modal-overlay.dark-theme .schedule-time.expire {
+  color: #f87171 !important;
+}
+
+/* Footer Actions */
+.offer-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.offer-modal-secondary-btn {
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.offer-modal-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.offer-modal-primary-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
+.offer-modal-primary-btn.applied {
+  background: #059669;
+  cursor: default;
+  box-shadow: none;
+}

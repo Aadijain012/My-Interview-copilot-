@@ -1,0 +1,59 @@
+.referral-dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+.referral-dashboard-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+.referral-dashboard-page__title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.referral-dashboard-page__subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: var(--sp-1) 0 0;
+}
+.referral-dashboard-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.referral-dashboard-page__section-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.referral-dashboard-page__tabs {
+  display: flex;
+  gap: var(--sp-2);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--sp-2);
+}
+.referral-dashboard-page__tab {
+  padding: var(--sp-2) var(--sp-4);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.referral-dashboard-page__tab:hover {
+  color: var(--color-text-primary);
+}
+.referral-dashboard-page__tab--active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+  font-weight: 600;
+}

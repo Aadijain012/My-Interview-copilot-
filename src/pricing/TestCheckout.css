@@ -1,0 +1,26 @@
+.test-checkout-dialog{position:fixed;inset:0;margin:auto;width:min(480px,calc(100% - 32px));max-height:90vh;overflow:auto;padding:28px;border:1px solid #ded4f1;border-radius:20px;background:#fff;color:#20182f;box-shadow:0 20px 80px #1e103940}
+.test-checkout-dialog::backdrop{background:#1b102477;backdrop-filter:blur(3px)}
+.test-checkout-dialog h2,.test-checkout-result h2{margin:16px 0 10px;font-size:24px}
+.test-checkout-dialog p,.test-checkout-result p{line-height:1.6;font-size:14px}
+.test-checkout-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.test-checkout-heading button{background:transparent;border:0;font-size:28px;cursor:pointer}
+.test-checkout-badge{display:inline-block;background:#ede4ff;color:#58219e;padding:6px 10px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:.08em}
+.test-checkout-summary{display:flex;flex-direction:column;gap:8px;background:#f6f1ff;border-radius:12px;padding:20px;margin:16px 0}
+.test-checkout-summary strong{font-size:26px}.test-checkout-dialog label{display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600}
+.test-checkout-dialog input{border:1px solid #c9b7e3;border-radius:8px;padding:12px;font:inherit}.test-checkout-dialog .pricing-cta{width:100%;margin-top:20px}
+.test-checkout-result{border:1px solid #d8c5ef;border-radius:16px;padding:24px;background:#faf6ff;margin-bottom:24px}
+.test-checkout-result button{padding:10px 16px;background:white;border:1px solid #b9a0d8;border-radius:8px;cursor:pointer}
+/* The pricing page forces its headings white (!important); the dialog is light. */
+.pricing-page .test-checkout-dialog h2{color:#20182f !important}
+.pricing-page .test-checkout-dialog .pricing-small{color:#5b5270}
+.pricing-page .test-checkout-dialog a:not(.pricing-cta){color:#58219e;text-decoration:underline}
+.pricing-page .test-checkout-dialog p:not(.pricing-small):not(.pricing-form-error){color:#20182f}
+.pricing-page .test-checkout-dialog .pricing-form-error{color:#b42335}
+.pricing-page .test-checkout-result{color:#20182f}
+.pricing-page .test-checkout-result h2{color:#20182f !important}
+.pricing-page .test-checkout-result .pricing-form-error{color:#b42335}
+.plan-billing-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.pricing-page .test-checkout-result p{color:#3b3150}
+.pricing-page .test-checkout-result button{color:#20182f;font-weight:600}
+.pricing-page .test-checkout-result button:disabled{opacity:.6}
+.pricing-page .pricing-current-plan{display:flex;align-items:center;justify-content:center;background:transparent;border:1px solid #ffbd55;color:#ffbd55}

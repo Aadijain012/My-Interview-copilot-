@@ -1,0 +1,466 @@
+D	.env
+D	.env.example
+D	.env.production
+D	.env.staging
+M	.gitignore
+M	README.md
+D	RefinementChangelog.md
+M	index.html
+M	src/App.css
+M	src/App.jsx
+D	src/admin/AdminApp.jsx
+A	src/admin/AdminApp.tsx
+R057	src/admin/api/client.js	src/admin/api/client.ts
+R092	src/admin/api/index.js	src/admin/api/index.ts
+D	src/admin/components/index.js
+A	src/admin/components/index.ts
+D	src/admin/components/ui/Badge.jsx
+A	src/admin/components/ui/Badge.tsx
+R054	src/admin/components/ui/Button.jsx	src/admin/components/ui/Button.tsx
+D	src/admin/components/ui/Card.jsx
+A	src/admin/components/ui/Card.tsx
+D	src/admin/components/ui/Dropdown.jsx
+A	src/admin/components/ui/Dropdown.tsx
+D	src/admin/components/ui/Input.jsx
+A	src/admin/components/ui/Input.tsx
+R050	src/admin/components/ui/Modal.jsx	src/admin/components/ui/Modal.tsx
+D	src/admin/components/ui/States.jsx
+A	src/admin/components/ui/States.tsx
+D	src/admin/components/ui/Table.jsx
+A	src/admin/components/ui/Table.tsx
+D	src/admin/features/admin-users/__tests__/adminUsers.test.jsx
+A	src/admin/features/admin-users/__tests__/adminUsers.test.tsx
+D	src/admin/features/admin-users/api/adminUsersApi.js
+A	src/admin/features/admin-users/api/adminUsersApi.ts
+R067	src/admin/features/admin-users/components/AdminDeleteModal.jsx	src/admin/features/admin-users/components/AdminDeleteModal.tsx
+R050	src/admin/features/admin-users/components/AdminSuspendModal.jsx	src/admin/features/admin-users/components/AdminSuspendModal.tsx
+R074	src/admin/features/admin-users/components/AdminUserDetailsModal.jsx	src/admin/features/admin-users/components/AdminUserDetailsModal.tsx
+R057	src/admin/features/admin-users/components/AdminUsersTable.jsx	src/admin/features/admin-users/components/AdminUsersTable.tsx
+R066	src/admin/features/admin-users/components/AdminUsersToolbar.jsx	src/admin/features/admin-users/components/AdminUsersToolbar.tsx
+R059	src/admin/features/admin-users/components/CreateAdminUserModal.jsx	src/admin/features/admin-users/components/CreateAdminUserModal.tsx
+D	src/admin/features/admin-users/components/EditAdminUserModal.jsx
+A	src/admin/features/admin-users/components/EditAdminUserModal.tsx
+R068	src/admin/features/admin-users/components/OnboardingBadge.jsx	src/admin/features/admin-users/components/OnboardingBadge.tsx
+D	src/admin/features/admin-users/components/index.js
+A	src/admin/features/admin-users/components/index.ts
+D	src/admin/features/admin-users/hooks/useAdminUsersQueries.js
+A	src/admin/features/admin-users/hooks/useAdminUsersQueries.ts
+D	src/admin/features/admin-users/index.js
+A	src/admin/features/admin-users/index.ts
+D	src/admin/features/admin-users/types/index.js
+A	src/admin/features/admin-users/types/index.ts
+D	src/admin/features/analytics/__tests__/analytics.test.jsx
+A	src/admin/features/analytics/__tests__/analytics.test.tsx
+D	src/admin/features/analytics/api/analyticsApi.js
+A	src/admin/features/analytics/api/analyticsApi.ts
+D	src/admin/features/analytics/hooks/useAnalytics.js
+A	src/admin/features/analytics/hooks/useAnalytics.ts
+D	src/admin/features/analytics/index.js
+A	src/admin/features/analytics/index.ts
+D	src/admin/features/analytics/types.js
+A	src/admin/features/analytics/types.ts
+D	src/admin/features/audit-logs/__tests__/auditLogs.test.jsx
+A	src/admin/features/audit-logs/__tests__/auditLogs.test.tsx
+D	src/admin/features/audit-logs/api/auditLogsApi.js
+A	src/admin/features/audit-logs/api/auditLogsApi.ts
+D	src/admin/features/audit-logs/components/AuditActionBadge.jsx
+A	src/admin/features/audit-logs/components/AuditActionBadge.tsx
+R069	src/admin/features/audit-logs/components/AuditEventDetailsModal.jsx	src/admin/features/audit-logs/components/AuditEventDetailsModal.tsx
+R074	src/admin/features/audit-logs/components/AuditLogsTable.jsx	src/admin/features/audit-logs/components/AuditLogsTable.tsx
+R067	src/admin/features/audit-logs/components/AuditLogsToolbar.jsx	src/admin/features/audit-logs/components/AuditLogsToolbar.tsx
+D	src/admin/features/audit-logs/components/index.js
+A	src/admin/features/audit-logs/components/index.ts
+D	src/admin/features/audit-logs/hooks/useAuditLogsQueries.js
+A	src/admin/features/audit-logs/hooks/useAuditLogsQueries.ts
+D	src/admin/features/audit-logs/index.js
+A	src/admin/features/audit-logs/index.ts
+D	src/admin/features/audit-logs/types/index.js
+A	src/admin/features/audit-logs/types/index.ts
+D	src/admin/features/audit-logs/utils/auditSanitizer.js
+A	src/admin/features/audit-logs/utils/auditSanitizer.ts
+R053	src/admin/features/auth/AuthProvider.jsx	src/admin/features/auth/AuthProvider.tsx
+D	src/admin/features/auth/__tests__/login.test.jsx
+A	src/admin/features/auth/__tests__/login.test.tsx
+D	src/admin/features/auth/__tests__/protected-routes.test.jsx
+A	src/admin/features/auth/__tests__/protected-routes.test.tsx
+D	src/admin/features/auth/__tests__/refresh.test.jsx
+A	src/admin/features/auth/__tests__/refresh.test.tsx
+D	src/admin/features/auth/__tests__/session-expiry.test.jsx
+A	src/admin/features/auth/__tests__/session-expiry.test.tsx
+D	src/admin/features/auth/__tests__/totp-setup.test.jsx
+A	src/admin/features/auth/__tests__/totp-setup.test.tsx
+D	src/admin/features/auth/__tests__/totp-verify.test.jsx
+A	src/admin/features/auth/__tests__/totp-verify.test.tsx
+R057	src/admin/features/auth/authApi.js	src/admin/features/auth/authApi.ts
+D	src/admin/features/auth/authSession.js
+A	src/admin/features/auth/authSession.ts
+D	src/admin/features/auth/index.js
+A	src/admin/features/auth/index.ts
+D	src/admin/features/auth/rbac.js
+A	src/admin/features/auth/rbac.ts
+D	src/admin/features/auth/useAuth.js
+A	src/admin/features/auth/useAuth.ts
+D	src/admin/features/campaigns/api/campaignsApi.js
+A	src/admin/features/campaigns/api/campaignsApi.ts
+D	src/admin/features/campaigns/components/CampaignFunnelChart.jsx
+A	src/admin/features/campaigns/components/CampaignFunnelChart.tsx
+D	src/admin/features/campaigns/components/CampaignsTable.jsx
+A	src/admin/features/campaigns/components/CampaignsTable.tsx
+D	src/admin/features/campaigns/components/CreateCampaignModal.jsx
+A	src/admin/features/campaigns/components/CreateCampaignModal.tsx
+D	src/admin/features/campaigns/components/EditCampaignModal.jsx
+A	src/admin/features/campaigns/components/EditCampaignModal.tsx
+D	src/admin/features/campaigns/components/index.js
+A	src/admin/features/campaigns/components/index.ts
+D	src/admin/features/campaigns/hooks/useCampaignQueries.js
+A	src/admin/features/campaigns/hooks/useCampaignQueries.ts
+D	src/admin/features/campaigns/index.js
+A	src/admin/features/campaigns/index.ts
+D	src/admin/features/credits/api/creditsApi.js
+A	src/admin/features/credits/api/creditsApi.ts
+D	src/admin/features/credits/components/CreditsTable.jsx
+A	src/admin/features/credits/components/CreditsTable.tsx
+D	src/admin/features/credits/components/CreditsToolbar.jsx
+A	src/admin/features/credits/components/CreditsToolbar.tsx
+D	src/admin/features/credits/components/index.js
+A	src/admin/features/credits/components/index.ts
+D	src/admin/features/credits/hooks/useCreditQueries.js
+A	src/admin/features/credits/hooks/useCreditQueries.ts
+D	src/admin/features/credits/index.js
+A	src/admin/features/credits/index.ts
+D	src/admin/features/dashboard/__tests__/dashboard.test.jsx
+A	src/admin/features/dashboard/__tests__/dashboard.test.tsx
+D	src/admin/features/dashboard/api/dashboardApi.js
+A	src/admin/features/dashboard/api/dashboardApi.ts
+R065	src/admin/features/dashboard/components/AiApiCreditUsageSection.jsx	src/admin/features/dashboard/components/AiApiCreditUsageSection.tsx
+R074	src/admin/features/dashboard/components/AiModelUsageSection.jsx	src/admin/features/dashboard/components/AiModelUsageSection.tsx
+R059	src/admin/features/dashboard/components/DashboardKpiSection.jsx	src/admin/features/dashboard/components/DashboardKpiSection.tsx
+D	src/admin/features/dashboard/components/DateRangeFilter.jsx
+A	src/admin/features/dashboard/components/DateRangeFilter.tsx
+R059	src/admin/features/dashboard/components/FeatureUsageSection.jsx	src/admin/features/dashboard/components/FeatureUsageSection.tsx
+R059	src/admin/features/dashboard/components/RecentActivitySection.jsx	src/admin/features/dashboard/components/RecentActivitySection.tsx
+R071	src/admin/features/dashboard/components/SessionOverviewSection.jsx	src/admin/features/dashboard/components/SessionOverviewSection.tsx
+R063	src/admin/features/dashboard/components/TopUsersSection.jsx	src/admin/features/dashboard/components/TopUsersSection.tsx
+R065	src/admin/features/dashboard/components/UserGrowthSection.jsx	src/admin/features/dashboard/components/UserGrowthSection.tsx
+D	src/admin/features/dashboard/hooks/useDashboardQueries.js
+A	src/admin/features/dashboard/hooks/useDashboardQueries.ts
+D	src/admin/features/dashboard/index.js
+A	src/admin/features/dashboard/index.ts
+D	src/admin/features/dashboard/utils/dateRange.js
+A	src/admin/features/dashboard/utils/dateRange.ts
+D	src/admin/features/error-logs/__tests__/errorLogs.test.jsx
+A	src/admin/features/error-logs/__tests__/errorLogs.test.tsx
+D	src/admin/features/error-logs/api/errorLogsApi.js
+A	src/admin/features/error-logs/api/errorLogsApi.ts
+R064	src/admin/features/error-logs/components/ErrorLogDetailsModal.jsx	src/admin/features/error-logs/components/ErrorLogDetailsModal.tsx
+R052	src/admin/features/error-logs/components/ErrorLogsStatsCards.jsx	src/admin/features/error-logs/components/ErrorLogsStatsCards.tsx
+R054	src/admin/features/error-logs/components/ErrorLogsTable.jsx	src/admin/features/error-logs/components/ErrorLogsTable.tsx
+R067	src/admin/features/error-logs/components/ErrorLogsToolbar.jsx	src/admin/features/error-logs/components/ErrorLogsToolbar.tsx
+R058	src/admin/features/error-logs/hooks/useErrorLogs.js	src/admin/features/error-logs/hooks/useErrorLogs.ts
+D	src/admin/features/error-logs/index.js
+A	src/admin/features/error-logs/index.ts
+R056	src/admin/features/index.js	src/admin/features/index.ts
+D	src/admin/features/influencers/api/influencerApi.js
+D	src/admin/features/influencers/components/CampaignsManagementSection.jsx
+D	src/admin/features/influencers/components/CommissionRuleModal.jsx
+D	src/admin/features/influencers/components/CommissionRulesTable.jsx
+D	src/admin/features/influencers/components/ConfigureCurrencyModal.jsx
+D	src/admin/features/influencers/components/CreateInfluencerModal.jsx
+D	src/admin/features/influencers/components/EditInfluencerModal.jsx
+D	src/admin/features/influencers/components/InfluencerConversionsTable.jsx
+D	src/admin/features/influencers/components/InfluencerKpis.css
+D	src/admin/features/influencers/components/InfluencerKpis.jsx
+D	src/admin/features/influencers/components/InfluencerReferralsTable.jsx
+D	src/admin/features/influencers/components/InfluencersTable.css
+D	src/admin/features/influencers/components/InfluencersTable.jsx
+D	src/admin/features/influencers/components/PayoutsManagementSection.jsx
+D	src/admin/features/influencers/components/ReferralCodesSection.jsx
+D	src/admin/features/influencers/components/SuspendInfluencerModal.jsx
+D	src/admin/features/influencers/hooks/useInfluencerQueries.js
+D	src/admin/features/influencers/index.js
+D	src/admin/features/issues/__tests__/issues.test.jsx
+A	src/admin/features/issues/__tests__/issues.test.tsx
+D	src/admin/features/issues/api/issuesApi.js
+A	src/admin/features/issues/api/issuesApi.ts
+D	src/admin/features/issues/hooks/useIssues.js
+A	src/admin/features/issues/hooks/useIssues.ts
+D	src/admin/features/issues/index.js
+A	src/admin/features/issues/index.ts
+D	src/admin/features/issues/types.js
+A	src/admin/features/issues/types.ts
+D	src/admin/features/milestones/api/milestonesApi.js
+A	src/admin/features/milestones/api/milestonesApi.ts
+D	src/admin/features/milestones/components/CreateMilestoneModal.jsx
+A	src/admin/features/milestones/components/CreateMilestoneModal.tsx
+D	src/admin/features/milestones/components/MilestonesTable.jsx
+A	src/admin/features/milestones/components/MilestonesTable.tsx
+D	src/admin/features/milestones/components/index.js
+A	src/admin/features/milestones/components/index.ts
+D	src/admin/features/milestones/hooks/useMilestoneQueries.js
+A	src/admin/features/milestones/hooks/useMilestoneQueries.ts
+D	src/admin/features/milestones/index.js
+A	src/admin/features/milestones/index.ts
+D	src/admin/features/notifications/__tests__/NotificationPopover.test.jsx
+A	src/admin/features/notifications/__tests__/NotificationPopover.test.tsx
+D	src/admin/features/notifications/api/notificationsApi.js
+A	src/admin/features/notifications/api/notificationsApi.ts
+R051	src/admin/features/notifications/hooks/useNotificationQueries.js	src/admin/features/notifications/hooks/useNotificationQueries.ts
+R069	src/admin/features/notifications/index.js	src/admin/features/notifications/index.ts
+D	src/admin/features/permissions/__tests__/permissions.test.jsx
+A	src/admin/features/permissions/__tests__/permissions.test.tsx
+D	src/admin/features/permissions/api/permissionsApi.js
+A	src/admin/features/permissions/api/permissionsApi.ts
+R083	src/admin/features/permissions/components/AdminUserSelector.jsx	src/admin/features/permissions/components/AdminUserSelector.tsx
+R068	src/admin/features/permissions/components/PermissionMatrixTable.jsx	src/admin/features/permissions/components/PermissionMatrixTable.tsx
+R063	src/admin/features/permissions/components/PermissionUserHeader.jsx	src/admin/features/permissions/components/PermissionUserHeader.tsx
+R054	src/admin/features/permissions/hooks/usePermissions.js	src/admin/features/permissions/hooks/usePermissions.ts
+D	src/admin/features/permissions/index.js
+A	src/admin/features/permissions/index.ts
+D	src/admin/features/referrals/api/referralsApi.js
+A	src/admin/features/referrals/api/referralsApi.ts
+D	src/admin/features/referrals/components/ReferralDashboardKpis.jsx
+A	src/admin/features/referrals/components/ReferralDashboardKpis.tsx
+R062	src/admin/features/referrals/components/ReferralDetailsModal.jsx	src/admin/features/referrals/components/ReferralDetailsModal.tsx
+D	src/admin/features/referrals/components/ReferralUsersTable.jsx
+A	src/admin/features/referrals/components/ReferralUsersTable.tsx
+D	src/admin/features/referrals/components/ReferralsTable.jsx
+A	src/admin/features/referrals/components/ReferralsTable.tsx
+D	src/admin/features/referrals/components/ReferralsToolbar.jsx
+A	src/admin/features/referrals/components/ReferralsToolbar.tsx
+D	src/admin/features/referrals/components/RejectReferralModal.jsx
+A	src/admin/features/referrals/components/RejectReferralModal.tsx
+D	src/admin/features/referrals/components/index.js
+A	src/admin/features/referrals/components/index.ts
+D	src/admin/features/referrals/hooks/useReferralQueries.js
+A	src/admin/features/referrals/hooks/useReferralQueries.ts
+D	src/admin/features/referrals/index.js
+A	src/admin/features/referrals/index.ts
+D	src/admin/features/settings/__tests__/settings.test.jsx
+A	src/admin/features/settings/__tests__/settings.test.tsx
+D	src/admin/features/settings/__tests__/subscriptionsAndPricing.test.jsx
+A	src/admin/features/settings/__tests__/subscriptionsAndPricing.test.tsx
+D	src/admin/features/settings/api/settingsApi.js
+A	src/admin/features/settings/api/settingsApi.ts
+D	src/admin/features/settings/components/AccountSettingsSection.jsx
+A	src/admin/features/settings/components/AccountSettingsSection.tsx
+D	src/admin/features/settings/components/AppearanceSettingsSection.jsx
+A	src/admin/features/settings/components/AppearanceSettingsSection.tsx
+D	src/admin/features/settings/components/EditPlanModal.jsx
+A	src/admin/features/settings/components/EditPlanModal.tsx
+D	src/admin/features/settings/components/PlatformPricingSection.jsx
+A	src/admin/features/settings/components/PlatformPricingSection.tsx
+D	src/admin/features/settings/components/RateLimitSection.jsx
+A	src/admin/features/settings/components/RateLimitSection.tsx
+R071	src/admin/features/settings/components/RuntimeSettingsSection.jsx	src/admin/features/settings/components/RuntimeSettingsSection.tsx
+R053	src/admin/features/settings/components/SecuritySettingsSection.jsx	src/admin/features/settings/components/SecuritySettingsSection.tsx
+D	src/admin/features/settings/components/ServerConfigSection.jsx
+A	src/admin/features/settings/components/ServerConfigSection.tsx
+R051	src/admin/features/settings/components/SubscriptionPlansSection.jsx	src/admin/features/settings/components/SubscriptionPlansSection.tsx
+D	src/admin/features/settings/components/index.js
+A	src/admin/features/settings/components/index.ts
+D	src/admin/features/settings/constants/subscriptionConstants.js
+A	src/admin/features/settings/constants/subscriptionConstants.ts
+R068	src/admin/features/settings/hooks/useSettingsQueries.js	src/admin/features/settings/hooks/useSettingsQueries.ts
+D	src/admin/features/settings/index.js
+A	src/admin/features/settings/index.ts
+D	src/admin/features/settings/types/index.js
+A	src/admin/features/settings/types/index.ts
+D	src/admin/features/system-health/__tests__/systemHealth.test.jsx
+A	src/admin/features/system-health/__tests__/systemHealth.test.tsx
+D	src/admin/features/system-health/api/systemHealthApi.js
+A	src/admin/features/system-health/api/systemHealthApi.ts
+D	src/admin/features/system-health/hooks/useSystemHealth.js
+A	src/admin/features/system-health/hooks/useSystemHealth.ts
+D	src/admin/features/system-health/index.js
+A	src/admin/features/system-health/index.ts
+D	src/admin/features/system-health/types.js
+A	src/admin/features/system-health/types.ts
+D	src/admin/features/users/__tests__/users.test.jsx
+A	src/admin/features/users/__tests__/users.test.tsx
+D	src/admin/features/users/api/usersApi.js
+A	src/admin/features/users/api/usersApi.ts
+R065	src/admin/features/users/components/UserDeleteModal.jsx	src/admin/features/users/components/UserDeleteModal.tsx
+R061	src/admin/features/users/components/UserDetailsModal.jsx	src/admin/features/users/components/UserDetailsModal.tsx
+R051	src/admin/features/users/components/UserSuspendModal.jsx	src/admin/features/users/components/UserSuspendModal.tsx
+R054	src/admin/features/users/components/UsersTable.jsx	src/admin/features/users/components/UsersTable.tsx
+R070	src/admin/features/users/components/UsersToolbar.jsx	src/admin/features/users/components/UsersToolbar.tsx
+D	src/admin/features/users/components/index.js
+A	src/admin/features/users/components/index.ts
+D	src/admin/features/users/hooks/useUsersQueries.js
+A	src/admin/features/users/hooks/useUsersQueries.ts
+D	src/admin/features/users/index.js
+A	src/admin/features/users/index.ts
+D	src/admin/features/users/types/index.js
+A	src/admin/features/users/types/index.ts
+D	src/admin/hooks/index.js
+A	src/admin/hooks/index.ts
+D	src/admin/hooks/useDebounce.js
+A	src/admin/hooks/useDebounce.ts
+D	src/admin/hooks/useLocalStorage.js
+A	src/admin/hooks/useLocalStorage.ts
+R058	src/admin/layouts/AppLayout.jsx	src/admin/layouts/AppLayout.tsx
+R080	src/admin/layouts/AuthLayout.jsx	src/admin/layouts/AuthLayout.tsx
+D	src/admin/layouts/ChangePasswordModal.jsx
+A	src/admin/layouts/ChangePasswordModal.tsx
+D	src/admin/layouts/GlobalSearch.jsx
+A	src/admin/layouts/GlobalSearch.tsx
+R067	src/admin/layouts/NotificationPopover.jsx	src/admin/layouts/NotificationPopover.tsx
+D	src/admin/layouts/ProfileDropdown.jsx
+A	src/admin/layouts/ProfileDropdown.tsx
+D	src/admin/layouts/Sidebar.jsx
+A	src/admin/layouts/Sidebar.tsx
+R068	src/admin/layouts/SidebarStatusIndicator.jsx	src/admin/layouts/SidebarStatusIndicator.tsx
+D	src/admin/layouts/Topbar.jsx
+A	src/admin/layouts/Topbar.tsx
+D	src/admin/layouts/__tests__/layoutComponents.test.jsx
+A	src/admin/layouts/__tests__/layoutComponents.test.tsx
+D	src/admin/layouts/useSidebar.js
+A	src/admin/layouts/useSidebar.ts
+D	src/admin/pages/AIAnalyticsPage.jsx
+A	src/admin/pages/AIAnalyticsPage.tsx
+R052	src/admin/pages/AdminUsersPage.jsx	src/admin/pages/AdminUsersPage.tsx
+D	src/admin/pages/AuditLogsPage.jsx
+A	src/admin/pages/AuditLogsPage.tsx
+D	src/admin/pages/CampaignFunnelPage.jsx
+A	src/admin/pages/CampaignFunnelPage.tsx
+D	src/admin/pages/CampaignsPage.jsx
+A	src/admin/pages/CampaignsPage.tsx
+D	src/admin/pages/CreditsLedgerPage.jsx
+A	src/admin/pages/CreditsLedgerPage.tsx
+R079	src/admin/pages/DashboardPage.jsx	src/admin/pages/DashboardPage.tsx
+D	src/admin/pages/ErrorLogsPage.jsx
+A	src/admin/pages/ErrorLogsPage.tsx
+D	src/admin/pages/InfluencerConversionsPage.jsx
+D	src/admin/pages/InfluencerDashboardPage.css
+D	src/admin/pages/InfluencerDashboardPage.jsx
+D	src/admin/pages/InfluencerManagementPage.css
+D	src/admin/pages/InfluencerManagementPage.jsx
+D	src/admin/pages/InfluencerPayoutsPage.jsx
+D	src/admin/pages/InfluencerReferralsPage.jsx
+M	src/admin/pages/IssuesPage.css
+D	src/admin/pages/IssuesPage.jsx
+A	src/admin/pages/IssuesPage.tsx
+D	src/admin/pages/LoginPage.jsx
+A	src/admin/pages/LoginPage.tsx
+D	src/admin/pages/MilestonesPage.jsx
+A	src/admin/pages/MilestonesPage.tsx
+R050	src/admin/pages/NotFoundPage.jsx	src/admin/pages/NotFoundPage.tsx
+D	src/admin/pages/PasswordChangePage.jsx
+A	src/admin/pages/PasswordChangePage.tsx
+R081	src/admin/pages/PermissionsPage.jsx	src/admin/pages/PermissionsPage.tsx
+D	src/admin/pages/ReferralDashboardPage.jsx
+A	src/admin/pages/ReferralDashboardPage.tsx
+R062	src/admin/pages/SettingsPage.jsx	src/admin/pages/SettingsPage.tsx
+A	src/admin/pages/SubscriptionsPage.css
+A	src/admin/pages/SubscriptionsPage.tsx
+R050	src/admin/pages/SystemHealthPage.jsx	src/admin/pages/SystemHealthPage.tsx
+D	src/admin/pages/TotpSetupPage.jsx
+A	src/admin/pages/TotpSetupPage.tsx
+D	src/admin/pages/TotpVerifyPage.jsx
+A	src/admin/pages/TotpVerifyPage.tsx
+R053	src/admin/pages/UsersPage.jsx	src/admin/pages/UsersPage.tsx
+D	src/admin/providers/QueryProvider.jsx
+A	src/admin/providers/QueryProvider.tsx
+D	src/admin/providers/ThemeProvider.jsx
+A	src/admin/providers/ThemeProvider.tsx
+R063	src/admin/providers/queryClient.js	src/admin/providers/queryClient.ts
+D	src/admin/providers/useTheme.js
+A	src/admin/providers/useTheme.ts
+D	src/admin/router/PermissionGuard.jsx
+A	src/admin/router/PermissionGuard.tsx
+D	src/admin/router/ProtectedRoute.jsx
+A	src/admin/router/ProtectedRoute.tsx
+D	src/admin/router/index.jsx
+A	src/admin/router/index.tsx
+R052	src/admin/test/setup.js	src/admin/test/setup.ts
+D	src/admin/types/admin.js
+A	src/admin/types/admin.ts
+D	src/admin/types/api.js
+A	src/admin/types/api.ts
+D	src/admin/types/auth.js
+A	src/admin/types/auth.ts
+D	src/admin/types/dashboard.js
+A	src/admin/types/dashboard.ts
+D	src/admin/types/errorLogs.js
+A	src/admin/types/errorLogs.ts
+D	src/admin/types/index.js
+A	src/admin/types/index.ts
+D	src/admin/types/notification.js
+A	src/admin/types/notification.ts
+D	src/admin/types/permissions.js
+A	src/admin/types/permissions.ts
+D	src/admin/types/referral.js
+A	src/admin/types/referral.ts
+R054	src/admin/utils/cn.js	src/admin/utils/cn.ts
+D	src/admin/utils/currency.js
+A	src/admin/utils/currency.ts
+D	src/admin/utils/errorReporter.js
+A	src/admin/utils/errorReporter.ts
+D	src/admin/utils/format.js
+A	src/admin/utils/format.ts
+D	src/admin/utils/index.js
+A	src/admin/utils/index.ts
+D	src/audio/pcmWorklet.js
+M	src/auth/firebase.js
+M	src/components/Dashboard.css
+M	src/components/Dashboard.jsx
+M	src/components/InterviewPanel.jsx
+M	src/components/LandingPage.jsx
+M	src/components/Notetaker.jsx
+M	src/components/Referral/ReferralPage.css
+M	src/components/Referral/ReferralPage.jsx
+M	src/components/Upload.css
+M	src/components/Upload.jsx
+A	src/components/Usage/UsageRestrictionsPage.css
+A	src/components/Usage/UsageRestrictionsPage.jsx
+M	src/components/UserProfile/AccountDropdown.jsx
+M	src/components/UserProfile/Profile.css
+M	src/components/UserProfile/Profile.jsx
+M	src/components/VoiceAgent.css
+M	src/components/VoiceAgent.jsx
+A	src/components/common.zip
+A	src/components/common/CreditUsagePromptModal.css
+A	src/components/common/CreditUsagePromptModal.jsx
+M	src/components/common/HelpChatbot.css
+M	src/components/common/HelpChatbot.jsx
+D	src/components/common/Navbar.css
+D	src/components/common/Navbar.jsx
+D	src/components/common/TitleBar.css
+D	src/components/common/TitleBar.jsx
+A	src/components/subscription/CreditSubscriptionDiscount.jsx
+A	src/components/subscription/GlobalCurrencySelector.css
+A	src/components/subscription/GlobalCurrencySelector.jsx
+A	src/components/subscription/PaymentCheckoutModal.css
+A	src/components/subscription/PaymentCheckoutModal.jsx
+A	src/components/subscription/SubscriptionHistoryModal.css
+A	src/components/subscription/SubscriptionHistoryModal.jsx
+M	src/components/subscription/SubscriptionPage.css
+M	src/components/subscription/SubscriptionPage.jsx
+A	src/components/subscription/TopUpPlansSection.css
+A	src/components/subscription/TopUpPlansSection.jsx
+A	src/components/subscription/currencyData.js
+A	src/components/subscription/subscriptionPlansConfig.js
+A	src/components/subscription/topUpStore.js
+A	src/components/subscription/transactionHistoryStore.js
+D	src/config.js
+A	src/config/creditUsageConfig.js
+D	src/constants/languages.js
+D	src/context/AuthContext.jsx
+D	src/context/NavigationContext.jsx
+D	src/context/ThemeContext.jsx
+D	src/context/index.js
+M	src/index.css
+M	src/main.jsx
+D	src/services/electron.js
+D	src/services/reportExporter.js
+M	src/utils/api.js
+D	src/utils/audioUtils.js
+D	src/utils/errorClassifier.js
+D	src/utils/errorUtils.js
+D	src/utils/fileDownloader.js
+D	src/utils/routeUtils.js
+D	src/utils/textCleaner.js
+D	src/utils/useAsyncLock.js
+M	src/utils/validators.js
+M	src/utils/videoApi.js
+M	vite.config.js

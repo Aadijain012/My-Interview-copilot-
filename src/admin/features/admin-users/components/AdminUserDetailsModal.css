@@ -1,0 +1,49 @@
+.admin-details-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-4);
+  padding: var(--sp-2) 0;
+}
+
+.admin-details-modal__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.admin-details-modal__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-details-modal__value {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.admin-details-modal__value.mono {
+  font-family: var(--font-family-mono);
+  word-break: break-all;
+}
+
+.admin-details-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.admin-details-modal__actions-left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+@media (max-width: 600px) {
+  .admin-details-modal__grid {
+    grid-template-columns: 1fr;
+  }
+}

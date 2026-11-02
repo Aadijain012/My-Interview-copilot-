@@ -1,0 +1,10 @@
+/* ── Auth shell — minimal centered page wrapper ── */
+
+.auth-shell {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  padding: var(--sp-4);
+}

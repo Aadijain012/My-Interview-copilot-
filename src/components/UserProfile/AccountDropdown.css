@@ -1,0 +1,269 @@
+/* ==========================================================================
+   Account Dropdown Menu (Matching Reference)
+   ========================================================================== */
+
+.account-dropdown-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  overflow: visible !important;
+  z-index: 1001;
+  -webkit-app-region: no-drag;
+}
+
+.account-dropdown-arrow {
+  font-size: 9px;
+  margin-left: 3px;
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+  pointer-events: none;
+}
+
+.account-dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.account-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  padding: 6px 0;
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  animation: accountDropdownFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top right;
+  -webkit-app-region: no-drag;
+}
+
+@keyframes accountDropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.dark-theme .account-dropdown-menu,
+body.dark-theme .account-dropdown-menu {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 14px 28px -5px rgba(0, 0, 0, 0.6), 0 10px 12px -6px rgba(0, 0, 0, 0.4);
+}
+
+.account-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+  -webkit-app-region: no-drag;
+}
+
+.dark-theme .account-menu-item,
+body.dark-theme .account-menu-item {
+  color: #f1f5f9;
+}
+
+.account-menu-item:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.dark-theme .account-menu-item:hover,
+body.dark-theme .account-menu-item:hover {
+  background: #334155;
+  color: #ffffff;
+}
+
+.account-menu-icon {
+  font-size: 16px;
+  width: 18px;
+  text-align: center;
+  color: #4b5563;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.dark-theme .account-menu-icon,
+body.dark-theme .account-menu-icon {
+  color: #94a3b8;
+}
+
+.account-menu-item:hover .account-menu-icon {
+  color: #111827;
+}
+
+.dark-theme .account-menu-item:hover .account-menu-icon,
+body.dark-theme .account-menu-item:hover .account-menu-icon {
+  color: #ffffff;
+}
+
+.account-menu-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 4px 0;
+  width: 100%;
+}
+
+.dark-theme .account-menu-divider,
+body.dark-theme .account-menu-divider {
+  background: #334155;
+}
+
+/* Logout Item Styling (Matching Reference in Red) */
+.account-menu-item.account-menu-logout {
+  color: #ef4444;
+}
+
+.account-menu-item.account-menu-logout .account-menu-icon {
+  color: #ef4444;
+}
+
+.account-menu-item.account-menu-logout:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+}
+
+.account-menu-item.account-menu-logout:hover .account-menu-icon {
+  color: #dc2626;
+}
+
+.dark-theme .account-menu-item.account-menu-logout,
+body.dark-theme .account-menu-item.account-menu-logout {
+  color: #f87171;
+}
+
+.dark-theme .account-menu-item.account-menu-logout .account-menu-icon,
+body.dark-theme .account-menu-item.account-menu-logout .account-menu-icon {
+  color: #f87171;
+}
+
+.dark-theme .account-menu-item.account-menu-logout:hover,
+body.dark-theme .account-menu-item.account-menu-logout:hover {
+  background: rgba(248, 113, 113, 0.12);
+  color: #fca5a5;
+}
+
+.dark-theme .account-menu-item.account-menu-logout:hover .account-menu-icon,
+body.dark-theme .account-menu-item.account-menu-logout:hover .account-menu-icon {
+  color: #fca5a5;
+}
+
+/* ==========================================================================
+   Profile Trigger Button (Circular with Dynamic Credit Ring)
+   ========================================================================== */
+
+.setup-profile-circle-btn,
+.setup-logout-btn.setup-profile-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 50% !important;
+  background: #1e293b;
+  color: #ffffff;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  border: 2px solid #10b981;
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+}
+
+.setup-profile-circle-btn:hover,
+.setup-logout-btn.setup-profile-btn:hover {
+  transform: scale(1.06);
+}
+
+.setup-profile-initials {
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  pointer-events: none;
+  color: #ffffff;
+}
+
+/* Green Ring (> 50 credits) */
+.credit-ring-green {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25), 0 0 10px rgba(16, 185, 129, 0.4) !important;
+}
+.credit-ring-green:hover {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35), 0 0 14px rgba(16, 185, 129, 0.55) !important;
+}
+
+/* Yellow Ring (10 to 50 credits) */
+.credit-ring-yellow {
+  border-color: #eab308 !important;
+  box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.3), 0 0 10px rgba(234, 179, 8, 0.45) !important;
+}
+.credit-ring-yellow:hover {
+  box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.4), 0 0 14px rgba(234, 179, 8, 0.6) !important;
+}
+
+/* Red Ring (< 10 credits) */
+.credit-ring-red {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.35), 0 0 12px rgba(239, 68, 68, 0.55) !important;
+}
+.credit-ring-red:hover {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.45), 0 0 16px rgba(239, 68, 68, 0.7) !important;
+}
+
+/* Exclamation mark badge for < 10 credits */
+.profile-credit-badge-exclamation {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border: 2px solid #0f172a;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.85);
+  animation: pulseExclamation 2s infinite ease-in-out;
+}
+
+@keyframes pulseExclamation {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.85);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 1);
+  }
+}
+

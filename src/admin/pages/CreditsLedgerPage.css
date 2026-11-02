@@ -1,0 +1,19 @@
+.credits-ledger-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+.credits-ledger-page__header {
+  margin: 0;
+}
+.credits-ledger-page__title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.credits-ledger-page__subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: var(--sp-1) 0 0;
+}

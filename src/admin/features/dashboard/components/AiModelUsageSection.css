@@ -1,0 +1,112 @@
+.ai-model-card {
+  margin-bottom: var(--sp-6);
+}
+
+.ai-model-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.ai-model-bar {
+  display: flex;
+  height: 12px;
+  width: 100%;
+  border-radius: var(--radius-full, 9999px);
+  overflow: hidden;
+  background-color: var(--color-bg-subtle, rgba(255, 255, 255, 0.05));
+  gap: 2px;
+}
+
+.ai-model-bar__segment {
+  height: 100%;
+  transition: width 0.3s ease;
+  min-width: 4px;
+}
+
+.ai-model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sp-3);
+}
+
+.ai-model-item {
+  padding: var(--sp-3);
+  background-color: var(--color-bg-subtle, rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.ai-model-item--loading {
+  gap: var(--sp-2);
+}
+
+.ai-model-item__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.ai-model-item__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.ai-model-item__color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ai-model-item__name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-model-item__stats {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: var(--sp-1);
+  border-top: 1px dashed var(--color-border);
+}
+
+.ai-model-item__count {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-model-item__unit {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-muted);
+}
+
+.ai-model-item__percentage {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-model-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.ai-model-skeleton__bar {
+  border-radius: var(--radius-full, 9999px);
+}
+

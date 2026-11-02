@@ -1,0 +1,62 @@
+.audit-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.audit-toolbar__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.audit-toolbar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.audit-toolbar__label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.audit-toolbar__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.audit-toolbar__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.audit-toolbar__count {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.audit-toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .audit-toolbar__grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,40 @@
+.settings-section {
+  margin-bottom: 24px;
+}
+
+.settings-section__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 4px 0;
+}
+
+.settings-section__subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.account-settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.account-settings-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.input--readonly {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  font-family: var(--font-mono);
+}
+
+.account-settings-form__footer {
+  display: flex;
+  justify-content: flex-end;
+}

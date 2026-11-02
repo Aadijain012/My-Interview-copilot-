@@ -1,0 +1,80 @@
+/* ─── Topbar ───────────────────────────────────────────────────────────────── */
+
+.topbar {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  height: var(--topbar-height);
+  background: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
+  z-index: var(--z-topbar);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--sp-5);
+  gap: var(--sp-3);
+  transition: left var(--transition-base), background var(--transition-base), border-color var(--transition-base);
+}
+
+.topbar--collapsed {
+  left: var(--sidebar-collapsed-width);
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    left: 0 !important;
+    padding: 0 var(--sp-4);
+  }
+}
+
+/* ── Mobile hamburger ── */
+.topbar .topbar__menu-btn,
+button.topbar__menu-btn {
+  /* Extends .icon-btn .icon-btn--md — strictly hidden on desktop screens (>768px) */
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .topbar .topbar__menu-btn,
+  button.topbar__menu-btn {
+    display: inline-flex;
+  }
+}
+
+/* ── Page title ── */
+.topbar__title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar__title {
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Right actions cluster ── */
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+/* ── Notification bell: handled by NotificationPopover ── */
+
+/* ── Divider between action groups ── */
+.topbar__divider {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border);
+  flex-shrink: 0;
+  margin: 0 var(--sp-1);
+}
+
+@media (max-width: 640px) {
+  .topbar__divider { display: none; }
+}

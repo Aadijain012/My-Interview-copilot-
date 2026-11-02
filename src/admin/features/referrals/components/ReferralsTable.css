@@ -1,0 +1,26 @@
+.referrals-table-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.referrals-table__user {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.referrals-table__user-name {
+  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+}
+.referrals-table__user-email {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+}
+.referrals-table__actions {
+  display: flex;
+  gap: var(--sp-2);
+  justify-content: flex-end;
+}

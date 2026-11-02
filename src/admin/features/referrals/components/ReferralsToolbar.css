@@ -1,0 +1,28 @@
+.referrals-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+.referrals-toolbar__left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: 1;
+  min-width: 0;
+}
+.referrals-toolbar__left .input-wrapper,
+.referrals-toolbar__left input {
+  max-width: 280px;
+}
+.referrals-toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.referrals-toolbar__count {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}

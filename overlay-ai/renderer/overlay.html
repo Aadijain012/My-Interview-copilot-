@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <title>AI Assistant</title>
+  <link rel="stylesheet" href="overlay.css">
+</head>
+<body>
+  <div class="overlay-panel">
+    <h1 class="title">AI Assistant</h1>
+    <p class="status" id="status">Listening...</p>
+    <div class="transcript-section">
+      <p class="transcript-label">Transcript:</p>
+      <p class="transcript" id="transcript"><span class="placeholder">Waiting for speech...</span></p>
+    </div>
+  </div>
+  <script src="overlay.js"></script>
+</body>
+</html>

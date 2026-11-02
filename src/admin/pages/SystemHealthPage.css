@@ -1,0 +1,155 @@
+.health-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.health-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.health-page__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+}
+
+.health-page__subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #64748b);
+}
+
+.health-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.health-banner--healthy {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.health-banner--degraded {
+  background: #fefce8;
+  border-color: #fef08a;
+  color: #854d0e;
+}
+
+.health-banner--down {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.health-banner__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.health-banner__desc {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+}
+
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.health-card {
+  background: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.health-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.health-card__name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #0f172a);
+  margin: 0;
+}
+
+.health-card__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.health-card__badge--healthy { background: #dcfce7; color: #15803d; }
+.health-card__badge--degraded { background: #fef9c3; color: #a16207; }
+.health-card__badge--down { background: #fee2e2; color: #b91c1c; }
+
+.health-card__latency {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+}
+
+.health-card__message {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #64748b);
+  margin: 0;
+}
+
+.health-system-info {
+  background: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.health-system-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.health-system-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.health-system-item__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--color-text-secondary, #64748b);
+  font-weight: 600;
+}
+
+.health-system-item__value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #0f172a);
+}
+

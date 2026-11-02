@@ -1,0 +1,60 @@
+.admin-table-card {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.admin-table__user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.admin-table__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.admin-table__user-name {
+  font-weight: var(--font-weight-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.admin-table__self-tag {
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+  font-weight: var(--font-weight-normal);
+}
+
+.admin-table__no-name {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.admin-table__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-1);
+}
+
+.admin-table__btn-delete:hover {
+  color: var(--color-danger);
+}
+
+.admin-table__pagination {
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--color-border);
+}

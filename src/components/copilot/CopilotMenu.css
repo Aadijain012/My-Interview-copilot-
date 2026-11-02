@@ -1,0 +1,1492 @@
+/* =========================================================================
+   AI Copilot: menu button, menu (sidebar on wide screens, drawer on narrow
+   ones), Settings panel, and the layout fixes the Copilot screens need for
+   them. The menu button, the menu and its parts are shared with the
+   Notetaker, Voice Agent and Uploads menus (.tool-menu-root, laid out in
+   ../menu/ToolMenu.css); the Copilot layout rules stay scoped to the Copilot
+   (.interview-panel-root.copilot-root).
+   ========================================================================= */
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) {
+  --cm-top: 110px; /* window title bar (38px) + navbar (72px) */
+  --cm-width: 280px;
+  --cm-blue: #2f63e6;
+  --cm-blue-strong: #1d4ed8;
+  --cm-blue-soft: #edf2fe;
+  --cm-ink: #0f172a;
+  --cm-text: #1e293b;
+  --cm-muted: #64748b;
+  --cm-line: #e2e8f0;
+  --cm-surface: #ffffff;
+  --cm-tile: #f6f8fb;
+  --cm-hover: #f1f5fb;
+  --cm-font: 'Poppins', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) {
+  --cm-blue: #7b9cf7;
+  --cm-blue-strong: #a9bdfb;
+  --cm-blue-soft: rgba(123, 156, 247, 0.16);
+  --cm-ink: #f8fafc;
+  --cm-text: #e2e8f0;
+  --cm-muted: #94a3b8;
+  --cm-line: #1c2a42;
+  --cm-surface: #0b1322;
+  --cm-tile: rgba(255, 255, 255, 0.04);
+  --cm-hover: rgba(255, 255, 255, 0.06);
+}
+
+/* ---------------------------------------------------------------- navbar */
+.interview-panel-root.copilot-root .setup-navbar {
+  gap: 14px;
+}
+
+.interview-panel-root.copilot-root .setup-navbar-left {
+  gap: 14px;
+}
+
+/* The tabs share the space that is left; when the window is too narrow they
+   scroll instead of pushing the account menu off screen. */
+.interview-panel-root.copilot-root .setup-navbar .setup-navbar-tabs {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.interview-panel-root.copilot-root .setup-navbar .setup-navbar-tabs > :first-child {
+  margin-left: auto;
+}
+
+.interview-panel-root.copilot-root .setup-navbar .setup-navbar-tabs > :last-child {
+  margin-right: auto;
+}
+
+/* The setup page scrolls; its navbar stays on top so the menu button and the
+   logo are always within reach (and its account menu opens above the menu). */
+.interview-panel-root.copilot-root .setup-overlay > .setup-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1200;
+}
+
+/* Menu button: three lines. */
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-toggle {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0;
+  border: 1px solid var(--cm-line);
+  border-radius: 12px;
+  background: var(--cm-surface);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: #334155;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-toggle:hover {
+  background: var(--cm-hover);
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-toggle.is-open {
+  border-color: transparent;
+  background: var(--cm-blue-soft);
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-toggle.is-open span {
+  background: var(--cm-blue);
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-toggle:focus-visible,
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu :focus-visible,
+.copilot-settings :focus-visible {
+  outline: 3px solid var(--cm-blue, #2f63e6);
+  outline-offset: 2px;
+}
+
+body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-toggle {
+  border-color: #2b3242;
+  background: #1c1f26;
+}
+
+body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-toggle span {
+  background: #e5e7eb;
+}
+
+body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-toggle.is-open {
+  background: var(--cm-blue-soft);
+}
+
+body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-toggle.is-open span {
+  background: var(--cm-blue);
+}
+
+/* ------------------------------------------------- docked sidebar layout */
+.interview-panel-root.copilot-root .app-shell,
+.interview-panel-root.copilot-root .setup-overlay {
+  transition: padding-left 0.2s ease;
+}
+
+.interview-panel-root.copilot-root .app-shell > .setup-navbar,
+.interview-panel-root.copilot-root .setup-overlay > .setup-navbar {
+  transition: margin-left 0.2s ease, width 0.2s ease;
+}
+
+.interview-panel-root.copilot-root.copilot-menu-docked .app-shell,
+.interview-panel-root.copilot-root.copilot-menu-docked .setup-overlay {
+  padding-left: var(--cm-width);
+}
+
+/* The navbar keeps the full width above the sidebar. */
+.interview-panel-root.copilot-root.copilot-menu-docked .app-shell > .setup-navbar,
+.interview-panel-root.copilot-root.copilot-menu-docked .setup-overlay > .setup-navbar {
+  align-self: flex-start;
+  width: calc(100% + var(--cm-width));
+  margin-left: calc(-1 * var(--cm-width));
+}
+
+.interview-panel-root.copilot-root.copilot-menu-docked .session-main-grid {
+  grid-template-columns: minmax(260px, 0.75fr) 1fr 1fr !important;
+}
+
+/* "Show Answer B" off: two columns, no empty third one. */
+.interview-panel-root.copilot-root .session-main-grid.is-single-answer {
+  grid-template-columns: 480px 1fr !important;
+}
+
+.interview-panel-root.copilot-root.copilot-menu-docked .session-main-grid.is-single-answer {
+  grid-template-columns: minmax(260px, 0.75fr) 1fr !important;
+}
+
+/* The session toolbar scrolls inside its own space, so the timer, Start/Stop
+   recording, Mic and settings stay visible at every window width. */
+.interview-panel-root.copilot-root .session-subheader-row .subheader-middle {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 3px 2px;
+  scrollbar-width: thin;
+}
+
+.interview-panel-root.copilot-root .session-subheader-row .subheader-middle::-webkit-scrollbar-thumb,
+.interview-panel-root.copilot-root .setup-navbar .setup-navbar-tabs::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.18);
+}
+
+body.dark-theme .interview-panel-root.copilot-root .session-subheader-row .subheader-middle::-webkit-scrollbar-thumb,
+body.dark-theme .interview-panel-root.copilot-root .setup-navbar .setup-navbar-tabs::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ------------------------------------------------------------------ menu */
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu {
+  position: fixed;
+  top: var(--cm-top);
+  bottom: 0;
+  left: 0;
+  z-index: 1100;
+  width: var(--cm-width);
+  display: flex;
+  flex-direction: column;
+  background: var(--cm-surface);
+  border-right: 1px solid var(--cm-line);
+  color: var(--cm-text);
+  font-family: var(--font-primary, 'Inter', system-ui, sans-serif);
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition: transform 0.2s ease, visibility 0s linear 0.2s;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu.is-open {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.2s ease;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu.is-drawer {
+  width: min(320px, 86vw);
+  box-shadow: 16px 0 40px rgba(15, 23, 42, 0.18);
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-backdrop {
+  position: fixed;
+  top: var(--cm-top);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1090;
+  background: rgba(15, 23, 42, 0.34);
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-scroll::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.16);
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-new {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--cm-blue);
+  color: #ffffff;
+  font-family: var(--cm-font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(47, 99, 230, 0.22);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-new {
+  background: #2f63e6;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-new:hover:not(:disabled) {
+  background: var(--cm-blue-strong);
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-new:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-note {
+  margin: -8px 4px 0;
+  color: var(--cm-muted);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-note--leave {
+  margin: 0 4px 8px;
+  color: #b45309;
+}
+
+body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-note--leave {
+  color: #fbbf24;
+}
+
+/* Recording, with a Stop button that is always at hand. */
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-recording {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  background: #fef2f2;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-recording-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-rec-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.18);
+  animation: copilot-rec-pulse 1.4s ease-in-out infinite;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-rec-time {
+  margin-left: auto;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-stop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-stop:hover {
+  background: #b91c1c;
+}
+
+body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-recording {
+  border-color: rgba(248, 113, 113, 0.35);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-recording-row {
+  color: #fca5a5;
+}
+
+@keyframes copilot-rec-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-section + .copilot-menu-section {
+  padding-top: 14px;
+  border-top: 1px solid var(--cm-line);
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 4px 4px;
+  color: var(--cm-muted);
+  font-family: var(--font-primary, 'Inter', system-ui, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 6px;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-count {
+  min-width: 18px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--cm-blue-soft);
+  color: var(--cm-blue);
+  font-size: 10.5px;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 4px;
+  color: var(--cm-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-item,
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-session,
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-question {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--cm-text);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-item > i:first-child,
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-session > i {
+  width: 18px;
+  color: var(--cm-blue);
+  font-size: 14px;
+  text-align: center;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-item-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-item-go {
+  color: var(--cm-muted);
+  font-size: 11px;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-item:hover:not(:disabled),
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-session:hover:not(:disabled),
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-question:hover {
+  background: var(--cm-hover);
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-item:disabled,
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-session:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-session {
+  align-items: flex-start;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-session > i {
+  margin-top: 2px;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-session-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-session-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--cm-ink);
+  font-size: 13px;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-session-meta {
+  color: var(--cm-muted);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-session.is-current,
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-question.is-current {
+  background: var(--cm-blue-soft);
+  box-shadow: inset 3px 0 0 var(--cm-blue);
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-question {
+  align-items: flex-start;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-question-no {
+  flex: 0 0 auto;
+  min-width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--cm-tile);
+  color: var(--cm-blue);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-question-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.4;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-link {
+  align-self: flex-start;
+  margin: 4px 4px 0;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--cm-blue);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-link:hover {
+  text-decoration: underline;
+}
+
+/* Try again while a load is under way. */
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-link[aria-disabled='true'] {
+  opacity: 0.65;
+  cursor: default;
+  text-decoration: none;
+}
+
+/* A refresh failed: the list shown is the one loaded before. */
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-stale {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  margin: 0 0 6px;
+  padding: 7px 10px;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-stale i {
+  margin-right: 3px;
+  color: #d97706;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-stale .copilot-menu-link {
+  align-self: center;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+}
+
+body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-stale {
+  border-color: rgba(251, 191, 36, 0.3);
+  background: rgba(251, 191, 36, 0.08);
+  color: #fcd34d;
+}
+
+body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-stale i {
+  color: #fbbf24;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-account {
+  flex: 0 0 auto;
+  padding: 12px;
+  border-top: 1px solid var(--cm-line);
+  background: var(--cm-surface);
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 6px;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-avatar,
+.copilot-settings-avatar {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3665e4 0%, #7c4ddb 100%);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-user-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-user-name,
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-user-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-user-name {
+  color: var(--cm-ink);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-user-email {
+  color: var(--cm-muted);
+  font-size: 12px;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-account-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* -------------------------------------------------------------- Settings */
+.copilot-settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.46);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Out of the way (not closed) while the save dialog that follows Stop is up. */
+.copilot-settings-overlay[hidden] {
+  display: none;
+}
+
+.copilot-settings {
+  --cs-blue: #2563eb;
+  --cs-blue-soft: #eef3fe;
+  --cs-ink: #0f172a;
+  --cs-muted: #64748b;
+  --cs-line: #e5e9f0;
+  --cs-surface: #ffffff;
+  --cs-tile: #f6f8fb;
+  --cm-blue: #2563eb;
+  position: relative;
+  width: min(680px, 100%);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 28px;
+  background: var(--cs-surface);
+  color: var(--cs-ink);
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.3);
+  font-family: var(--font-primary, 'Inter', system-ui, sans-serif);
+  text-align: left;
+}
+
+/* The blue accent along the top edge. */
+.copilot-settings::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #3b82f6, #2563eb 55%, #1d4ed8);
+}
+
+body.dark-theme .copilot-settings {
+  --cs-blue: #7b9cf7;
+  --cs-blue-soft: rgba(123, 156, 247, 0.16);
+  --cs-ink: #f8fafc;
+  --cs-muted: #94a3b8;
+  --cs-line: #1c2a42;
+  --cs-surface: #0b1322;
+  --cs-tile: rgba(255, 255, 255, 0.05);
+  --cm-blue: #7b9cf7;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+
+.copilot-settings-x {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--cs-ink);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.copilot-settings-x:hover {
+  background: var(--cs-tile);
+}
+
+.copilot-settings-head {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 34px 80px 22px 36px;
+  border-bottom: 1px solid var(--cs-line);
+}
+
+.copilot-settings-icon {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: #eef2f8;
+  color: var(--cs-blue);
+  font-size: 28px;
+}
+
+body.dark-theme .copilot-settings-icon {
+  background: rgba(123, 156, 247, 0.12);
+}
+
+.copilot-settings-head h2 {
+  margin: 0;
+  color: var(--cs-ink);
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.copilot-settings-head h2:focus {
+  outline: none;
+}
+
+.copilot-settings-head p {
+  margin: 4px 0 0;
+  color: var(--cs-muted);
+  font-size: 16px;
+}
+
+.copilot-settings-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 36px;
+}
+
+.copilot-settings-body::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.18);
+}
+
+.copilot-settings-section {
+  padding: 22px 0;
+}
+
+.copilot-settings-section + .copilot-settings-section {
+  border-top: 1px solid var(--cs-line);
+}
+
+.copilot-settings-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  color: var(--cs-ink);
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.copilot-settings-section-title i {
+  color: var(--cs-blue);
+  font-size: 17px;
+}
+
+.copilot-settings-note {
+  margin: -6px 0 6px;
+  color: var(--cs-muted);
+  font-size: 13px;
+}
+
+.copilot-settings-account {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.copilot-settings-account-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.copilot-settings-account-name,
+.copilot-settings-account-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copilot-settings-account-name {
+  color: var(--cs-ink);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.copilot-settings-account-email {
+  color: var(--cs-muted);
+  font-size: 14px;
+}
+
+.copilot-settings-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--cs-line);
+  border-radius: 10px;
+  color: #047857;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+body.dark-theme .copilot-settings-badge {
+  color: #6ee7b7;
+}
+
+.copilot-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 0;
+}
+
+.copilot-settings-row--stack {
+  flex-wrap: wrap;
+}
+
+.copilot-settings-row-text {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.copilot-settings-row-title {
+  color: var(--cs-ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.copilot-settings-row-detail {
+  color: var(--cs-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Switch, as in the design reference. */
+.copilot-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #e2e8f0;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.copilot-switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+  transition: transform 0.15s ease;
+}
+
+.copilot-switch.is-on {
+  background: var(--cs-blue);
+}
+
+.copilot-switch.is-on .copilot-switch-knob {
+  transform: translateX(20px);
+}
+
+body.dark-theme .copilot-switch:not(.is-on) {
+  background: #334155;
+}
+
+.copilot-segmented {
+  flex: 0 0 auto;
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--cs-line);
+  border-radius: 999px;
+  background: var(--cs-tile);
+}
+
+.copilot-segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--cs-muted);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.copilot-segmented button.is-on {
+  background: var(--cs-surface);
+  color: var(--cs-blue);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+
+.copilot-font {
+  flex: 1 1 220px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.copilot-font input[type='range'] {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--cs-blue) 0%, var(--cs-blue) var(--pct), #dbe3ee var(--pct), #dbe3ee 100%);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.copilot-font input[type='range']::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--cs-blue);
+  border-radius: 50%;
+  background: #ffffff;
+  -webkit-appearance: none;
+}
+
+.copilot-font input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 3px solid var(--cs-blue);
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.copilot-font-value {
+  min-width: 44px;
+  color: var(--cs-ink);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.copilot-font-preview {
+  flex: 1 0 100%;
+  margin: 2px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--cs-tile);
+  color: var(--cs-ink);
+  line-height: 1.45;
+}
+
+.copilot-settings-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--cs-muted);
+  font-size: 14px;
+}
+
+.copilot-settings .copilot-menu-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--cs-blue);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.copilot-usage {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 12px;
+}
+
+.copilot-usage > div {
+  padding: 14px 16px;
+  border: 1px solid var(--cs-line);
+  border-radius: 16px;
+  background: var(--cs-tile);
+}
+
+.copilot-usage dt {
+  color: var(--cs-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.copilot-usage dd {
+  margin: 4px 0 0;
+  color: var(--cs-ink);
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.copilot-settings-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px 36px 24px;
+  border-top: 1px solid var(--cs-line);
+}
+
+.copilot-settings-save {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.copilot-settings-status {
+  color: var(--cs-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.copilot-settings-status.is-pending {
+  color: #b45309;
+}
+
+.copilot-settings-status.is-saved {
+  color: #047857;
+}
+
+body.dark-theme .copilot-settings-status.is-pending {
+  color: #fbbf24;
+}
+
+body.dark-theme .copilot-settings-status.is-saved {
+  color: #6ee7b7;
+}
+
+.copilot-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-family: var(--font-primary, 'Inter', system-ui, sans-serif);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.copilot-btn--ghost {
+  border: 1px solid var(--cs-line);
+  background: var(--cs-tile);
+  color: var(--cs-ink);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.copilot-btn--ghost:hover {
+  background: var(--cs-line);
+}
+
+.copilot-btn--primary {
+  border: 0;
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+}
+
+.copilot-btn--primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.copilot-btn--primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.copilot-btn--danger {
+  border: 0;
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.copilot-btn--danger:hover {
+  background: #b91c1c;
+}
+
+.copilot-settings-discard {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--cs-ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.copilot-settings-discard > div {
+  display: flex;
+  gap: 10px;
+}
+
+/* Recording: status and Stop under the heading, outside the scrolling part,
+   so they stay in view. */
+.copilot-settings-rec {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin: 16px 36px 0;
+  padding: 10px 10px 10px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 16px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.copilot-settings-rec-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.copilot-settings-rec-time {
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.copilot-settings-rec--starting {
+  padding: 12px 16px;
+  border-color: var(--cs-line);
+  background: var(--cs-tile);
+  color: var(--cs-muted);
+  font-weight: 600;
+}
+
+.copilot-settings-stop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  margin-left: auto;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #ffffff;
+  font-family: var(--font-primary, 'Inter', system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.copilot-settings-stop:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.copilot-settings-stop:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.copilot-settings-stop:focus-visible {
+  outline: 3px solid rgba(220, 38, 38, 0.45);
+  outline-offset: 2px;
+}
+
+body.dark-theme .copilot-settings-rec {
+  border-color: rgba(248, 113, 113, 0.35);
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+}
+
+body.dark-theme .copilot-settings-rec--starting {
+  border-color: var(--cs-line);
+  background: var(--cs-tile);
+  color: var(--cs-muted);
+}
+
+/* A refresh failed: the usage shown is from the sessions loaded before. */
+.copilot-settings-stale {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.copilot-settings-stale i {
+  margin-right: 4px;
+  color: #d97706;
+}
+
+.interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-settings-stale .copilot-menu-link {
+  align-self: center;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+}
+
+body.dark-theme .copilot-settings-stale {
+  border-color: rgba(251, 191, 36, 0.3);
+  background: rgba(251, 191, 36, 0.08);
+  color: #fcd34d;
+}
+
+body.dark-theme .copilot-settings-stale i {
+  color: #fbbf24;
+}
+
+/* The page's status line sits beside the sidebar, not under it. */
+.interview-panel-root.copilot-root.copilot-menu-docked #statusMsg {
+  left: calc(var(--cm-width) + 20px);
+}
+
+/* ------------------------------------------------------- narrow screens */
+/* Where the navbar cannot fit everything, the "coming soon" tabs give way
+   first; the working ones (Workspace, History) stay. */
+@media (max-width: 1599px) {
+  .interview-panel-root.copilot-root .setup-navbar .setup-tab-item--soon {
+    display: none;
+  }
+}
+
+@media (max-width: 1279px) {
+  .interview-panel-root.copilot-root .setup-navbar .setup-navbar-tabs {
+    display: none;
+  }
+
+  .interview-panel-root.copilot-root .setup-navbar {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 900px) {
+  .interview-panel-root.copilot-root .setup-navbar {
+    padding: 0 14px;
+  }
+
+  /* Phone and small tablet: menu, logo, theme and account remain visible; the
+     Workspace (logo) and the menu cover the rest. */
+  .interview-panel-root.copilot-root .setup-navbar-right > :not(.account-dropdown-container):not(.theme-toggle) {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .interview-panel-root.copilot-root .setup-navbar-home--brand {
+    font-size: 17px;
+  }
+
+  .interview-panel-root.copilot-root .session-subheader-row {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .interview-panel-root.copilot-root .session-subheader-row .subheader-left {
+    order: 1;
+  }
+
+  .interview-panel-root.copilot-root .session-subheader-row .subheader-right {
+    order: 2;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  .interview-panel-root.copilot-root .session-subheader-row .subheader-middle {
+    order: 3;
+    flex: 1 0 100%;
+  }
+
+  .interview-panel-root.copilot-root .session-main-grid,
+  .interview-panel-root.copilot-root .session-main-grid.is-single-answer {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-rows: minmax(360px, auto);
+    gap: 14px;
+    padding: 12px;
+  }
+
+  .interview-panel-root.copilot-root .setup-layout-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+    padding: 0 14px;
+  }
+
+  /* The success-story columns beside the setup card are left out on phones. */
+  .interview-panel-root.copilot-root .setup-layout-grid > .setup-column {
+    display: none;
+  }
+
+  .interview-panel-root.copilot-root .setup-subheader-row {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+
+  .copilot-settings-overlay {
+    align-items: flex-end;
+    padding: 12px 8px 0;
+  }
+
+  .copilot-settings {
+    max-height: calc(100vh - 12px);
+    border-radius: 24px 24px 0 0;
+  }
+
+  .copilot-settings-head {
+    gap: 14px;
+    padding: 26px 64px 16px 20px;
+  }
+
+  .copilot-settings-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    font-size: 22px;
+  }
+
+  .copilot-settings-head h2 {
+    font-size: 26px;
+  }
+
+  .copilot-settings-head p {
+    font-size: 14px;
+  }
+
+  .copilot-settings-x {
+    top: 18px;
+    right: 14px;
+  }
+
+  .copilot-settings-body {
+    padding: 0 20px;
+  }
+
+  /* Recording: status on one line, a full-width Stop under it. */
+  .copilot-settings-rec {
+    margin: 12px 20px 0;
+  }
+
+  .copilot-settings-stop {
+    flex: 1 1 100%;
+    min-height: 44px;
+  }
+
+  .copilot-settings-section-title {
+    font-size: 17px;
+  }
+
+  .copilot-settings-account {
+    flex-wrap: wrap;
+  }
+
+  /* The full email address first; "Signed in" goes below it when needed. */
+  .copilot-settings-account-text {
+    flex: 1 1 210px;
+  }
+
+  .copilot-usage {
+    gap: 8px;
+  }
+
+  .copilot-usage > div {
+    padding: 10px 12px;
+  }
+
+  .copilot-usage dd {
+    font-size: 19px;
+  }
+
+  .copilot-settings-foot {
+    flex-wrap: wrap;
+    padding: 14px 20px 20px;
+  }
+
+  .copilot-settings-save {
+    flex: 1;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .copilot-btn {
+    min-height: 44px;
+    padding: 0 18px;
+    font-size: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu,
+  .interview-panel-root.copilot-root .app-shell,
+  .interview-panel-root.copilot-root .setup-overlay,
+  .interview-panel-root.copilot-root .app-shell > .setup-navbar,
+  .interview-panel-root.copilot-root .setup-overlay > .setup-navbar,
+  .copilot-switch,
+  .copilot-switch-knob {
+    transition: none;
+  }
+
+  .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilot-menu-rec-dot {
+    animation: none;
+  }
+}

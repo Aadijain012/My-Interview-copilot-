@@ -1,0 +1,32 @@
+.campaign-funnel-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+.campaign-funnel-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+.campaign-funnel-page__title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.campaign-funnel-page__subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: var(--sp-1) 0 0;
+}
+.campaign-funnel-page__selector select {
+  max-width: 320px;
+}
+.campaign-funnel-page__placeholder {
+  text-align: center;
+  padding: var(--sp-12);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}

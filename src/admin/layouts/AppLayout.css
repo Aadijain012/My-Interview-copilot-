@@ -1,0 +1,45 @@
+/* ─── AppLayout ────────────────────────────────────────────────────────────── */
+
+.app-shell {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.app-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  /* shifts right to clear the fixed sidebar */
+  margin-left: var(--sidebar-width);
+  transition: margin-left var(--transition-base);
+}
+
+.app-content--collapsed {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+@media (max-width: 768px) {
+  .app-content {
+    margin-left: 0 !important;
+  }
+}
+
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--sp-6);
+  /* top padding accounts for the fixed topbar */
+  padding-top: calc(var(--topbar-height) + var(--sp-6));
+}
+
+@media (max-width: 640px) {
+  .app-main {
+    padding: var(--sp-4);
+    padding-top: calc(var(--topbar-height) + var(--sp-4));
+  }
+}
+

@@ -1,0 +1,723 @@
+/* =========================================================================
+   Notetaker, Voice Agent and Uploads menus. The menu button, the menu and
+   its parts use the AI Copilot menu styles (../copilot/CopilotMenu.css,
+   shared through .tool-menu-root); this file places them on each tool's
+   page and adds what those pages need. Everything is scoped to
+   .interview-panel-root.tool-menu-root (and the Settings panel); the AI
+   Copilot is not affected.
+   ========================================================================= */
+
+/* ---------------------------------------------------------------- navbar */
+/* Above the menu, so the account menu opens over it. */
+.interview-panel-root.tool-menu-root > .setup-navbar {
+  position: relative;
+  z-index: 1200;
+  gap: 14px;
+}
+
+.interview-panel-root.tool-menu-root .setup-navbar-left {
+  gap: 14px;
+}
+
+/* The tabs share the space that is left; when the window is too narrow they
+   scroll instead of pushing the account menu off screen. */
+.interview-panel-root.tool-menu-root .setup-navbar .setup-navbar-tabs {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.interview-panel-root.tool-menu-root .setup-navbar .setup-navbar-tabs > :first-child {
+  margin-left: auto;
+}
+
+.interview-panel-root.tool-menu-root .setup-navbar .setup-navbar-tabs > :last-child {
+  margin-right: auto;
+}
+
+.interview-panel-root.tool-menu-root .setup-navbar .setup-navbar-tabs::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.18);
+}
+
+body.dark-theme .interview-panel-root.tool-menu-root .setup-navbar .setup-navbar-tabs::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Notetaker: the page scrolls; its navbar stays on top, under the window
+   title bar (the page's top padding), so the menu button and the logo are
+   always within reach. */
+.interview-panel-root.notetaker-root.tool-menu-root > .setup-navbar {
+  position: sticky;
+  top: 0;
+}
+
+/* Notetaker: beside the menu the results card is narrower; its tabs keep
+   their one-line labels and move under the title when there is no room. */
+.interview-panel-root.notetaker-root.tool-menu-root .notetaker-card-header-main {
+  flex-wrap: wrap;
+  row-gap: 12px;
+}
+
+.interview-panel-root.notetaker-root.tool-menu-root .notetaker-header-tab-btn {
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- menu parts */
+.interview-panel-root.tool-menu-root .copilot-menu-item.is-current {
+  background: var(--cm-blue-soft);
+  box-shadow: inset 3px 0 0 var(--cm-blue);
+}
+
+.interview-panel-root.tool-menu-root .copilot-menu-item .copilot-menu-count {
+  margin-left: auto;
+}
+
+.interview-panel-root.tool-menu-root .copilot-menu-note--list {
+  margin: 0 4px 6px;
+}
+
+.interview-panel-root.tool-menu-root .tool-menu-file-name {
+  margin: -2px 4px 2px;
+  overflow: hidden;
+  color: var(--cm-ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A recording or a conversation in progress, with its controls at hand. */
+.interview-panel-root.tool-menu-root .tool-menu-live-flag {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(185, 28, 28, 0.1);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.interview-panel-root.tool-menu-root .copilot-menu-recording.is-paused .copilot-menu-rec-dot,
+.copilot-settings-rec.is-paused .copilot-menu-rec-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
+  animation: none;
+}
+
+/* A stopped recording waiting for its save choice: nothing is live, so it
+   is shown in the menu's own colours rather than recording red. */
+.interview-panel-root.tool-menu-root .copilot-menu-recording.is-stopped,
+body.dark-theme .interview-panel-root.tool-menu-root .copilot-menu-recording.is-stopped {
+  border-color: var(--cm-line);
+  background: var(--cm-blue-soft);
+}
+
+.interview-panel-root.tool-menu-root .copilot-menu-recording.is-stopped .copilot-menu-recording-row,
+body.dark-theme .interview-panel-root.tool-menu-root .copilot-menu-recording.is-stopped .copilot-menu-recording-row {
+  color: var(--cm-ink);
+}
+
+.interview-panel-root.tool-menu-root .copilot-menu-recording.is-stopped .copilot-menu-rec-dot,
+.copilot-settings-rec.is-stopped .copilot-menu-rec-dot {
+  background: #64748b;
+  box-shadow: 0 0 0 4px rgba(100, 116, 139, 0.18);
+  animation: none;
+}
+
+.interview-panel-root.tool-menu-root .copilot-menu-recording.is-stopped .tool-menu-live-btn,
+body.dark-theme .interview-panel-root.tool-menu-root .copilot-menu-recording.is-stopped .tool-menu-live-btn {
+  border-color: var(--cm-blue);
+  background: var(--cm-surface);
+  color: var(--cm-blue);
+}
+
+.interview-panel-root.tool-menu-root .copilot-menu-recording.is-stopped .tool-menu-live-btn:hover:not(:disabled),
+body.dark-theme .interview-panel-root.tool-menu-root .copilot-menu-recording.is-stopped .tool-menu-live-btn:hover:not(:disabled) {
+  background: var(--cm-blue-soft);
+}
+
+.copilot-settings-rec.is-stopped,
+body.dark-theme .copilot-settings-rec.is-stopped {
+  border-color: var(--cs-line);
+  background: var(--cs-tile);
+  color: var(--cs-ink);
+}
+
+.copilot-settings-rec.is-stopped .tool-settings-bar-btn,
+body.dark-theme .copilot-settings-rec.is-stopped .tool-settings-bar-btn {
+  border-color: var(--cs-blue);
+  background: transparent;
+  color: var(--cs-blue);
+}
+
+.copilot-settings-rec.is-stopped .tool-settings-bar-btn:hover:not(:disabled),
+body.dark-theme .copilot-settings-rec.is-stopped .tool-settings-bar-btn:hover:not(:disabled) {
+  background: rgba(47, 99, 230, 0.08);
+}
+
+.interview-panel-root.tool-menu-root .tool-menu-live-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.interview-panel-root.tool-menu-root .tool-menu-live-actions > button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Voice Agent: End Agent on its own line under Pause and Mute. */
+.interview-panel-root.tool-menu-root .tool-menu-live-actions > .tool-menu-live-end {
+  flex-basis: 100%;
+}
+
+.interview-panel-root.tool-menu-root .tool-menu-live-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.interview-panel-root.tool-menu-root .tool-menu-live-btn:hover:not(:disabled) {
+  background: #fff1f2;
+}
+
+.interview-panel-root.tool-menu-root .tool-menu-live-btn:disabled,
+.interview-panel-root.tool-menu-root .copilot-menu-stop:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+body.dark-theme .interview-panel-root.tool-menu-root .tool-menu-live-btn {
+  border-color: rgba(248, 113, 113, 0.35);
+  background: transparent;
+  color: #fca5a5;
+}
+
+body.dark-theme .interview-panel-root.tool-menu-root .tool-menu-live-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+/* Parts of the page the menu brings into view (and focuses, from a drawer). */
+.interview-panel-root.tool-menu-root [data-menu-target]:focus {
+  outline: none;
+}
+
+.interview-panel-root.tool-menu-root [data-menu-target]:focus-visible {
+  outline: 3px solid var(--cm-blue);
+  outline-offset: 2px;
+}
+
+.interview-panel-root.notetaker-root.tool-menu-root .notetaker-card {
+  scroll-margin-top: 124px; /* under the title bar and the navbar */
+}
+
+.interview-panel-root.voice-agent-root.tool-menu-root [data-menu-target] {
+  scroll-margin-top: 16px;
+}
+
+/* ------------------------------------------------- docked sidebar layout */
+.interview-panel-root.notetaker-root.tool-menu-root .notetaker-grid,
+.interview-panel-root.notetaker-root.tool-menu-root .notetaker-footer-strip,
+.interview-panel-root.voice-agent-root.tool-menu-root .voice-agent-workspace,
+.interview-panel-root.voice-agent-root.tool-menu-root .voice-agent-footer {
+  transition: margin-left 0.2s ease;
+}
+
+.interview-panel-root.notetaker-root.tool-menu-docked .notetaker-grid,
+.interview-panel-root.notetaker-root.tool-menu-docked .notetaker-footer-strip {
+  width: auto;
+  max-width: none;
+  margin-right: 0;
+  margin-left: var(--cm-width);
+}
+
+.interview-panel-root.voice-agent-root.tool-menu-docked .voice-agent-workspace,
+.interview-panel-root.voice-agent-root.tool-menu-docked .voice-agent-footer {
+  margin-left: var(--cm-width);
+}
+
+/* ---------------------------------------------- Uploads: the library menu */
+.interview-panel-root.upload-page-root.tool-menu-root {
+  --cm-top: 103px; /* window title bar (38px) + this page's navbar (65px) */
+}
+
+body.dark-theme .interview-panel-root.upload-page-root.tool-menu-root,
+.interview-panel-root.upload-page-root.tool-menu-root.dark-theme {
+  --cm-surface: #1e293b;
+  --cm-line: #334155;
+}
+
+/* The existing library sidebar is the menu: beside the page (in the layout)
+   on wide screens, a drawer over it on narrow ones. */
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar {
+  width: var(--cm-width);
+  min-width: var(--cm-width);
+  max-width: var(--cm-width);
+  min-height: 0;
+  padding: 0;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar.is-docked {
+  position: relative;
+  transition: margin-left 0.2s ease, visibility 0s linear 0.2s;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar.is-docked.is-open {
+  transition: margin-left 0.2s ease;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar.is-docked:not(.is-open) {
+  margin-left: calc(-1 * var(--cm-width));
+  visibility: hidden;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar.is-drawer {
+  position: fixed;
+  top: var(--cm-top);
+  bottom: 0;
+  left: 0;
+  z-index: 1100;
+  width: min(320px, 86vw);
+  min-width: 0;
+  max-width: none;
+  box-shadow: 16px 0 40px rgba(15, 23, 42, 0.18);
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition: transform 0.2s ease, visibility 0s linear 0.2s;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar.is-drawer.is-open {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.2s ease;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .upload-new-btn {
+  flex: 0 0 auto;
+  min-height: 42px;
+}
+
+/* The library's own hover effects, without "all": an inherited visibility
+   change would otherwise be animated too, and the drawer's first button could
+   not take focus as it opens. */
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .upload-new-btn,
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .library-item {
+  transition-property: background-color, border-color, color, box-shadow;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .library-tab-pill {
+  transition-property: background-color, color, box-shadow;
+}
+
+/* The menu scrolls as one; the library list no longer needs its own scroll. */
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .sidebar-section-heading {
+  margin: 0 4px 10px;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .sidebar-library-list {
+  flex: none;
+  overflow: visible;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .sidebar-privacy-footer {
+  margin: 0 4px;
+}
+
+/* Saved files can be opened with the keyboard; their delete button shows on
+   focus and on touch screens (where there is no hover). */
+.interview-panel-root.upload-page-root.tool-menu-root .library-item:focus-visible {
+  outline: 3px solid var(--cm-blue);
+  outline-offset: 1px;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .library-item:focus-within .library-item-delete,
+.interview-panel-root.upload-page-root.tool-menu-root .library-item-delete:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .interview-panel-root.upload-page-root.tool-menu-root .library-item-delete {
+    opacity: 1;
+  }
+}
+
+/* While a file is uploaded or processed: New Upload, the other files and
+   deleting the open file wait (each says why when used), with a note. */
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .upload-new-btn.is-waiting,
+.interview-panel-root.upload-page-root.tool-menu-root .pill-attach-btn.is-waiting {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .upload-busy-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 4px;
+  color: var(--cm-ink);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .upload-busy-note i {
+  margin-top: 2px;
+  color: var(--cm-blue);
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .library-item.is-waiting {
+  cursor: not-allowed;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .library-item.is-waiting:hover {
+  background-color: transparent;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .library-item.is-waiting .library-item-icon,
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .library-item.is-waiting .library-item-info {
+  opacity: 0.5;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .library-item-delete[aria-disabled='true'],
+.interview-panel-root.upload-page-root.tool-menu-root .library-item-delete[aria-disabled='true']:hover {
+  background: transparent;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* The library's own states: loading, could not load (with Try again), empty. */
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .upload-library-stale {
+  margin: 0 0 8px;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .upload-library-error,
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .sidebar-library-list > .copilot-menu-empty {
+  padding: 8px 0;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .sidebar-section-heading:focus {
+  outline: none;
+}
+
+.interview-panel-root.upload-page-root.tool-menu-root .upload-sidebar .sidebar-section-heading:focus-visible {
+  outline: 3px solid var(--cm-blue);
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------- Settings */
+.copilot-settings .tool-settings-select {
+  flex: 0 1 320px;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 0 40px 0 14px;
+  border: 1px solid var(--cs-line);
+  border-radius: 12px;
+  background: var(--cs-tile) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center;
+  color: var(--cs-ink);
+  font-family: var(--font-primary, 'Inter', system-ui, sans-serif);
+  font-size: 14.5px;
+  font-weight: 600;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.copilot-settings .tool-settings-select:disabled,
+.copilot-settings .copilot-segmented button:disabled,
+.copilot-settings .copilot-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+body.dark-theme .copilot-settings .tool-settings-select {
+  color-scheme: dark;
+}
+
+.copilot-settings .tool-settings-lock {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 2px 0 6px;
+  padding: 8px 12px;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.copilot-settings .tool-settings-lock i {
+  margin-top: 2px;
+  color: #d97706;
+}
+
+body.dark-theme .copilot-settings .tool-settings-lock {
+  border-color: rgba(251, 191, 36, 0.3);
+  background: rgba(251, 191, 36, 0.08);
+  color: #fcd34d;
+}
+
+/* Status bar under the heading: a recording or a conversation with its
+   controls, or work in progress. */
+.copilot-settings-rec .tool-settings-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.copilot-settings-rec .tool-settings-bar-actions .copilot-settings-stop {
+  margin-left: 0;
+}
+
+.copilot-settings-rec .tool-settings-flag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(185, 28, 28, 0.1);
+  font-size: 12px;
+}
+
+.tool-settings-bar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #b91c1c;
+  font-family: var(--font-primary, 'Inter', system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tool-settings-bar-btn:hover:not(:disabled) {
+  background: #fff1f2;
+}
+
+.tool-settings-bar-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.tool-settings-bar-btn:focus-visible {
+  outline: 3px solid rgba(220, 38, 38, 0.45);
+  outline-offset: 2px;
+}
+
+body.dark-theme .tool-settings-bar-btn {
+  border-color: rgba(248, 113, 113, 0.35);
+  background: transparent;
+  color: #fca5a5;
+}
+
+.copilot-settings-rec.copilot-settings-rec--busy {
+  padding: 12px 16px;
+  border-color: var(--cs-line);
+  background: var(--cs-tile);
+  color: var(--cs-ink);
+  font-weight: 600;
+}
+
+.copilot-settings-rec--busy .tool-settings-busy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.copilot-settings-rec--busy i {
+  margin-right: 8px;
+  color: var(--cs-blue);
+}
+
+/* ------------------------------------------------------- narrow screens */
+/* As for the AI Copilot: where the navbar cannot fit everything, the
+   "coming soon" tabs give way first, then the tabs, then (phones) all but
+   the account menu; the logo (Workspace) and the menu cover the rest. */
+@media (max-width: 1599px) {
+  .interview-panel-root.tool-menu-root .setup-navbar .setup-tab-item--soon {
+    display: none;
+  }
+}
+
+@media (max-width: 1279px) {
+  .interview-panel-root.tool-menu-root .setup-navbar .setup-navbar-tabs {
+    display: none;
+  }
+
+  .interview-panel-root.tool-menu-root .setup-navbar {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 900px) {
+  .interview-panel-root.tool-menu-root .setup-navbar {
+    padding: 0 14px;
+  }
+
+  .interview-panel-root.tool-menu-root .setup-navbar-right > :not(.account-dropdown-container):not(.theme-toggle) {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .interview-panel-root.tool-menu-root .setup-navbar-home--brand {
+    font-size: 17px;
+  }
+
+  /* Notetaker: the two cards one above the other. */
+  .interview-panel-root.notetaker-root.tool-menu-root .notetaker-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    margin-top: 12px;
+    padding: 0 12px 12px;
+  }
+
+  .interview-panel-root.notetaker-root.tool-menu-root .notetaker-card {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .interview-panel-root.notetaker-root.tool-menu-root .notetaker-card-header-main {
+    flex-wrap: wrap;
+    row-gap: 12px;
+  }
+
+  .interview-panel-root.notetaker-root.tool-menu-root .notetaker-header-tabs {
+    width: 100%;
+    margin-left: 0 !important;
+    overflow-x: auto;
+  }
+
+  .interview-panel-root.notetaker-root.tool-menu-root .notetaker-footer-strip {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    padding: 16px;
+  }
+
+  /* Voice Agent: a little less space around the cards. */
+  .interview-panel-root.voice-agent-root.tool-menu-root .voice-agent-workspace {
+    padding: 12px;
+  }
+
+  .interview-panel-root.voice-agent-root.tool-menu-root .voice-agent-grid {
+    gap: 14px;
+  }
+
+  /* Uploads: the four feature cards two by two. */
+  .interview-panel-root.upload-page-root.tool-menu-root .upload-hero-container {
+    padding: 20px 16px;
+  }
+
+  .interview-panel-root.upload-page-root.tool-menu-root .hero-feature-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Uploads: the "Transcribing…" pill on one line and higher up, so a
+     message (such as why a file has to wait) shows clear below it. */
+  .interview-panel-root.upload-page-root.tool-menu-root .transcribing-bottom-toast {
+    bottom: 140px;
+    max-width: calc(100vw - 32px);
+    white-space: nowrap;
+  }
+
+  .interview-panel-root.upload-page-root.tool-menu-root .transcribing-bottom-toast span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Settings: a list (language, engine) under its name, full width. */
+  .copilot-settings .tool-settings-row--select {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .copilot-settings .tool-settings-row--select .tool-settings-select {
+    flex: 1 1 100%;
+  }
+
+  .copilot-settings-rec .tool-settings-bar-actions {
+    flex: 1 1 100%;
+  }
+
+  .copilot-settings-rec .tool-settings-bar-actions > button {
+    flex: 1 1 0;
+    min-height: 44px;
+  }
+}
+
+@media print {
+  .interview-panel-root.tool-menu-root .copilot-menu-toggle,
+  .interview-panel-root.tool-menu-root .copilot-menu-backdrop,
+  .interview-panel-root.tool-menu-root .tool-menu,
+  .copilot-settings-overlay {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interview-panel-root.tool-menu-root .upload-sidebar,
+  .interview-panel-root.tool-menu-root .notetaker-grid,
+  .interview-panel-root.tool-menu-root .notetaker-footer-strip,
+  .interview-panel-root.tool-menu-root .voice-agent-workspace,
+  .interview-panel-root.tool-menu-root .voice-agent-footer {
+    transition: none;
+  }
+}
+
+/* Readable theme controls and status text in both palettes. */
+body:not(.dark-theme) .interview-panel-root .setup-action-btn.btn-theme-toggle {
+  background: #edf2f9; color: #334155; border: 1px solid #c7d3e5;
+}
+body.dark-theme .interview-panel-root .setup-action-btn.btn-theme-toggle {
+  background: #24344c !important; color: #e5edfc !important; border: 1px solid #52647e;
+}
+body.dark-theme .interview-panel-root .setup-action-btn.active:not(.btn-theme-toggle) {
+  background: #047857 !important;
+}
+body:not(.dark-theme) .notetaker-root .notetaker-pill-btn,
+body:not(.dark-theme) .notetaker-root .notetaker-header-tab-btn,
+body:not(.dark-theme) .notetaker-root .notetaker-mode-badge { color: #50627c; }
+body.dark-theme .notetaker-root .notetaker-mode-badge { color: #cbd5e1; }
+body.dark-theme .notetaker-root .notetaker-chat-help { color: #9eafc6 !important; }
+.notetaker-root .notetaker-action-record-btn:not(.recording) { background: #047857; }
+body:not(.dark-theme) .voice-agent-root .voice-agent-lang-badge { color: #1d4ed8 !important; }
+body:not(.dark-theme) .voice-agent-root .job-description-header span,
+body:not(.dark-theme) .voice-agent-root .job-description-help { color: #52647c; }
+body.dark-theme .voice-agent-root .voice-agent-footer { color: #9eafc6; }
+body:not(.dark-theme) .upload-page-root .setup-tab-item { color: #52647c; }
+
+body:not(.dark-theme) .notetaker-root .notetaker-header-tab-btn { color: #50627c !important; }
+body.dark-theme .voice-agent-root .resume-browse-btn { background: #595ce0; }
+
+/* Identity disclosure shared by all four tools. */
+.tool-account { position: relative; }
+.interview-panel-root .tool-account-trigger { width: 100%; border: 0; background: transparent; cursor: pointer; text-align: start; border-radius: 10px; color: var(--cm-ink); font: inherit; }
+.tool-account-trigger:hover { background: var(--cm-hover); }
+.tool-account-chevron { margin-left: auto; }
+.tool-account-popover { position: absolute; bottom: calc(100% + 4px); left: 8px; right: 8px; z-index: 10; background: var(--cm-surface); border: 1px solid var(--cm-line); border-radius: 14px; padding: 6px; box-shadow: 0 8px 28px #0003; max-height: min(390px, 60dvh); overflow-y: auto; }
+.tool-account-popover a, .tool-account-popover button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 42px; box-sizing: border-box; padding: 10px; border: 0; border-radius: 8px; background: transparent; text-align: start; color: var(--cm-ink); font: inherit; font-size: 14px; text-decoration: none; cursor: pointer; }
+.tool-account-popover a > span:nth-child(2) { flex: 1; }
+.tool-account-popover a:hover, .tool-account-popover button:hover:not(:disabled) { background: var(--cm-hover); }
+.tool-account-popover button:disabled { opacity: .5; cursor: not-allowed; }
+.tool-account-hint { margin: 5px 10px; font-size: 11px; line-height: 1.4; color: var(--cm-muted); }
+.tool-account-popover .tool-account-logout { border-top: 1px solid var(--cm-line); border-radius: 0 0 8px 8px; }
+.tool-account-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

@@ -1,0 +1,109 @@
+{
+  "name": "overlay-ai",
+  "version": "1.0.0",
+  "description": "AI Assistant floating overlay - AI interview assistant with system audio capture",
+  "main": "main.js",
+  "scripts": {
+    "prebuild": "node -e \"const fs=require('fs'); const path=require('path'); const src=fs.existsSync(path.resolve(__dirname, '../dist')) ? path.resolve(__dirname, '../dist') : path.resolve(__dirname, '../../Kairos-Frontend/dist'); const dst=path.resolve(__dirname, './frontend_dist'); if(fs.existsSync(src)){fs.cpSync(src, dst, {recursive: true, force: true}); console.log('Copied dist to frontend_dist');}\"",
+    "start": "electron .",
+    "build": "npm run prebuild && electron-builder --win",
+    "build:linux": "npm run prebuild && electron-builder --linux tar.gz zip --x64",
+    "build:linux:dir": "npm run prebuild && electron-builder --linux --dir",
+    "build:dir": "npm run prebuild && electron-builder --win --dir",
+    "desktop-shortcut": "powershell -ExecutionPolicy Bypass -File ./scripts/create-desktop-shortcut.ps1",
+    "build:mac": "npm run prebuild && electron-builder --mac dmg"
+  },
+  "keywords": [
+    "electron",
+    "overlay",
+    "ai-assistant"
+  ],
+  "author": "Kairos AI <support@kairos.ai>",
+  "homepage": "https://kairos.ai",
+  "license": "MIT",
+  "dependencies": {
+    "@deepgram/sdk": "^3.13.0",
+    "@google-cloud/speech": "^7.5.0",
+    "dotenv": "^16.3.1",
+    "fluent-ffmpeg": "^2.1.3",
+    "mammoth": "^1.13.0",
+    "openai": "^4.20.0",
+    "pdf-parse": "^2.4.5",
+    "tesseract.js": "^7.0.0",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "electron-rebuild": "^3.2.9"
+  },
+  "build": {
+    "appId": "com.overlayai.assistant",
+    "productName": "AI Interview Assistant",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "frontend_dist/**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/*.d.ts"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": false
+    },
+    "linux": {
+      "target": [
+        "tar.gz",
+        "zip"
+      ],
+      "category": "Utility",
+      "maintainer": "Kairos AI <support@kairos.ai>",
+      "artifactName": "AI-Interview-Assistant-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.utilities",
+      "artifactName": "AI-Interview-Assistant-${version}-${arch}.${ext}",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "title": "${productName} ${version}",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
+  }
+}

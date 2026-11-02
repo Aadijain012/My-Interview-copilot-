@@ -1,0 +1,446 @@
+.pricing-page{--ink:#f5f7fa;--muted:#b4c0d2;--purple:#ffbd55;height:100dvh;overflow:auto;background:#080f17;color:var(--ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5;color-scheme:dark;scroll-behavior:smooth}
+.pricing-page *{box-sizing:border-box}.pricing-page a{color:inherit;text-decoration:none}.pricing-page button,.pricing-page input,.pricing-page select{font:inherit}.pricing-page button{cursor:pointer}.pricing-page button:disabled{cursor:not-allowed}.pricing-page :focus-visible{outline:3px solid #ffbd55;outline-offset:4px}.pricing-page h1,.pricing-page h2,.pricing-page p{margin:0}.pricing-page svg{width:24px;height:24px;flex:none}.pricing-page [hidden]{display:none!important}
+.pricing-header{max-width:1500px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:25px;padding:24px 36px;border-bottom:1px solid #243345}
+.pricing-brand{display:flex;align-items:center;gap:10px;font-size:16px;letter-spacing:-.4px;white-space:nowrap}.pricing-brand img{border-radius:10px}.pricing-header nav{display:flex;align-items:center;gap:25px;font-size:12px}.pricing-sign-in{display:flex;gap:20px;align-items:center;padding:10px 17px;border:1px solid #34465b;border-radius:99px}
+.pricing-main{max-width:1500px;padding:0 36px;margin:auto}.pricing-intro{text-align:center;padding:50px 0 35px}.pricing-eyebrow{font-size:9px;font-weight:750;letter-spacing:1.7px;color:var(--purple);margin-bottom:14px!important}.pricing-intro h1{font-size:clamp(38px,4.7vw,66px);line-height:1.03;letter-spacing:-2.9px;font-weight:780}.pricing-intro h1 em{font-style:normal;color:var(--purple)}.pricing-intro>p:last-child{font-size:15px;color:#b4c0d2;margin-top:23px;line-height:1.7}
+.pricing-products{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:25px}.pricing-products>div{display:flex;gap:15px;align-items:center;padding:22px 18px;border:1px solid #24384b;border-radius:15px;background:#101d2b}.pricing-product-icon{display:flex;align-items:center;justify-content:center;width:53px;height:57px;border-radius:17px;flex:none}.pricing-product-icon svg{width:31px;height:31px}.pricing-product-icon.blue{background:#e7f3ff;color:#3f83cb}.pricing-product-icon.teal{background:#e1f8f4;color:#289d98}.pricing-product-icon.amber{background:#fff4da;color:#d29416}.pricing-product-icon.purple{background:#f0e9fe;color:#7544d8}.pricing-products h2{font-size:15px;letter-spacing:-.5px;line-height:1.3;margin-bottom:5px}.pricing-products p{font-size:11px;color:#b4c0d2;line-height:1.55}
+.pricing-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:stretch}
+.pricing-plan{display:flex;flex-direction:column;min-width:0;padding:26px 22px;border:1px solid #24384b;border-radius:18px;background:#101d2b;box-shadow:0 5px 20px #25203803}.pricing-plan-top{display:flex;flex-wrap:wrap;gap:9px;align-items:center;justify-content:space-between;min-height:43px;margin-bottom:13px}.pricing-plan-top h2{font-size:24px;line-height:1.2;letter-spacing:-.9px}.pricing-plan-top>span{font-size:7px;letter-spacing:.7px;font-weight:700;color:#f8cb82;background:#3c3020;border-radius:99px;padding:5px 7px;white-space:nowrap}
+.pricing-comparison{min-height:31px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-size:9px;color:#b4c0d2}.pricing-comparison del{font-size:15px;font-weight:600}.pricing-comparison b{color:#ffd080;background:#3c3020;border-radius:99px;padding:3px 6px;font-size:9px;font-weight:700}.pricing-price{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;min-height:64px}.pricing-price strong{font-size:53px;line-height:1.16;font-weight:750;letter-spacing:-2.3px;overflow-wrap:anywhere;max-width:100%}.pricing-price>span{font-size:12px;color:var(--muted)}
+.pricing-allowance{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:14px 12px;background:#182b3e;border-radius:11px;margin:18px 0 23px;color:#f5f7fa;min-height:61px}.pricing-allowance svg{width:24px;height:24px;color:#ffc260}.pricing-allowance strong{font-size:25px;letter-spacing:-1px;line-height:1.2;overflow-wrap:anywhere;max-width:100%}.pricing-allowance>span{font-size:11px;font-weight:600}
+.pricing-perks{list-style:none;display:grid;gap:14px;padding:0;margin:0 0 16px;font-size:11px;line-height:1.6}.pricing-perks li{display:flex;align-items:flex-start;gap:9px;overflow-wrap:anywhere}.pricing-perks li>span{display:flex;align-items:center;justify-content:center;background:#1c3347;color:#a7c5e5;border-radius:50%;width:20px;height:20px;flex:none}.pricing-perks svg{width:14px;height:14px;stroke-width:2.1}.pricing-small{font-size:10px;color:#b4c0d2;line-height:1.75}.pricing-card-note{margin:10px 0 18px!important}.pricing-card-status{font-size:10px;color:#b4c0d2;margin-bottom:13px!important}
+.pricing-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;border:1px solid transparent;border-radius:10px;background:#ffbd55;color:#101820;padding:14px 10px;font-size:12px!important;font-weight:650;min-height:47px}.pricing-page .pricing-cta-outline{color:#edf3fc;background:#101d2b;border-color:#34465b}.pricing-cta:disabled{opacity:.72}
+.pricing-plan-pro{border-color:#bc8a3e;background:linear-gradient(180deg,#172432,#101d2b 60%);box-shadow:0 0 0 1px #cdb8f1,0 8px 22px #7d54aa09}.pricing-plan-pro .pricing-plan-top>span{color:#7750b0;background:#e7dafa}
+.pricing-plan-plus{background:#101d2b;border-color:#101d2b;color:#f5f7fa}.pricing-plan-plus .pricing-plan-top>span{background:#3c3020;color:#ffd080}.pricing-plan-plus .pricing-allowance{background:#182b3e;color:#f5f7fa}.pricing-plan-plus .pricing-allowance svg{color:#ffc260}.pricing-plan-plus .pricing-price>span,.pricing-plan-plus .pricing-small,.pricing-plan-plus .pricing-comparison{color:#b4c0d2}.pricing-plan-plus .pricing-comparison b{background:#3c3020;color:#ffd080}.pricing-plan-plus .pricing-perks li>span{background:#1c3347;color:#a7c5e5}.pricing-plan-plus .pricing-cta{background:#ffbd55;color:#101820}.pricing-page .pricing-support-link{font-size:11px;color:#ffc260;text-decoration:underline;text-underline-offset:3px;margin:2px 0 8px}
+.pricing-packs{border:0;margin:0 0 20px;padding:0;display:grid;gap:7px}.pricing-packs legend{font-size:9px;color:#b4c0d2;margin-bottom:8px}.pricing-packs label{display:flex;align-items:center;gap:7px;border:1px solid #34465b;border-radius:8px;padding:9px;font-size:10px;cursor:pointer;min-width:0;flex-wrap:wrap}.pricing-packs label.is-selected{border-color:#cc9947;background:#332b20}.pricing-packs input{accent-color:#ffbd55;width:14px;height:14px;margin:0;flex:none}.pricing-packs strong{font-size:12px}.pricing-packs span{color:#b4c0d2;font-size:10px}.pricing-offer{font-size:10px;font-weight:650;color:#ffc260;margin:10px 0 0!important}.pricing-offer>span{display:block;font-size:9px;font-weight:400}.pricing-plan-plus .pricing-offer{color:#ffc260}.pricing-pricing-note{text-align:center;color:#b4c0d2;font-size:9px;line-height:1.6;margin:17px 0 32px!important}
+.pricing-state{padding:50px 25px;text-align:center;border:1px solid #24384b;border-radius:18px;background:#101d2b;color:var(--muted);grid-column:1/-1}.pricing-state h2{font-size:22px;color:var(--ink);margin-bottom:9px}.pricing-state button{border:0;border-radius:8px;background:var(--purple);color:#101820;padding:10px 20px;margin-top:20px}
+.pricing-coupon{display:grid;grid-template-columns:1fr 1.35fr;gap:40px;padding:30px;border:1px solid #24384b;border-radius:17px;background:#101d2b;margin-bottom:22px}.pricing-coupon h2,.pricing-support h2{font-size:24px;letter-spacing:-.9px;margin-bottom:10px}.pricing-coupon>div>p:not(.pricing-eyebrow):not(.pricing-small){font-size:12px;color:var(--muted);line-height:1.8;max-width:380px}.pricing-coupon-form{display:grid;grid-template-columns:1.1fr 1fr;gap:12px;align-items:end}.pricing-page label{font-size:10px;font-weight:650;display:flex;flex-direction:column;gap:6px}.pricing-page input:not([type=radio]),.pricing-page select{width:100%;max-width:100%;min-width:0;padding:12px;border:1px solid #34465b;border-radius:8px;background:#101d2b;color:#f5f7fa;font-size:12px}.pricing-coupon-form button,.pricing-referral button{border:0;border-radius:8px;padding:12px;background:#ffbd55;color:#101820;font-size:12px;font-weight:600;min-height:43px}.pricing-coupon-form button{grid-column:1/-1}.pricing-coupon-form button:disabled{opacity:.5}.pricing-coupon .pricing-small{margin-top:12px}.pricing-form-error{font-size:12px;color:#ffadb9;margin-top:12px!important}.pricing-quote{display:flex;flex-wrap:wrap;gap:5px 15px;padding:14px;margin-top:14px;background:#182b3e;border-radius:9px;color:#f5f7fa;font-size:12px}.pricing-quote small{width:100%;font-size:10px}
+.pricing-referral{display:grid;grid-template-columns:64px 1fr 290px;gap:25px;align-items:center;background:linear-gradient(120deg,#101d2b,#142435);border:1px solid #24384b;border-radius:18px;padding:29px 30px;margin-bottom:50px}.pricing-gift{color:#ffc260}.pricing-gift svg{width:59px;height:59px}.pricing-referral h2{font-size:24px;letter-spacing:-.8px;margin-bottom:9px}.pricing-referral-copy>p{font-size:13px;color:#c3cddd;line-height:1.8}.pricing-referral-copy .pricing-small{font-size:10px;margin-top:8px}.pricing-referral form{display:flex;flex-direction:column;gap:9px}.pricing-referral small{font-size:9px;color:#b4c0d2;line-height:1.5}.pricing-referral button{background:#101d2b;color:#ffc260;border:1px solid #34465b;display:flex;justify-content:space-between}
+.pricing-support{display:grid;grid-template-columns:1fr 1.5fr;gap:60px;padding:10px 0 50px;scroll-margin-top:25px}.pricing-support>div>p:not(.pricing-eyebrow){font-size:12px;line-height:1.8;color:var(--muted)}.pricing-support>div>a{display:inline-flex;gap:18px;font-size:12px;font-weight:600;color:#ffc260;margin-top:20px}.pricing-guides details{border-bottom:1px solid #24384b;padding:16px 0}.pricing-guides details:first-child{padding-top:0}.pricing-guides summary{cursor:pointer;font-size:13px;font-weight:600;color:#edf3fc;line-height:1.6}.pricing-guides p{font-size:12px;line-height:1.9;color:#b4c0d2;padding:10px 0 2px}
+.pricing-footer{max-width:1500px;margin:auto;padding:23px 36px;border-top:1px solid #24384b;font-size:9px;color:#b4c0d2;display:flex;align-items:center;justify-content:space-between;gap:20px}.pricing-footer>div{display:flex;gap:20px}
+@media(max-width:1200px){.pricing-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pricing-products{grid-template-columns:repeat(2,minmax(0,1fr))}.pricing-plan{padding:28px}.pricing-referral{grid-template-columns:45px 1fr}.pricing-referral form{grid-column:2;max-width:400px}.pricing-gift svg{width:45px;height:45px}.pricing-plan-top{min-height:30px}}
+@media(max-width:700px){.pricing-header{padding:20px;gap:10px}.pricing-brand{font-size:13px;gap:8px}.pricing-brand img{width:28px;height:28px}.pricing-header nav{gap:12px;font-size:10px}.pricing-header nav>a:not(.pricing-sign-in){display:none}.pricing-sign-in{padding:8px 11px;gap:12px}.pricing-main{padding:0 20px}.pricing-intro{padding:38px 0 28px}.pricing-intro h1{font-size:44px;letter-spacing:-2px}.pricing-intro>p:last-child{font-size:12px;margin-top:18px}.pricing-products{gap:9px;margin-bottom:20px}.pricing-products>div{padding:13px 10px;gap:9px;align-items:flex-start}.pricing-product-icon{width:32px;height:36px;border-radius:10px}.pricing-product-icon svg{width:22px;height:22px}.pricing-products h2{font-size:11px;letter-spacing:-.2px}.pricing-products p{font-size:9px;line-height:1.6}.pricing-grid{grid-template-columns:1fr;gap:16px}.pricing-plan{padding:25px}.pricing-plan-top h2{font-size:25px}.pricing-plan-top>span{font-size:8px}.pricing-perks{font-size:12px}.pricing-packs label{padding:12px}.pricing-allowance>span{font-size:12px}.pricing-coupon{padding:23px;grid-template-columns:1fr;gap:20px}.pricing-coupon-form{grid-template-columns:1fr}.pricing-coupon h2,.pricing-support h2{font-size:24px}.pricing-referral{padding:25px;grid-template-columns:1fr;gap:15px;margin-bottom:35px}.pricing-referral form{grid-column:1;max-width:none}.pricing-referral h2{font-size:23px}.pricing-referral-copy>p{font-size:12px}.pricing-referral-copy .pricing-small{font-size:10px}.pricing-support{grid-template-columns:1fr;gap:25px;padding-bottom:30px}.pricing-footer{padding:22px 20px;align-items:flex-start;flex-direction:column;gap:12px;font-size:8px}}
+@media(prefers-reduced-motion:reduce){.pricing-page{scroll-behavior:auto}}
+
+.pricing-packs label{flex-direction:row}.pricing-perks{font-size:12px}
+
+.pricing-country{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:24px 0;color:#b4c0d2;font-size:13px}
+.pricing-country label{display:flex;align-items:center;gap:12px;font-weight:700;color:#edf3fc}
+.pricing-country select{max-width:100%;width:280px;padding:12px;border:1px solid #34465b;border-radius:10px;background:#101d2b;color:#edf3fc;font:inherit}
+.pricing-country p{margin:0;max-width:440px}
+.pricing-pricing-note a{color:inherit;text-decoration:underline}
+.pricing-price strong{overflow-wrap:anywhere;letter-spacing:-.05em}
+@media(max-width:600px){.pricing-country label{width:100%;flex-wrap:wrap}.pricing-country select{width:100%}.pricing-price strong{font-size:40px}}
+
+/* Premium dark pricing: compact navigation, readable cards and amber actions. */
+.pricing-header{padding:18px 32px;max-width:1440px;background:#080f17}.pricing-brand b{color:#ffc260}.pricing-header nav{font-size:13px}.pricing-sign-in{min-height:44px}
+.pricing-main{max-width:1440px;padding:0 32px}.pricing-hero{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:40px;align-items:center;padding:45px 0 25px}.pricing-intro{text-align:left;padding:0}.pricing-intro h1{font-size:clamp(32px,3.8vw,52px);letter-spacing:-1.9px;line-height:1.12}.pricing-intro h2{font-size:clamp(24px,3.2vw,43px);font-weight:450;line-height:1.18;letter-spacing:-1px;margin-top:8px}.pricing-intro>p:last-child{max-width:680px;font-size:15px;margin-top:18px}.pricing-eyebrow{font-size:11px}
+.pricing-country{display:block;margin:0;font-size:12px}.pricing-country label{align-items:stretch;color:#edf3fc;font-size:12px}.pricing-country select{width:100%;font-size:13px}.pricing-country p{margin-top:9px;line-height:1.6}
+.pricing-grid{gap:18px}.pricing-plan{padding:24px 20px;border-radius:14px;box-shadow:none;background:#101d2b}.pricing-plan-pro{background:#132231;box-shadow:none;border-color:#bc8a3e}.pricing-plan-plus{background:#101d2b;border-color:#34465b}.pricing-plan-top{min-height:56px;align-content:start}.pricing-plan-top h2{font-size:23px}.pricing-plan-top>span{font-size:9px;white-space:normal}.pricing-price strong{font-size:clamp(34px,3.4vw,48px)}.pricing-price>span{font-size:13px}.pricing-comparison{font-size:11px;min-height:42px}.pricing-comparison b{font-size:10px}.pricing-allowance{padding:12px 10px;margin:16px 0 20px;gap:6px}.pricing-allowance strong{font-size:25px}.pricing-allowance>span{font-size:12px}.pricing-perks{font-size:13px;gap:12px}.pricing-small,.pricing-card-status{font-size:12px}.pricing-packs legend,.pricing-packs span{font-size:12px}.pricing-packs label{padding:10px}.pricing-packs strong{font-size:13px}.pricing-offer,.pricing-offer>span{font-size:12px}
+.pricing-cta,.pricing-plan-plus .pricing-cta{background:#ffbd55;color:#101820;min-height:48px;font-size:14px!important}.pricing-page a.pricing-cta-outline{background:#293b51;color:#fff;border-color:#425770}.pricing-page button.pricing-cta-outline{background:#ffbd55;color:#101820;border-color:#ffbd55}.pricing-cta:not(:disabled):hover,.pricing-coupon-form button:not(:disabled):hover{filter:brightness(1.08)}.pricing-page .pricing-support-link{font-size:12px}
+.pricing-products{margin:24px 0 0;gap:14px}.pricing-products>div{padding:18px 14px;background:#101d2b;border-radius:12px;gap:12px}.pricing-product-icon{width:44px;height:46px;border-radius:12px}.pricing-product-icon.blue,.pricing-product-icon.teal,.pricing-product-icon.amber,.pricing-product-icon.purple{background:#19314a;color:#9bc3f2}.pricing-product-icon svg{width:26px;height:26px}.pricing-products h2{font-size:14px}.pricing-products p{font-size:12px}.pricing-pricing-note{font-size:12px;text-align:left;margin:18px 0 32px!important}
+.pricing-coupon,.pricing-referral{border-radius:14px;padding:24px;background:#101d2b}.pricing-coupon h2,.pricing-referral h2,.pricing-support h2{font-size:24px}.pricing-page label{font-size:12px}.pricing-page input:not([type=radio]),.pricing-page select{font-size:14px;min-height:44px}.pricing-coupon-form button,.pricing-referral button{font-size:14px;min-height:44px}.pricing-coupon>div>p:not(.pricing-eyebrow):not(.pricing-small),.pricing-referral-copy>p{font-size:14px}.pricing-referral-copy .pricing-small,.pricing-referral small,.pricing-quote small{font-size:12px}.pricing-support{gap:40px}.pricing-guides summary{font-size:14px}.pricing-guides p,.pricing-support>div>p:not(.pricing-eyebrow){font-size:13px}.pricing-footer{font-size:12px;max-width:1440px}.pricing-page :focus-visible{outline-color:#ffbd55}.pricing-page button:disabled{opacity:.65}
+@media(max-width:1000px){.pricing-hero{grid-template-columns:1fr;gap:24px}.pricing-country{max-width:500px}.pricing-plan-top{min-height:44px}}
+@media(max-width:700px){.pricing-header{padding:16px}.pricing-main{padding:0 16px}.pricing-hero{padding:30px 0 20px;gap:20px}.pricing-intro h1{font-size:34px;letter-spacing:-1px}.pricing-intro h2{font-size:27px;letter-spacing:-.5px}.pricing-intro>p:last-child{font-size:14px}.pricing-country{max-width:none;width:100%}.pricing-grid{gap:16px}.pricing-plan{padding:24px}.pricing-plan-top{min-height:0}.pricing-price strong{font-size:44px}.pricing-products{grid-template-columns:1fr;gap:10px}.pricing-products>div{align-items:center}.pricing-products h2{font-size:15px}.pricing-products p{font-size:13px}.pricing-coupon,.pricing-referral{padding:20px}.pricing-footer{padding:22px 16px;font-size:11px}.pricing-header nav{font-size:12px}.pricing-brand{font-size:13px}}
+.pricing-plan-plus,.pricing-plan-plus .pricing-allowance{color:#f5f7fa}.pricing-plan-pro .pricing-plan-top>span{background:#3c3020;color:#ffd080}
+
+.pricing-country-control{position:relative;display:block;width:100%;min-width:0}.pricing-country .pricing-country-control select{padding-left:46px}.pricing-country-flag{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:24px;height:18px;object-fit:contain;pointer-events:none;border-radius:2px}
+
+.country-picker{position:relative;width:100%;min-width:0}.country-picker>label{display:block;margin-bottom:6px}.pricing-page .country-picker input{padding:12px 32px 12px 46px;cursor:pointer;text-overflow:ellipsis}.country-chevron{position:absolute;right:12px;top:10px;pointer-events:none;color:#c5d2df}.country-popup{position:absolute;top:100%;left:0;right:0;z-index:50;margin-top:6px;background:#101d2b;border:1px solid #49617a;border-radius:10px;box-shadow:0 12px 32px #0008;overflow:hidden}.country-popup ul{list-style:none;padding:5px;margin:0;max-height:min(340px,45dvh);overflow:auto;overscroll-behavior:contain}.country-popup li{display:flex;align-items:center;gap:10px;padding:11px 9px;min-height:44px;border-radius:6px;cursor:pointer;color:#f5f7fa;font-size:13px}.country-popup li>span:not([aria-hidden]){flex:1;min-width:0;overflow-wrap:anywhere}.country-popup li small{color:#b4c0d2;font-size:12px}.country-popup li.is-active,.country-popup li:hover{background:#293b51}.country-popup li[aria-selected=true]{box-shadow:inset 3px 0 #ffbd55}.country-option-flag{width:24px;height:18px;object-fit:contain;flex:none}.country-popup p{padding:14px;font-size:13px}.pricing-country-control .pricing-country-flag{z-index:1}
+
+.pricing-currency-status{font-size:12px;color:#c3cddd;margin-top:6px!important}.country-currency-hint{display:block;font-size:11px;color:#b4c0d2;margin-top:7px}.country-popup{top:76px}
+
+/* Gold offer treatment; Pay as you go retains its full credit-pack selector. */
+.pricing-plan-gold{border-color:#e7ad45;background:linear-gradient(180deg,#1e2530,#101d2b 45%);box-shadow:0 0 22px #f4b54412}
+.pricing-offer-ribbon{margin:-24px -20px 22px;padding:12px 16px;border-radius:13px 13px 0 0;background:linear-gradient(110deg,#ffcf70,#f3b83e);color:#171b20;text-align:center;font-size:12px;font-weight:800;letter-spacing:1.2px;line-height:1.5}
+.pricing-plan-gold .pricing-plan-top>span{display:none}
+.pricing-offer-highlight{display:flex;flex-wrap:wrap;align-items:center;gap:4px 7px;border:1px solid #a77a30;border-radius:9px;background:#302719;color:#ffda91;padding:11px 12px;margin:10px 0 6px;font-size:12px;line-height:1.6}
+.pricing-offer-highlight strong{font-weight:650}.pricing-plan-gold .pricing-cta{background:linear-gradient(110deg,#ffcf70,#f3b83e);color:#171b20;border-color:#f0bf60}
+@media(max-width:700px){.pricing-offer-ribbon{margin:-24px -24px 22px}.pricing-offer-highlight{font-size:13px}}
+
+/* The existing identity disclosure, placed below the pricing header. */
+.pricing-header .tool-account{--cm-ink:#edf3fc;--cm-surface:#101d2b;--cm-line:#34465b;--cm-hover:#24384b;--cm-muted:#b4c0d2;min-width:0}
+.pricing-header .tool-account-trigger{display:flex;align-items:center;gap:9px;min-height:44px;max-width:230px;padding:5px 10px;border:1px solid #34465b;border-radius:99px;background:transparent;color:#edf3fc;font:inherit;text-align:start}
+.pricing-header .copilot-menu-avatar{display:grid;place-items:center;width:32px;height:32px;flex:none;border-radius:50%;background:#7544d8;color:#fff;font-weight:700}
+.pricing-header .copilot-menu-user-text{min-width:0}.pricing-header .copilot-menu-user-name{display:block;max-width:145px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pricing-header nav.tool-account-popover{display:block;top:calc(100% + 8px);bottom:auto;left:auto;right:0;width:240px;max-width:calc(100vw - 32px);font-size:14px}
+.pricing-header nav.tool-account-popover>a:not(.pricing-sign-in){display:flex}.pricing-header .pricing-sign-in{background:transparent;color:#edf3fc}
+.pricing-session-state{font-size:12px;color:#b4c0d2}.pricing-session-error{padding:12px 32px;color:#ffadb9}
+@media(max-width:700px){.pricing-header{flex-wrap:wrap}.pricing-header>nav{margin-left:auto}.pricing-header .tool-account-trigger{max-width:180px}.pricing-header .copilot-menu-user-name{max-width:95px}}
+
+/* Match the dashboard toolbar's full width, compact height and safe-area gutters. */
+.pricing-header{width:100%;max-width:none;margin:0;min-height:62px;padding:8px max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));gap:12px}
+@media(max-width:900px){.pricing-header{padding:8px max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left))}}
+
+/* Match the owner's yellow reference with dark, readable header controls. */
+.pricing-header{background:#f8d849;color:#17202e;border-bottom-color:#c6aa2d}
+.pricing-header .pricing-brand b,.pricing-header .pricing-session-state{color:#17202e}
+.pricing-header .pricing-sign-in,.pricing-header .tool-account-trigger{color:#17202e;border-color:#17202e55}
+.pricing-header .pricing-sign-in:hover,.pricing-header .tool-account-trigger:hover{background:#17202e14}
+.pricing-header :focus-visible{outline-color:#17202e}
+.pricing-header .tool-account-popover :focus-visible{outline-color:#ffbd55}
+/* The popover is dark; without this its links inherit the yellow header's dark
+   text (.pricing-page a{color:inherit}) and are unreadable in dark mode. */
+.pricing-page .pricing-header nav.tool-account-popover{background:#101d2b;border-color:#34465b;color:#edf3fc}
+.pricing-page .pricing-header nav.tool-account-popover a,.pricing-page .pricing-header nav.tool-account-popover button{color:#edf3fc;background:transparent}
+.pricing-page .pricing-header nav.tool-account-popover a:hover,.pricing-page .pricing-header nav.tool-account-popover button:hover:not(:disabled){background:#24384b}
+.pricing-page .pricing-header nav.tool-account-popover .tool-account-hint{color:#b4c0d2}
+
+
+/* ==========================================================================
+   Header Utility Buttons: Back and Theme Toggle
+   ========================================================================== */
+.pricing-back-btn,
+.pricing-theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(23, 32, 46, 0.25);
+  background: rgba(23, 32, 46, 0.08);
+  color: #17202e;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.pricing-back-btn:hover,
+.pricing-theme-toggle-btn:hover {
+  background: rgba(23, 32, 46, 0.18);
+  transform: scale(1.05);
+}
+
+/* ==========================================================================
+   Typography & White Font Overrides for Dark Background
+   Prevents external / admin / Tailwind styles from darkening titles & text
+   ========================================================================== */
+.pricing-page.dark-theme h1,
+.pricing-page.dark-theme h2,
+.pricing-page.dark-theme h3,
+.pricing-page.dark-theme h4,
+body.dark-theme .pricing-page h1,
+body.dark-theme .pricing-page h2,
+body.dark-theme .pricing-page h3,
+body.dark-theme .pricing-page h4,
+.pricing-page.dark-theme .pricing-main h1,
+.pricing-page.dark-theme .pricing-main h2,
+.pricing-page.dark-theme .pricing-intro h1,
+.pricing-page.dark-theme .pricing-intro h2,
+.pricing-page.dark-theme .pricing-plan-top h2,
+.pricing-page.dark-theme .pricing-plan h2,
+.pricing-page.dark-theme .pricing-products h2,
+.pricing-page.dark-theme .pricing-coupon h2,
+.pricing-page.dark-theme .pricing-referral h2,
+.pricing-page.dark-theme .pricing-support h2,
+.pricing-page.dark-theme .pricing-state h2,
+.pricing-page.dark-theme .pricing-guides summary,
+body.dark-theme .pricing-main h1,
+body.dark-theme .pricing-main h2,
+body.dark-theme .pricing-intro h1,
+body.dark-theme .pricing-intro h2,
+body.dark-theme .pricing-plan-top h2,
+body.dark-theme .pricing-plan h2,
+body.dark-theme .pricing-products h2,
+body.dark-theme .pricing-coupon h2,
+body.dark-theme .pricing-referral h2,
+body.dark-theme .pricing-support h2,
+body.dark-theme .pricing-state h2,
+body.dark-theme .pricing-guides summary {
+  color: #ffffff !important;
+}
+
+.pricing-page.dark-theme .pricing-plan-top h2,
+body.dark-theme .pricing-plan-top h2 {
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+.pricing-page.dark-theme .pricing-plan,
+body.dark-theme .pricing-plan {
+  color: #f5f7fa !important;
+}
+
+.pricing-page.dark-theme .pricing-price strong,
+body.dark-theme .pricing-price strong {
+  color: #ffffff !important;
+}
+
+.pricing-page.dark-theme .pricing-allowance strong,
+body.dark-theme .pricing-allowance strong {
+  color: #ffffff !important;
+}
+
+.pricing-page.dark-theme .pricing-allowance span,
+body.dark-theme .pricing-allowance span {
+  color: #f5f7fa !important;
+}
+
+.pricing-page.dark-theme .pricing-perks li,
+body.dark-theme .pricing-perks li {
+  color: #e2e8f0 !important;
+}
+
+.pricing-page.dark-theme .pricing-packs legend,
+body.dark-theme .pricing-packs legend {
+  color: #b4c0d2 !important;
+}
+
+.pricing-page.dark-theme .pricing-packs label strong,
+body.dark-theme .pricing-packs label strong {
+  color: #ffffff !important;
+}
+
+.pricing-page.dark-theme .pricing-packs label span,
+body.dark-theme .pricing-packs label span {
+  color: #cbd5e1 !important;
+}
+
+.pricing-page.dark-theme .pricing-country label,
+body.dark-theme .pricing-country label {
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   Pricing Page - Light Theme Support
+   Crisp, modern, high-contrast typography & cards
+   ========================================================================== */
+.pricing-page.light-theme,
+body.light-theme .pricing-page {
+  --ink: #0f172a;
+  --muted: #475569;
+  --purple: #d97706;
+  background: #f8fafc;
+  color: #0f172a;
+  color-scheme: light;
+}
+
+.pricing-page.light-theme .pricing-intro h1,
+body.light-theme .pricing-page .pricing-intro h1 {
+  color: #0f172a !important;
+}
+
+.pricing-page.light-theme .pricing-intro h2,
+body.light-theme .pricing-page .pricing-intro h2 {
+  color: #334155 !important;
+}
+
+.pricing-page.light-theme .pricing-intro > p:last-child {
+  color: #475569 !important;
+}
+
+.pricing-page.light-theme .pricing-products > div {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+}
+
+.pricing-page.light-theme .pricing-products h2 {
+  color: #0f172a !important;
+}
+
+.pricing-page.light-theme .pricing-products p {
+  color: #64748b !important;
+}
+
+.pricing-page.light-theme .pricing-product-icon.blue {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.pricing-page.light-theme .pricing-product-icon.teal {
+  background: #ccfbf1;
+  color: #0d9488;
+}
+
+.pricing-page.light-theme .pricing-product-icon.amber {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.pricing-page.light-theme .pricing-product-icon.purple {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.pricing-page.light-theme .pricing-plan {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.pricing-page.light-theme .pricing-plan h2,
+.pricing-page.light-theme .pricing-plan-top h2 {
+  color: #0f172a !important;
+}
+
+.pricing-page.light-theme .pricing-price strong {
+  color: #0f172a !important;
+}
+
+.pricing-page.light-theme .pricing-price > span {
+  color: #64748b;
+}
+
+.pricing-page.light-theme .pricing-plan-top > span {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pricing-page.light-theme .pricing-comparison {
+  color: #64748b;
+}
+
+.pricing-page.light-theme .pricing-comparison b {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pricing-page.light-theme .pricing-plan-pro {
+  background: linear-gradient(180deg, #fffbeb, #ffffff 60%);
+  border-color: #f59e0b;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.12);
+}
+
+.pricing-page.light-theme .pricing-plan-plus {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a !important;
+}
+
+.pricing-page.light-theme .pricing-allowance {
+  background: #eff6ff;
+  color: #1e3a8a !important;
+  border: 1px solid #bfdbfe;
+}
+
+.pricing-page.light-theme .pricing-allowance strong {
+  color: #1e3a8a !important;
+}
+
+.pricing-page.light-theme .pricing-allowance span {
+  color: #1e40af !important;
+}
+
+.pricing-page.light-theme .pricing-allowance svg {
+  color: #2563eb;
+}
+
+.pricing-page.light-theme .pricing-perks li {
+  color: #334155 !important;
+}
+
+.pricing-page.light-theme .pricing-perks li > span {
+  background: #e2e8f0;
+  color: #2563eb;
+}
+
+.pricing-page.light-theme .pricing-small,
+.pricing-page.light-theme .pricing-card-status,
+.pricing-page.light-theme .pricing-card-note {
+  color: #64748b !important;
+}
+
+.pricing-page.light-theme .pricing-packs legend {
+  color: #475569 !important;
+}
+
+.pricing-page.light-theme .pricing-packs label {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.pricing-page.light-theme .pricing-packs label.is-selected {
+  background: #fffbeb;
+  border-color: #f59e0b;
+}
+
+.pricing-page.light-theme .pricing-packs label strong {
+  color: #0f172a !important;
+}
+
+.pricing-page.light-theme .pricing-packs label span {
+  color: #64748b !important;
+}
+
+.pricing-page.light-theme .pricing-coupon,
+.pricing-page.light-theme .pricing-referral,
+.pricing-page.light-theme .pricing-state {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.pricing-page.light-theme .pricing-coupon h2,
+.pricing-page.light-theme .pricing-referral h2,
+.pricing-page.light-theme .pricing-support h2,
+.pricing-page.light-theme .pricing-state h2 {
+  color: #0f172a !important;
+}
+
+.pricing-page.light-theme .pricing-coupon > div > p,
+.pricing-page.light-theme .pricing-referral-copy > p,
+.pricing-page.light-theme .pricing-support > div > p {
+  color: #475569 !important;
+}
+
+.pricing-page.light-theme .pricing-country label {
+  color: #0f172a !important;
+}
+
+.pricing-page.light-theme .pricing-country p {
+  color: #475569;
+}
+
+.pricing-page.light-theme input:not([type=radio]),
+.pricing-page.light-theme select {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+.pricing-page.light-theme .country-popup {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+.pricing-page.light-theme .country-popup li {
+  color: #0f172a !important;
+}
+
+.pricing-page.light-theme .country-popup li small {
+  color: #64748b;
+}
+
+.pricing-page.light-theme .country-popup li.is-active,
+.pricing-page.light-theme .country-popup li:hover {
+  background: #f1f5f9;
+}
+
+.pricing-page.light-theme .pricing-guides summary {
+  color: #0f172a !important;
+}
+
+.pricing-page.light-theme .pricing-guides p {
+  color: #475569 !important;
+}
+
+.pricing-page.light-theme .pricing-guides details {
+  border-bottom-color: #e2e8f0;
+}
+
+.pricing-page.light-theme .pricing-footer {
+  border-top-color: #e2e8f0;
+  color: #64748b;
+}
+
+.pricing-page.light-theme .pricing-quote {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+

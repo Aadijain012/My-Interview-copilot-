@@ -1,0 +1,869 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Subscription Management Section — Matches Reference Design
+   Clean SaaS styling with pixel-accurate layout, typography and interactions.
+───────────────────────────────────────────────────────────────────────────── */
+
+.sub-mgmt-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+/* ── Top Header ── */
+.sub-mgmt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 4px 0 8px 0;
+}
+
+.sub-mgmt-header__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sub-mgmt-header__icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+  flex-shrink: 0;
+}
+
+.sub-mgmt-header__title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+  margin: 0 0 3px 0;
+  letter-spacing: -0.015em;
+}
+
+.sub-mgmt-header__subtitle {
+  font-size: 0.84rem;
+  color: var(--color-text-secondary, #64748b);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.sub-mgmt-header__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sub-mgmt-header__updated-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--color-text-secondary, #64748b);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.sub-mgmt-header__updated-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.sub-mgmt-header__updated-label {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted, #94a3b8);
+}
+
+.sub-mgmt-header__updated-val {
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1e293b);
+}
+
+.sub-mgmt-header__status-indicator {
+  display: flex;
+  align-items: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.sub-mgmt-header__dirty-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #d97706;
+  font-size: 0.8125rem;
+}
+
+.sub-mgmt-header__clean-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #059669;
+  font-size: 0.8125rem;
+}
+
+.sub-mgmt-header__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.sub-mgmt-header__dot--dirty {
+  background-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+.sub-mgmt-header__dot--clean {
+  background-color: #10b981;
+}
+
+/* Button variants */
+.sub-mgmt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.sub-mgmt-btn--secondary {
+  background-color: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border, #cbd5e1);
+  color: var(--color-text-primary, #334155);
+}
+
+.sub-mgmt-btn--secondary:hover:not(:disabled) {
+  background-color: var(--color-bg-hover, #f8fafc);
+  border-color: #94a3b8;
+}
+
+.sub-mgmt-btn--secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sub-mgmt-btn--primary {
+  background-color: #2563eb;
+  border: 1px solid transparent;
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+}
+
+.sub-mgmt-btn--primary:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.sub-mgmt-btn--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── 1. Plan Selector Cards (Top Row) ── */
+.sub-mgmt-plan-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.sub-mgmt-plan-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background-color: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  position: relative;
+}
+
+.sub-mgmt-plan-card:hover {
+  border-color: #93c5fd;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.sub-mgmt-plan-card--selected {
+  border: 2px solid #2563eb;
+  background-color: #f8fbff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.1);
+}
+
+.sub-mgmt-plan-card__icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sub-mgmt-plan-card__icon-box--free {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.sub-mgmt-plan-card__icon-box--pro {
+  background-color: #f3e8ff;
+  color: #7c3aed;
+}
+
+.sub-mgmt-plan-card__icon-box--proplus {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.sub-mgmt-plan-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.sub-mgmt-plan-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sub-mgmt-plan-card__name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+}
+
+.sub-mgmt-plan-card__popular-badge {
+  background-color: #e0f2fe;
+  color: #0284c7;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+}
+
+.sub-mgmt-plan-card__desc {
+  font-size: 0.775rem;
+  color: var(--color-text-secondary, #64748b);
+}
+
+/* ── 2. Selected Plan Overview Banner ── */
+.sub-mgmt-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  background-color: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 12px;
+  padding: 16px 22px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.sub-mgmt-banner__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sub-mgmt-banner__icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: #fee2e2;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sub-mgmt-banner__title-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.sub-mgmt-banner__name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sub-mgmt-banner__plan-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+  margin: 0;
+}
+
+.sub-mgmt-banner__status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.725rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.sub-mgmt-banner__status-pill--active {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.sub-mgmt-banner__status-pill--inactive {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+.sub-mgmt-banner__plan-desc {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary, #64748b);
+  margin: 3px 0 0 0;
+}
+
+.sub-mgmt-banner__stats {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  flex-wrap: wrap;
+}
+
+.sub-mgmt-banner__stat-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sub-mgmt-banner__stat-val {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+}
+
+.sub-mgmt-banner__stat-label {
+  font-size: 0.725rem;
+  color: var(--color-text-secondary, #64748b);
+  font-weight: 500;
+}
+
+/* ── 3. Two-Column Layout (Middle) ── */
+.sub-mgmt-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.sub-mgmt-card {
+  background-color: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.sub-mgmt-card__header {
+  margin-bottom: 18px;
+}
+
+.sub-mgmt-card__header--features {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.sub-mgmt-card__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.sub-mgmt-card__icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sub-mgmt-card__icon-wrap--blue {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.sub-mgmt-card__title {
+  font-size: 0.965rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sub-mgmt-card__subtitle {
+  font-size: 0.7875rem;
+  color: var(--color-text-secondary, #64748b);
+  margin: 3px 0 0 0;
+}
+
+.sub-mgmt-card__info-icon {
+  color: #94a3b8;
+  cursor: help;
+  display: flex;
+  align-items: center;
+}
+
+/* Plan Pricing & Basic Config Form */
+.sub-mgmt-form-row {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.sub-mgmt-form-row--two {
+  grid-template-columns: 1fr 1fr;
+}
+
+.sub-mgmt-form-row--three {
+  grid-template-columns: 1fr 1fr 1.2fr;
+}
+
+.sub-mgmt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sub-mgmt-field__label {
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #334155);
+}
+
+.sub-mgmt-field__input {
+  height: 38px;
+  border: 1px solid var(--color-border, #cbd5e1);
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 0.84rem;
+  color: var(--color-text-primary, #0f172a);
+  background-color: var(--color-bg-surface, #ffffff);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sub-mgmt-field__input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.sub-mgmt-field__select-wrap {
+  position: relative;
+}
+
+.sub-mgmt-field__select {
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--color-border, #cbd5e1);
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 0.84rem;
+  color: var(--color-text-primary, #0f172a);
+  background-color: var(--color-bg-surface, #ffffff);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+}
+
+.sub-mgmt-field__select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.sub-mgmt-field__helper {
+  font-size: 0.775rem;
+  color: var(--color-text-secondary, #64748b);
+  margin: 16px 0 0 0;
+}
+
+/* Usage Limits List */
+.sub-mgmt-limits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sub-mgmt-limit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: var(--color-bg-hover, #f8fafc);
+  border: 1px solid var(--color-border-subtle, #f1f5f9);
+  border-radius: 8px;
+  gap: 12px;
+}
+
+.sub-mgmt-limit-row__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.sub-mgmt-limit-row__icon {
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+}
+
+.sub-mgmt-limit-row__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1e293b);
+}
+
+.sub-mgmt-limit-row__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sub-mgmt-limit-row__input {
+  width: 76px;
+  height: 32px;
+  text-align: center;
+  border: 1px solid var(--color-border, #cbd5e1);
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #0f172a);
+  background-color: var(--color-bg-surface, #ffffff);
+}
+
+.sub-mgmt-limit-row__input:disabled {
+  background-color: var(--color-bg-hover, #f1f5f9);
+  color: var(--color-text-muted, #94a3b8);
+  cursor: not-allowed;
+}
+
+.sub-mgmt-limit-row__unit {
+  width: 60px;
+  font-size: 0.775rem;
+  color: var(--color-text-secondary, #64748b);
+  font-weight: 500;
+}
+
+.sub-mgmt-limit-row__toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 105px;
+  justify-content: flex-end;
+}
+
+.sub-mgmt-limit-row__toggle-label {
+  font-size: 0.775rem;
+  color: var(--color-text-secondary, #64748b);
+}
+
+/* iOS-style toggle switch */
+.sub-mgmt-switch {
+  width: 38px;
+  height: 22px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.15s ease;
+  padding: 2px;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.sub-mgmt-switch:focus-visible {
+  box-shadow: 0 0 0 2px #93c5fd;
+}
+
+.sub-mgmt-switch--off {
+  background-color: #cbd5e1;
+}
+
+.sub-mgmt-switch--on {
+  background-color: #2563eb;
+}
+
+.sub-mgmt-switch__thumb {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.sub-mgmt-switch--on .sub-mgmt-switch__thumb {
+  transform: translateX(16px);
+}
+
+.sub-mgmt-switch--off .sub-mgmt-switch__thumb {
+  transform: translateX(0);
+}
+
+/* ── 4. Bottom Section: Feature Access ── */
+.sub-mgmt-features-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.sub-mgmt-cat-pills {
+  display: flex;
+  gap: 4px;
+  background-color: var(--color-bg-hover, #f1f5f9);
+  padding: 3px;
+  border-radius: 9px;
+}
+
+.sub-mgmt-cat-pill {
+  border: none;
+  background: transparent;
+  padding: 6px 13px;
+  border-radius: 7px;
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #64748b);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.sub-mgmt-cat-pill:hover:not(.sub-mgmt-cat-pill--active) {
+  color: var(--color-text-primary, #0f172a);
+}
+
+.sub-mgmt-cat-pill--active {
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
+}
+
+.sub-mgmt-bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sub-mgmt-bulk-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.775rem;
+  font-weight: 600;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sub-mgmt-bulk-btn--enable {
+  background-color: #eff6ff;
+  border: 1px solid #93c5fd;
+  color: #1d4ed8;
+}
+
+.sub-mgmt-bulk-btn--enable:hover {
+  background-color: #dbeafe;
+}
+
+.sub-mgmt-bulk-btn--disable {
+  background-color: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+}
+
+.sub-mgmt-bulk-btn--disable:hover {
+  background-color: #fee2e2;
+}
+
+/* Category Sub-Header Banner */
+.sub-mgmt-cat-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border: 1px solid #e9d5ff;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.sub-mgmt-cat-banner__icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #ede9fe;
+  color: #7c3aed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sub-mgmt-cat-banner__title {
+  font-size: 0.8875rem;
+  font-weight: 700;
+  color: #4c1d95;
+  margin: 0;
+}
+
+.sub-mgmt-cat-banner__subtitle {
+  font-size: 0.775rem;
+  color: #6b7280;
+  margin: 1px 0 0 0;
+}
+
+/* 3-Column Grid of Features */
+.sub-mgmt-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.sub-mgmt-feat-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 15px;
+  background-color: var(--color-bg-surface, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 10px;
+  gap: 12px;
+  transition: all 0.15s ease;
+}
+
+.sub-mgmt-feat-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.sub-mgmt-feat-card__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sub-mgmt-feat-card__icon-box {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sub-mgmt-feat-card__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sub-mgmt-feat-card__name {
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #0f172a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sub-mgmt-feat-card__desc {
+  font-size: 0.7125rem;
+  color: var(--color-text-secondary, #64748b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.sub-mgmt-feat-card__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sub-mgmt-feat-card__crown {
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+}
+
+/* ── Responsive Breakpoints ── */
+@media (max-width: 1200px) {
+  .sub-mgmt-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .sub-mgmt-plan-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .sub-mgmt-two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .sub-mgmt-features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sub-mgmt-banner__stats {
+    gap: 20px;
+  }
+}
+

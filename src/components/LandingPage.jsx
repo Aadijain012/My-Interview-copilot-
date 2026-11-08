@@ -257,6 +257,56 @@ export default function LandingPage({ token, user, onLogout,onGoToReferral,onGoT
       return;
     }
 
+    // Demo credential bypass for Vercel / demo deployment preview
+    if (emailCheck.cleanEmail.toLowerCase() === 'test@gmail.com') {
+      if (passVal === '123456') {
+        setSubmitDisabled(true);
+        setMessageType('success');
+        setMessage('Welcome back! Signing you in...');
+
+        const demoHeader = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+        const demoPayload = btoa(JSON.stringify({
+          sub: 'user_demo_123',
+          email: 'test@gmail.com',
+          name: 'Aadi Jain',
+          role: 'candidate',
+          credits: 100,
+          exp: Math.floor(Date.now() / 1000) + 31536000
+        }));
+        const demoSignature = btoa('demo_signature');
+        const demoToken = `${demoHeader}.${demoPayload}.${demoSignature}`;
+        const demoUser = {
+          id: 'user_demo_123',
+          name: 'Aadi Jain',
+          email: 'test@gmail.com',
+          role: 'candidate',
+          credits: 100,
+          createdAt: new Date().toISOString()
+        };
+
+        if (ipcRenderer) {
+          ipcRenderer.send('auth-login-success', {
+            token: demoToken,
+            user: demoUser,
+            targetView: loginRedirectTarget
+          });
+        }
+        if (onLoginSuccess) {
+          onLoginSuccess(demoToken, demoUser, loginRedirectTarget);
+        }
+
+        setTimeout(() => {
+          closeModal();
+          setSubmitDisabled(false);
+        }, 400);
+        return;
+      } else {
+        setMessageType('error');
+        setMessage('Invalid password. For test account, use: 123456');
+        return;
+      }
+    }
+
     setSubmitDisabled(true);
     setMessageType('info');
     setMessage(modalMode === 'login' ? 'Signing in...' : 'Creating your account...');
@@ -329,7 +379,11 @@ export default function LandingPage({ token, user, onLogout,onGoToReferral,onGoT
       }, 500);
     } catch (err) {
       setMessageType('error');
-      setMessage(err?.message || 'Authentication failed. Please try again.');
+      if (err?.message?.includes('Failed to fetch') || err?.name === 'TypeError') {
+        setMessage('Backend is offline. For demo access, use: test@gmail.com / 123456');
+      } else {
+        setMessage(err?.message || 'Authentication failed. Please try again.');
+      }
       try {
         reportClientError(err, { email: emailVal, mode: modalMode, action: "user_auth" }, "warning");
       } catch (_) {}
@@ -354,6 +408,14 @@ export default function LandingPage({ token, user, onLogout,onGoToReferral,onGoT
     if (!emailCheck.valid) {
       setMessageType('error');
       setMessage(emailCheck.error);
+      return;
+    }
+
+    if (emailCheck.cleanEmail.toLowerCase() === 'test@gmail.com') {
+      setOtpStep('otp');
+      setOtpCode('123456');
+      setMessageType('info');
+      setMessage('Demo verification code: 123456 (pre-filled)');
       return;
     }
 
@@ -395,6 +457,51 @@ export default function LandingPage({ token, user, onLogout,onGoToReferral,onGoT
       setMessageType('error');
       setMessage('Please enter the complete 6-digit verification code.');
       return;
+    }
+
+    if (email.trim().toLowerCase() === 'test@gmail.com') {
+      if (cleanCode === '123456') {
+        const demoHeader = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+        const demoPayload = btoa(JSON.stringify({
+          sub: 'user_demo_123',
+          email: 'test@gmail.com',
+          name: name.trim() || 'Aadi Jain',
+          role: 'candidate',
+          credits: 100,
+          exp: Math.floor(Date.now() / 1000) + 31536000
+        }));
+        const demoSignature = btoa('demo_signature');
+        const demoToken = `${demoHeader}.${demoPayload}.${demoSignature}`;
+        const demoUser = {
+          id: 'user_demo_123',
+          name: name.trim() || 'Aadi Jain',
+          email: 'test@gmail.com',
+          role: 'candidate',
+          credits: 100,
+          createdAt: new Date().toISOString()
+        };
+
+        if (ipcRenderer) {
+          ipcRenderer.send('auth-login-success', {
+            token: demoToken,
+            user: demoUser,
+            targetView: loginRedirectTarget
+          });
+        }
+        if (onLoginSuccess) {
+          onLoginSuccess(demoToken, demoUser, loginRedirectTarget);
+        }
+
+        setTimeout(() => {
+          closeModal();
+          setSubmitDisabled(false);
+        }, 400);
+        return;
+      } else {
+        setMessageType('error');
+        setMessage('Invalid code. For test demo, enter: 123456');
+        return;
+      }
     }
 
     setSubmitDisabled(true);
@@ -855,6 +962,36 @@ export default function LandingPage({ token, user, onLogout,onGoToReferral,onGoT
                     </div>
                   )}
 
+                  {modalMode === 'login' && (
+                    <div
+                      style={{
+                        margin: '0 0 16px 0',
+                        padding: '10px 14px',
+                        background: darkMode ? 'rgba(16, 185, 129, 0.16)' : 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 95, 70, 0.15))',
+                        border: darkMode ? '1px solid rgba(52, 211, 153, 0.35)' : '1px solid rgba(16, 185, 129, 0.35)',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        color: darkMode ? '#34d399' : '#065f46',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => {
+                        setEmail('test@gmail.com');
+                        setPassword('123456');
+                        setMessage('Demo credentials filled! Click Sign In to continue.');
+                        setMessageType('info');
+                      }}
+                      title="Click to auto-fill test credentials"
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <i className="fa-solid fa-key"></i>
+                        <span>Demo Account: <strong>test@gmail.com</strong> / <strong>123456</strong></span>
+                      </div>
+                      <span style={{ fontSize: '11px', textDecoration: 'underline', opacity: 0.9, fontWeight: 600 }}>Auto-fill</span>
+                    </div>
+                  )}
 
                   {message && (
                     <div className={`auth-message-banner ${messageType}`}>

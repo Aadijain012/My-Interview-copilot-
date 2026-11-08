@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import BrandLogo from './common/BrandLogo';
 import AccountDropdown from './UserProfile/AccountDropdown';
 import CreditUsagePromptModal from './common/CreditUsagePromptModal';
 import {
@@ -3055,15 +3056,7 @@ startNotetakerBilling();
           >
             ☰
           </button>
-          <div className="notetaker-nav-brand-group" onClick={handleBackToLanding} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div className="notetaker-nav-logo-circle">
-              <i className="fa-solid fa-robot"></i>
-            </div>
-            <div className="notetaker-brand-text">
-              <span className="brand-name">MyInterview</span>
-              <span className="brand-sub">COPILOT</span>
-            </div>
-          </div>
+          <BrandLogo onClick={handleBackToLanding} size="md" />
         </div>
 
         <div className="notetaker-nav-right">
@@ -3721,12 +3714,7 @@ startNotetakerBilling();
         <div className="notetaker-drawer-overlay" onClick={() => setShowNavDrawer(false)}>
           <div className="notetaker-drawer-panel" onClick={(e) => e.stopPropagation()}>
             <div className="notetaker-drawer-header">
-              <div className="notetaker-drawer-header-left">
-                <div className="notetaker-nav-logo-circle">
-                  <i className="fa-solid fa-brain"></i>
-                </div>
-                <span>MyInterview Copilot</span>
-              </div>
+              <BrandLogo size="sm" />
               <button className="notetaker-drawer-close-btn" onClick={() => setShowNavDrawer(false)}>×</button>
             </div>
 

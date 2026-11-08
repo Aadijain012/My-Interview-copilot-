@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 200" fill="none" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="peachWaveDark1" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f97316" stop-opacity="0.30" />
+      <stop offset="50%" stop-color="#ea580c" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#c2410c" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="peachWaveDark2" x1="100%" y1="20%" x2="0%" y2="80%">
+      <stop offset="0%" stop-color="#fb923c" stop-opacity="0.35" />
+      <stop offset="50%" stop-color="#f97316" stop-opacity="0.20" />
+      <stop offset="100%" stop-color="#9a3412" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  <path d="M450,40 C330,30 210,105 90,155 C50,172 20,188 0,200 L450,200 Z" fill="url(#peachWaveDark1)" />
+  <path d="M450,90 C310,80 230,145 130,172 C80,185 40,192 0,200 L450,200 Z" fill="url(#peachWaveDark2)" />
+</svg>
+

@@ -3,6 +3,8 @@ import AccountDropdown from './AccountDropdown';
 import { API_BASE } from '../../utils/api';
 import { getActiveUserPlanTier } from '../subscription/topUpStore';
 import { getUserCredits, hasUserModifiedCredits } from '../subscription/transactionHistoryStore';
+import SidebarDrawer from '../SidebarDrawer';
+import BrandLogo from '../common/BrandLogo';
 import './Profile.css';
 
 const ipcRenderer = window.require ? window.require('electron').ipcRenderer : null;
@@ -160,6 +162,7 @@ export default function Profile({
   toggleDarkMode,
   windowType
 }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sessions, setSessions] = useState(() => getInitialSessions(user));
   const [isLoadingSessions, setIsLoadingSessions] = useState(false);
   const [sessionsError, setSessionsError] = useState(null);
@@ -535,98 +538,97 @@ export default function Profile({
 
   return (
     <div className={`interview-panel-root profile-page-root ${darkMode ? 'dark-theme' : 'light-theme'}`}>
-      {/* Titlebar for Electron Drag */}
-      <div className="window-titlebar">
-        <div className="window-title">
-          <i className="fa-solid fa-user"></i> Profile | My Interview Copilot
-        </div>
-        <div className="window-controls">
-          <button className="win-btn win-btn-minimize" onClick={handleMinimize} title="Minimize">—</button>
-          <button className="win-btn win-btn-maximize" onClick={handleMaximize} title="Maximize">▢</button>
-          <button className="win-btn win-btn-close" onClick={handleClose} title="Close">×</button>
-        </div>
-      </div>
+      {/* Background Pastel Ambience Glows */}
+      <div className="profile-bg-glow-1"></div>
+      <div className="profile-bg-glow-2"></div>
 
-      {/* Dynamic Header */}
-      <header className="setup-navbar">
-        <div className="setup-navbar-left" onClick={onBackToLanding} style={{ cursor: 'pointer' }}>
-          <div className="setup-navbar-logo"><i className="fa-solid fa-brain"></i></div>
-          <div className="setup-navbar-title">My Interview Copilot</div>
+      {/* Slide-out Sidebar Drawer with Full AI Copilot Suite & Workspace Navigation */}
+      <SidebarDrawer
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        user={user}
+        displayName={displayName}
+        initials={initials}
+        activePlanTier={activePlanTier}
+        planNameDisplay={planNameDisplay}
+        planPriceMonthly={planPriceMonthly}
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+        onBackToLanding={onBackToLanding}
+        onGoToDashboard={onGoToDashboard}
+        onGoToSubscription={onGoToSubscription}
+        onGoToPanel={onGoToPanel}
+        onGoToNotetaker={onGoToNotetaker}
+        onGoToVoiceAgent={onGoToVoiceAgent}
+        onGoToUpload={onGoToUpload}
+        onGoToReferral={onGoToReferral}
+        onGoToProfile={onGoToProfile}
+        onLogout={onLogout}
+        showToast={showToast}
+        currentView="profile"
+      />
+
+      {/* Top Main Navbar - Clean, Elegant & Responsive */}
+      <header className="profile-top-navbar">
+        <div className="profile-nav-left">
+          <button 
+            className="profile-nav-hamburger" 
+            onClick={() => setIsSidebarOpen(true)} 
+            type="button" 
+            title="Open Features & Navigation Menu"
+            aria-label="Open Navigation Menu"
+          >
+            <i className="fa-solid fa-bars"></i>
+          </button>
+          <BrandLogo onClick={onBackToLanding} size="md" />
         </div>
 
-        <nav className="setup-navbar-tabs">
-          <button onClick={onBackToLanding} className="setup-tab-item" type="button">
+        <nav className="profile-nav-center-tabs">
+          <button onClick={onBackToLanding} className="profile-nav-tab" type="button">
             <i className="fa-solid fa-house"></i> Home
           </button>
-          <button onClick={onGoToDashboard} className="setup-tab-item" type="button">
+          <button onClick={onGoToDashboard} className="profile-nav-tab" type="button">
             <i className="fa-solid fa-chart-line"></i> Dashboard
           </button>
-          <button onClick={() => showToast('Mock Interview feature is coming soon!')} className="setup-tab-item" type="button">
-            <i className="fa-solid fa-video"></i> Mock Interview
-          </button>
-          <button onClick={() => showToast('Meetings scheduler is coming soon!')} className="setup-tab-item" type="button">
-            <i className="fa-solid fa-calendar-days"></i> Meetings
-          </button>
-          <button onClick={() => showToast('History log is coming soon!')} className="setup-tab-item" type="button">
-            <i className="fa-solid fa-clock-rotate-left"></i> History
-          </button>
-          <button onClick={() => showToast('Reminders scheduling feature is coming soon!')} className="setup-tab-item" type="button">
-            <i className="fa-solid fa-bell"></i> Reminders
-          </button>
-          <button onClick={onGoToSubscription} className="setup-tab-item" type="button">
+          <button onClick={onGoToSubscription} className="profile-nav-tab" type="button">
             <i className="fa-solid fa-crown"></i> Plans &amp; Pricing
           </button>
         </nav>
 
-        <div className="setup-navbar-right">
-          <button onClick={onGoToPanel} className="setup-action-btn btn-copilot" type="button">
-            <i className="fa-solid fa-rocket"></i> AI Copilot
+        <div className="profile-nav-right">
+          <button onClick={onGoToPanel} className="profile-nav-pill-btn btn-copilot" type="button" title="Launch AI Copilot">
+            <i className="fa-solid fa-star"></i> AI Copilot
           </button>
-          <button onClick={onGoToNotetaker} className="setup-action-btn btn-notetaker" type="button">
-            <i className="fa-solid fa-microphone"></i> Notetaker
+          <button onClick={toggleDarkMode} className="profile-nav-icon-btn" type="button" title="Toggle Theme">
+            <i className={`fa-solid ${darkMode ? 'fa-sun' : 'fa-moon'}`}></i>
           </button>
-          <button onClick={onGoToVoiceAgent} className="setup-action-btn btn-voice-agent" type="button">
-            <i className="fa-solid fa-robot"></i> Voice Agent
-          </button>
-          <button onClick={onGoToUpload} className="setup-action-btn btn-upload" type="button">
-            <i className="fa-solid fa-cloud-arrow-up"></i> Upload
-          </button>
-          <button onClick={onGoToReferral} className="setup-action-btn btn-referral" type="button">
-            <i className="fa-solid fa-gift"></i> Refer &amp; Earn
-          </button>
-          <button onClick={toggleDarkMode} className={`setup-action-btn btn-theme-toggle ${darkMode ? 'active' : ''}`} type="button">
-            <i className={`fa-solid ${darkMode ? 'fa-sun' : 'fa-moon'}`}></i> {darkMode ? 'Light' : 'Dark'}
-          </button>
-          <div className="setup-lang-picker">
-            <i className="fa-solid fa-globe"></i> US EN
+          <div className="profile-nav-lang-picker" title="Language: English (US)">
+            <span>EN</span>
+            <i className="fa-solid fa-chevron-down"></i>
           </div>
-          <AccountDropdown
-            user={user}
-            onGoToProfile={onGoToProfile}
-            onGoToSubscription={onGoToSubscription}
-            onGoToUsage={onGoToUsage}
-            onLogout={onLogout}
-            showToast={showToast}
-            isActive={true}
-          />
+          <div className="profile-nav-user-circle" onClick={onGoToProfile} title="Profile">
+            {initials}
+          </div>
         </div>
       </header>
 
-      {/* Subheader Breadcrumb */}
-      <div className="setup-subheader-row">
-        <div className="setup-subheader-left">
-          <a href="#" onClick={(e) => { e.preventDefault(); onBackToLanding(); }} className="badge-crumb crumb-home">
+      {/* Top Breadcrumb & Disclaimer Bar */}
+      <div className="profile-top-bar">
+        <div className="profile-breadcrumb">
+          <button 
+            type="button" 
+            onClick={onBackToLanding} 
+            className="profile-crumb-home-btn"
+            title="Go to Home"
+          >
             <i className="fa-solid fa-house"></i> Home
-          </a>
-          <span className="crumb-separator"><i className="fa-solid fa-chevron-right"></i></span>
-          <span className="badge-crumb crumb-current">
-            <i className="fa-solid fa-user"></i> Profile
-          </span>
+          </button>
+          <span className="profile-crumb-sep">&gt;</span>
+          <span className="profile-crumb-active">Profile</span>
         </div>
-        <div className="setup-subheader-right">
-          <span className="badge-crumb crumb-tag">
-            <i className="fa-solid fa-triangle-exclamation"></i> No guarantee of results. This is an AI practice tool only.
-          </span>
+        <div className="profile-disclaimer-pill">
+          <i className="fa-solid fa-circle-info"></i>
+          <span>No guarantee of results. This is an AI practice tool only.</span>
         </div>
       </div>
 
@@ -635,182 +637,63 @@ export default function Profile({
         {/* Profile Hero Header Card */}
         <section className="profile-hero-card">
           <div className="profile-hero-left">
-            <div
-              className="profile-avatar-circle"
-              style={{
-                position: 'relative',
-                border: `3px solid ${wallet.availableCredits < 10 ? '#ef4444' : wallet.availableCredits <= 50 ? '#eab308' : '#10b981'}`,
-                boxShadow: wallet.availableCredits < 10
-                  ? '0 0 0 3px rgba(239, 68, 68, 0.35), 0 0 16px rgba(239, 68, 68, 0.5)'
-                  : wallet.availableCredits <= 50
-                    ? '0 0 0 3px rgba(234, 179, 8, 0.3), 0 0 14px rgba(234, 179, 8, 0.45)'
-                    : '0 0 0 3px rgba(16, 185, 129, 0.25), 0 0 14px rgba(16, 185, 129, 0.4)'
-              }}
-            >
-              {initials}
-              {wallet.availableCredits < 10 && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '-4px',
-                    right: '-4px',
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    backgroundColor: '#ef4444',
-                    color: '#ffffff',
-                    fontSize: '12px',
-                    fontWeight: '900',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '2px solid #0f172a',
-                    boxShadow: '0 0 8px rgba(239, 68, 68, 0.85)'
-                  }}
-                  title="Warning: Low credits (!)"
-                >
-                  !
-                </span>
-              )}
+            <div className="profile-avatar-wrapper">
+              <div className="profile-avatar-circle">
+                {initials}
+              </div>
+              <span className="profile-avatar-online-dot" title="Online"></span>
             </div>
             <div className="profile-hero-info">
               <div className="profile-hero-name-row">
                 <h1 className="profile-hero-name">{displayName}</h1>
-                <span className={`profile-hero-tier-pill tier-${activePlanTier.toLowerCase()}`}>
-                  <i className={`fa-solid ${activePlanTier.toUpperCase() === 'PRO_PLUS' ? 'fa-gem' : activePlanTier.toUpperCase() === 'PRO' ? 'fa-crown' : 'fa-circle-check'}`}></i>
-                  <span>{activePlanTier.toUpperCase() === 'FREE' ? `${planNameDisplay} ($0/mo)` : `${planNameDisplay} ($${planPriceMonthly}/mo)`}</span>
+                <span className="profile-hero-plan-pill">
+                  <i className="fa-solid fa-circle-check"></i>
+                  <span>{activePlanTier.toUpperCase() === 'FREE' ? 'Free Plan ($0/mo)' : `${planNameDisplay} ($${planPriceMonthly}/mo)`}</span>
                 </span>
-                {wallet.availableCredits < 10 ? (
-                  <span
-                    className="profile-credits-indicator-pill low-credits"
-                    onClick={onGoToSubscription}
-                    title="Warning: Low credits (!). Click to buy credits."
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '3px 10px',
-                      borderRadius: '999px',
-                      background: 'rgba(239, 68, 68, 0.12)',
-                      color: '#ef4444',
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '15px',
-                        height: '15px',
-                        borderRadius: '50%',
-                        backgroundColor: '#ef4444',
-                        color: '#ffffff',
-                        fontSize: '11px',
-                        fontWeight: '900',
-                        lineHeight: 1
-                      }}
-                    >
-                      !
-                    </span>
-                    <span>{wallet.availableCredits} Credits</span>
-                  </span>
-                ) : wallet.availableCredits <= 50 ? (
-                  <span
-                    className="profile-credits-indicator-pill medium-credits"
-                    onClick={onGoToSubscription}
-                    title={`${wallet.availableCredits} credits remaining. Click to top up.`}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '3px 10px',
-                      borderRadius: '999px',
-                      background: 'rgba(234, 179, 8, 0.15)',
-                      color: '#ca8a04',
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        width: '7px',
-                        height: '7px',
-                        borderRadius: '50%',
-                        backgroundColor: '#eab308',
-                        boxShadow: '0 0 8px rgba(234, 179, 8, 0.7)'
-                      }}
-                    />
-                    <span>{wallet.availableCredits} Credits</span>
-                  </span>
-                ) : (
-                  <span
-                    className="profile-credits-indicator-pill normal-credits"
-                    title={`${wallet.availableCredits} credits available`}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '3px 10px',
-                      borderRadius: '999px',
-                      background: 'rgba(16, 185, 129, 0.12)',
-                      color: '#059669',
-                      fontSize: '12px',
-                      fontWeight: '700'
-                    }}
-                  >
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        width: '7px',
-                        height: '7px',
-                        borderRadius: '50%',
-                        backgroundColor: '#10b981',
-                        boxShadow: '0 0 8px rgba(16, 185, 129, 0.6)'
-                      }}
-                    />
-                    <span>{wallet.availableCredits} Credits</span>
-                  </span>
-                )}
+                <span 
+                  className="profile-hero-credits-pill" 
+                  onClick={onGoToSubscription} 
+                  title="Click to view subscription / buy credits"
+                  style={{ cursor: 'pointer' }}
+                >
+                  <i className="fa-solid fa-coins"></i>
+                  <span>{wallet.availableCredits} Credits</span>
+                </span>
               </div>
               <p className="profile-hero-email">
-                <i className="fa-regular fa-envelope"></i> {displayEmail}
+                <i className="fa-solid fa-envelope"></i> {displayEmail}
               </p>
             </div>
           </div>
           <div className="profile-hero-actions">
             <button
               type="button"
-              className="profile-hero-action-btn primary"
+              className="profile-hero-btn-primary"
               onClick={onGoToSubscription}
               title="View Plans & Manage Subscription"
             >
               <i className="fa-solid fa-crown"></i>
-              <span>{activePlanTier.toUpperCase() === 'FREE' ? 'Upgrade Plan' : 'Manage Subscription'}</span>
+              <span>{activePlanTier.toUpperCase() === 'FREE' ? 'Upgrade Plan' : 'Manage Plan'}</span>
             </button>
             <button
               type="button"
-              className="profile-hero-action-btn secondary"
+              className="profile-hero-btn-secondary"
               onClick={onGoToUsage}
               title="View Quotas and Usage Details"
             >
-              <i className="fa-solid fa-chart-pie"></i>
+              <i className="fa-solid fa-clock"></i>
               <span>Usage &amp; Quotas</span>
             </button>
           </div>
         </section>
 
-        {/* Dashboard Grid */}
+        {/* Dashboard Grid (2 Columns: Personal Info & My Wallet) */}
         <div className="profile-cards-grid">
-          {/* 1. Personal Information (Section 10) */}
+          {/* 1. Personal Information */}
           <section className="profile-card">
             <div className="profile-card-header">
-              <div className="profile-card-icon bg-indigo">
-                <i className="fa-solid fa-id-card"></i>
+              <div className="profile-card-icon bg-purple">
+                <i className="fa-solid fa-id-badge"></i>
               </div>
               <div>
                 <h2 className="profile-card-title">Personal Information</h2>
@@ -820,23 +703,21 @@ export default function Profile({
 
             <div className="profile-info-list">
               {/* Username row */}
-              <div className="profile-info-row profile-username-row">
+              <div className="profile-info-row">
                 <span className="profile-info-label">Username</span>
                 {isEditingUsername ? (
                   <div className="profile-username-edit-container">
-                    <div className="profile-username-input-row">
-                      <input
-                        type="text"
-                        className={`profile-username-input ${usernameError ? 'has-error' : ''}`}
-                        value={usernameInput}
-                        onChange={(e) => {
-                          setUsernameInput(e.target.value);
-                          if (usernameError) setUsernameError('');
-                        }}
-                        placeholder="Enter username"
-                        autoFocus
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      className={`profile-username-input ${usernameError ? 'has-error' : ''}`}
+                      value={usernameInput}
+                      onChange={(e) => {
+                        setUsernameInput(e.target.value);
+                        if (usernameError) setUsernameError('');
+                      }}
+                      placeholder="Enter username"
+                      autoFocus
+                    />
                     {usernameError && (
                       <span className="profile-username-error-badge">
                         <i className="fa-solid fa-circle-exclamation"></i> {usernameError}
@@ -849,17 +730,7 @@ export default function Profile({
                         onClick={handleSaveUsername}
                         disabled={isSavingUsername}
                       >
-                        {isSavingUsername ? (
-                          <>
-                            <i className="fa-solid fa-spinner fa-spin"></i>
-                            <span>Saving...</span>
-                          </>
-                        ) : (
-                          <>
-                            <i className="fa-solid fa-check"></i>
-                            <span>Save Changes</span>
-                          </>
-                        )}
+                        {isSavingUsername ? 'Saving...' : 'Save'}
                       </button>
                       <button
                         type="button"
@@ -873,7 +744,7 @@ export default function Profile({
                   </div>
                 ) : (
                   <div className="profile-username-view-container">
-                    <span className="profile-info-value profile-username-text">{customUsername}</span>
+                    <span className="profile-info-value">{customUsername || displayName}</span>
                     <button
                       type="button"
                       className="btn-username-edit"
@@ -882,11 +753,6 @@ export default function Profile({
                       <i className="fa-solid fa-pen-to-square"></i>
                       <span>Edit</span>
                     </button>
-                    {usernameSaveSuccess && (
-                      <span className="profile-username-success-badge">
-                        <i className="fa-solid fa-circle-check"></i> Saved successfully
-                      </span>
-                    )}
                   </div>
                 )}
               </div>
@@ -899,10 +765,10 @@ export default function Profile({
             </div>
           </section>
 
-          {/* Wallet / Credits Balance */}
+          {/* 2. My Wallet */}
           <section className="profile-card">
             <div className="profile-card-header">
-              <div className="profile-card-icon bg-amber">
+              <div className="profile-card-icon bg-orange">
                 <i className="fa-solid fa-wallet"></i>
               </div>
               <div>
@@ -910,210 +776,203 @@ export default function Profile({
                 <p className="profile-card-subtitle">Your credit balance and earnings</p>
               </div>
             </div>
+
             {isLoadingWallet ? (
               <div className="profile-loading-state">
                 <i className="fa-solid fa-circle-notch fa-spin"></i> Loading wallet...
               </div>
             ) : (
               <>
-                <div className="profile-stats-grid">
-                  <div className="profile-stat-box">
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      <span className="profile-stat-number" style={{ color: wallet.availableCredits < 10 ? '#ef4444' : wallet.availableCredits <= 50 ? '#eab308' : '#10b981' }}>
-                        {wallet.availableCredits}
-                      </span>
-                      {wallet.availableCredits < 10 ? (
-                        <span
-                          className="profile-credit-indicator low-credits"
-                          title="Warning: Low credits (!)"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '15px',
-                            height: '15px',
-                            borderRadius: '50%',
-                            backgroundColor: '#ef4444',
-                            color: '#ffffff',
-                            fontSize: '11px',
-                            fontWeight: '900',
-                            lineHeight: 1,
-                            boxShadow: '0 0 6px rgba(239, 68, 68, 0.7)'
-                          }}
-                        >
-                          !
-                        </span>
-                      ) : (
-                        <span
-                          className="profile-credit-indicator normal-credits"
-                          title={`${wallet.availableCredits} credits available`}
-                          style={{
-                            display: 'inline-block',
-                            width: '7px',
-                            height: '7px',
-                            borderRadius: '50%',
-                            backgroundColor: wallet.availableCredits <= 50 ? '#eab308' : '#10b981',
-                            boxShadow: wallet.availableCredits <= 50 ? '0 0 6px rgba(234, 179, 8, 0.6)' : '0 0 6px rgba(16, 185, 129, 0.6)'
-                          }}
-                        />
+                <div className="profile-wallet-stats-grid">
+                  {/* Available Credits */}
+                  <div className="profile-wallet-stat-tile">
+                    <div className="profile-wallet-stat-top">
+                      <span className="profile-wallet-number">{wallet.availableCredits}</span>
+                      {wallet.availableCredits < 10 && (
+                        <span className="profile-wallet-alert-dot" title="Warning: Low credits (!)">!</span>
                       )}
                     </div>
-                    <span className="profile-stat-label">Available Credits</span>
-                    <span className="profile-stat-hint">Approved &amp; ready to use</span>
+                    <div className="profile-wallet-label">AVAILABLE CREDITS</div>
+                    <div className="profile-wallet-sub">Approved &amp; ready to use</div>
+                    <div className="profile-wallet-bottom-icon peach-tint">
+                      <i className="fa-solid fa-coins"></i>
+                    </div>
                   </div>
-                  <div className="profile-stat-box">
-                    <span className="profile-stat-number" style={{ color: '#f59e0b' }}>{wallet.pendingCredits}</span>
-                    <span className="profile-stat-label">Pending Credits</span>
-                    <span className="profile-stat-hint">Awaiting approval (e.g. referrals)</span>
+
+                  {/* Pending Credits */}
+                  <div className="profile-wallet-stat-tile">
+                    <div className="profile-wallet-stat-top">
+                      <span className="profile-wallet-number orange-num">{wallet.pendingCredits}</span>
+                    </div>
+                    <div className="profile-wallet-label">PENDING CREDITS</div>
+                    <div className="profile-wallet-sub">Awaiting approval (e.g. referrals)</div>
+                    <div className="profile-wallet-bottom-icon peach-tint">
+                      <i className="fa-regular fa-clock"></i>
+                    </div>
                   </div>
-                  <div className="profile-stat-box">
-                    <span className="profile-stat-number" style={{ color: '#6366f1' }}>{wallet.lifetimeEarned}</span>
-                    <span className="profile-stat-label">Lifetime Earned</span>
-                    <span className="profile-stat-hint">Overall total from signup, plans &amp; referrals</span>
+
+                  {/* Lifetime Earned */}
+                  <div className="profile-wallet-stat-tile">
+                    <div className="profile-wallet-stat-top">
+                      <span className="profile-wallet-number purple-num">{wallet.lifetimeEarned}</span>
+                    </div>
+                    <div className="profile-wallet-label">LIFETIME EARNED</div>
+                    <div className="profile-wallet-sub">Overall total from signups, plans &amp; referrals</div>
+                    <div className="profile-wallet-bottom-icon purple-tint">
+                      <i className="fa-solid fa-chart-simple"></i>
+                    </div>
                   </div>
                 </div>
 
-                {wallet.pendingCredits > 0 && (
-                  <div className="profile-wallet-alert">
-                    <i className="fa-solid fa-clock-rotate-left"></i>
-                    <span>You have <strong>{wallet.pendingCredits} credits</strong> pending approval from referrals. Once approved by an administrator, they will be moved to your Available Credits.</span>
-                  </div>
-                )}
-
-                {wallet.availableCredits < 10 && (
-                  <div
-                    className="profile-wallet-alert"
-                    onClick={onGoToSubscription}
-                    style={{
-                      cursor: 'pointer',
-                      borderLeftColor: '#ef4444',
-                      background: 'rgba(239, 68, 68, 0.08)',
-                      color: '#ef4444',
-                      marginTop: '12px'
-                    }}
-                  >
-                    <i className="fa-solid fa-circle-exclamation" style={{ color: '#ef4444' }}></i>
-                    <span>
-                      You don't have sufficient amount of credits (<strong>{wallet.availableCredits}</strong> remaining).{' '}
-                      <strong style={{ color: '#6366f1', textDecoration: 'underline' }}>Buy Credits &rarr;</strong>
-                    </span>
-                  </div>
-                )}
-              </>
-            )}
-          </section>
-
-          {/* 3. Credits & Usage Statistics */}
-          <section className="profile-card profile-card-full">
-            <div className="profile-card-header">
-              <div className="profile-card-icon bg-emerald">
-                <i className="fa-solid fa-chart-pie"></i>
-              </div>
-              <div>
-                <h2 className="profile-card-title">Usage & Sessions</h2>
-                <p className="profile-card-subtitle">Real metrics from your interview sessions</p>
-              </div>
-            </div>
-
-            {isLoadingSessions && sessions.length === 0 ? (
-              <div className="profile-loading-state">
-                <i className="fa-solid fa-circle-notch fa-spin"></i> Loading session statistics...
-              </div>
-            ) : sessionsError && sessions.length === 0 ? (
-              <div className="profile-error-hint">
-                <i className="fa-solid fa-circle-info"></i> {sessionsError}
-              </div>
-            ) : (
-              <div className="profile-stats-grid">
-                <div
-                  className="profile-stat-box clickable"
-                  onClick={() => handleSessionClick()}
-                  title={showAllSessions ? "Show fewer sessions" : "View all saved sessions"}
-                  role="button"
-                  tabIndex={0}
+                {/* Insufficient credits warning banner */}
+                <div 
+                  className="profile-insufficient-banner"
+                  onClick={onGoToSubscription}
+                  style={{ cursor: 'pointer' }}
+                  title="Click to buy credits"
                 >
-                  <span className="profile-stat-number">{totalSessions}</span>
-                  <span className="profile-stat-label">Saved Sessions</span>
-                </div>
-                <div className="profile-stat-box">
-                  <span className="profile-stat-number">{formatDuration(totalDurationSeconds)}</span>
-                  <span className="profile-stat-label">Practice Time</span>
-                </div>
-                <div className="profile-stat-box">
-                  <span className="profile-stat-number">{totalQuestions}</span>
-                  <span className="profile-stat-label">Questions Handled</span>
-                </div>
-              </div>
-            )}
-
-            {sessions.length > 0 && (
-              <div className="profile-recent-sessions">
-                <div className="recent-sessions-header">
-                  <div className="recent-sessions-header-left">
-                    <span>{showAllSessions ? 'All Saved Sessions' : 'Recent Practice Sessions'}</span>
-                    <span className="recent-sessions-count-pill">{sessions.length}</span>
+                  <div className="profile-insufficient-icon">
+                    <i className="fa-solid fa-circle-exclamation"></i>
                   </div>
-                  {sessions.length > 3 && (
-                    <button
-                      type="button"
-                      className="recent-sessions-view-all-btn"
-                      onClick={() => setShowAllSessions(prev => !prev)}
-                    >
-                      {showAllSessions ? (
-                        <>
-                          Show Less <i className="fa-solid fa-chevron-up"></i>
-                        </>
-                      ) : (
-                        <>
-                          View All ({sessions.length}) <i className="fa-solid fa-chevron-down"></i>
-                        </>
-                      )}
-                    </button>
-                  )}
+                  <span className="profile-insufficient-text">
+                    You don't have sufficient amount of credits ({wallet.availableCredits} remaining). <strong className="profile-buy-link">Buy Credits &rarr;</strong>
+                  </span>
                 </div>
-                <div className={`recent-sessions-list ${showAllSessions ? 'expanded-sessions-list' : ''}`}>
-                  {(showAllSessions ? sessions : sessions.slice(0, 3)).map((sess) => {
-                    const isNotes = isMeetingNotesSession(sess);
-                    return (
-                      <div
-                        key={sess.id || `sess_${Math.random()}`}
-                        className={`recent-session-item ${isNotes ? 'item-notetaker' : 'item-copilot'}`}
-                        onClick={() => handleSessionClick(sess)}
-                        title={isNotes ? "Open meeting notes in Notetaker" : "Open interview session in AI Copilot"}
-                        role="button"
-                        tabIndex={0}
-                      >
-                        <div className="recent-session-left-meta">
-                          <div className={`recent-session-type-icon ${isNotes ? 'icon-notetaker' : 'icon-copilot'}`}>
-                            <i className={isNotes ? "fa-solid fa-microphone" : "fa-solid fa-robot"}></i>
-                          </div>
-                          <div className="recent-session-info">
-                            <div className="recent-session-title-row">
-                              <span className="recent-session-title">{sess.title || 'Live Session'}</span>
-                              <span className={`recent-session-type-tag ${isNotes ? 'tag-notetaker' : 'tag-copilot'}`}>
-                                {isNotes ? 'Meeting Notes' : 'AI Copilot'}
-                              </span>
-                            </div>
-                            <span className="recent-session-tech">{sess.tech || (isNotes ? 'Meeting Notes' : 'Interview')}</span>
-                          </div>
-                        </div>
-                        <div className="recent-session-right">
-                          <span className="recent-session-time">{sess.durationDisplay || '00:00:00'}</span>
-                          <span className="recent-session-destination-hint">
-                            {isNotes ? 'Open Notetaker' : 'Open Copilot'}
-                          </span>
-                          <i className="fa-solid fa-chevron-right recent-session-arrow"></i>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              </>
             )}
           </section>
         </div>
 
-        {/* Section 11: Danger Zone */}
+        {/* 3. Usage & Sessions (Full Width) */}
+        <section className="profile-card profile-card-full">
+          <div className="profile-card-header">
+            <div className="profile-card-icon bg-emerald">
+              <i className="fa-solid fa-chart-column"></i>
+            </div>
+            <div>
+              <h2 className="profile-card-title">Usage &amp; Sessions</h2>
+              <p className="profile-card-subtitle">Real metrics from your interview sessions</p>
+            </div>
+          </div>
+
+          {isLoadingSessions && sessions.length === 0 ? (
+            <div className="profile-loading-state">
+              <i className="fa-solid fa-circle-notch fa-spin"></i> Loading session statistics...
+            </div>
+          ) : sessionsError && sessions.length === 0 ? (
+            <div className="profile-error-hint">
+              <i className="fa-solid fa-circle-info"></i> {sessionsError}
+            </div>
+          ) : (
+            <div className="profile-usage-tiles-row">
+              {/* Saved Sessions */}
+              <div
+                className="profile-usage-tile clickable"
+                onClick={() => handleSessionClick()}
+                title={showAllSessions ? "Show fewer sessions" : "View all saved sessions"}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="profile-usage-icon-box">
+                  <i className="fa-solid fa-folder"></i>
+                </div>
+                <div className="profile-usage-info">
+                  <span className="profile-usage-number">{totalSessions}</span>
+                  <span className="profile-usage-label">SAVED SESSIONS</span>
+                </div>
+              </div>
+
+              {/* Practice Time */}
+              <div className="profile-usage-tile">
+                <div className="profile-usage-icon-box">
+                  <i className="fa-regular fa-clock"></i>
+                </div>
+                <div className="profile-usage-info">
+                  <span className="profile-usage-number">{formatDuration(totalDurationSeconds)}</span>
+                  <span className="profile-usage-label">PRACTICE TIME</span>
+                </div>
+              </div>
+
+              {/* Questions Handled */}
+              <div className="profile-usage-tile">
+                <div className="profile-usage-icon-box">
+                  <i className="fa-solid fa-circle-check"></i>
+                </div>
+                <div className="profile-usage-info">
+                  <span className="profile-usage-number">{totalQuestions}</span>
+                  <span className="profile-usage-label">QUESTIONS HANDLED</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {sessions.length > 0 && (
+            <div className="profile-recent-sessions">
+              <div className="recent-sessions-header">
+                <div className="recent-sessions-header-left">
+                  <span>{showAllSessions ? 'All Saved Sessions' : 'Recent Practice Sessions'}</span>
+                  <span className="recent-sessions-count-pill">{sessions.length}</span>
+                </div>
+                {sessions.length > 3 && (
+                  <button
+                    type="button"
+                    className="recent-sessions-view-all-btn"
+                    onClick={() => setShowAllSessions(prev => !prev)}
+                  >
+                    {showAllSessions ? (
+                      <>
+                        Show Less <i className="fa-solid fa-chevron-up"></i>
+                      </>
+                    ) : (
+                      <>
+                        View All ({sessions.length}) <i className="fa-solid fa-chevron-down"></i>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+              <div className={`recent-sessions-list ${showAllSessions ? 'expanded-sessions-list' : ''}`}>
+                {(showAllSessions ? sessions : sessions.slice(0, 3)).map((sess) => {
+                  const isNotes = isMeetingNotesSession(sess);
+                  return (
+                    <div
+                      key={sess.id || `sess_${Math.random()}`}
+                      className={`recent-session-item ${isNotes ? 'item-notetaker' : 'item-copilot'}`}
+                      onClick={() => handleSessionClick(sess)}
+                      title={isNotes ? "Open meeting notes in Notetaker" : "Open interview session in AI Copilot"}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="recent-session-left-meta">
+                        <div className={`recent-session-type-icon ${isNotes ? 'icon-notetaker' : 'icon-copilot'}`}>
+                          <i className={isNotes ? "fa-solid fa-microphone" : "fa-solid fa-robot"}></i>
+                        </div>
+                        <div className="recent-session-info">
+                          <div className="recent-session-title-row">
+                            <span className="recent-session-title">{sess.title || 'Live Session'}</span>
+                            <span className={`recent-session-type-tag ${isNotes ? 'tag-notetaker' : 'tag-copilot'}`}>
+                              {isNotes ? 'Meeting Notes' : 'AI Copilot'}
+                            </span>
+                          </div>
+                          <span className="recent-session-tech">{sess.tech || (isNotes ? 'Meeting Notes' : 'Interview')}</span>
+                        </div>
+                      </div>
+                      <div className="recent-session-right">
+                        <span className="recent-session-time">{sess.durationDisplay || '00:00:00'}</span>
+                        <span className="recent-session-destination-hint">
+                          {isNotes ? 'Open Notetaker' : 'Open Copilot'}
+                        </span>
+                        <i className="fa-solid fa-chevron-right recent-session-arrow"></i>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* 4. Danger Zone */}
         <section className="profile-card profile-danger-zone-card">
           <div className="danger-zone-header">
             <div className="danger-icon-badge">
@@ -1143,6 +1002,16 @@ export default function Profile({
           </div>
         </section>
       </main>
+
+      {/* Floating Assistant Widget (Bottom Right) */}
+      <div 
+        className="profile-floating-assistant"
+        title="Interview AI Assistant"
+        onClick={onGoToVoiceAgent}
+      >
+        <i className="fa-solid fa-headset"></i>
+        <span className="profile-floating-badge">2</span>
+      </div>
 
       {/* Delete Account Confirmation Modal (With Username Verification) */}
       {deleteModalOpen && (

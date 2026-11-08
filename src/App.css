@@ -4,8 +4,10 @@
    Global Reset & Base Variables (Outfit & Inter fonts)
    ========================================================================== */
 :root {
-  --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Outfit', sans-serif;
+  --font-serif: 'Lora', 'Merriweather', Georgia, 'Times New Roman', serif;
+  --font-primary: var(--font-serif);
+  --font-display: var(--font-serif);
+  --font-sans: var(--font-serif);
   --bg-gradient: radial-gradient(circle at 10% 20%, #eff6ff 0%, #f8fafc 90%);
   --bg-dark: #0b1329;
   --color-primary: #8b5cf6;
@@ -25,11 +27,20 @@
 }
 
 body {
-  font-family: var(--font-primary);
+  font-family: var(--font-serif) !important;
   background: transparent;
   color: var(--color-text-dark);
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
+}
+
+/* Global Serif Font Rule Across All Elements */
+*:not(i):not([class*="fa-"]):not([class*="fa"]):not([class*="lucide"]):not(code):not(pre):not(kbd) {
+  font-family: var(--font-serif) !important;
+}
+
+button, input, select, textarea, p, h1, h2, h3, h4, h5, h6, span, a, label, div, strong, b, em, li, td, th, nav, header, section, footer, main, aside {
+  font-family: var(--font-serif) !important;
 }
 
 /* ==========================================================================
@@ -5285,7 +5296,7 @@ body.dark-theme .interview-panel-root .setup-past-sessions:hover {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: 'Lora', 'Merriweather', Georgia, serif;
   color: #0f172a;
   overflow-y: auto !important;
 }
@@ -6496,7 +6507,7 @@ body.dark-theme .notetaker-input[readonly] {
 }
 
 .interview-panel-root .session-modal-title-row h3 {
-  font-family: var(--font-display), var(--font-primary), sans-serif;
+  font-family: var(--font-serif);
   font-size: 19px;
   font-weight: 700;
   color: #0f172a;
@@ -6873,7 +6884,7 @@ body.dark-theme .notetaker-input[readonly] {
 }
 
 .notetaker-modal-header h3 {
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-serif);
   font-size: 18px;
   font-weight: 700;
   color: #ffffff;

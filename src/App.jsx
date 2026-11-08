@@ -300,18 +300,16 @@ export default function App() {
 
   const referralStyle =
     windowType === 'referral'
-      ? {
-          display: 'block',
-          position: 'relative',
-          width: '100%',
-          height: '100vh',
-          opacity: 1,
-          visibility: 'visible',
-          overflowY: 'auto'
-        }
+      ? { height: '100%' }
       : {
-          display: 'none'
-  };
+          position: 'absolute',
+          left: '-99999px',
+          top: '-99999px',
+          width: '100%',
+          height: '100%',
+          opacity: 0,
+          pointerEvents: 'none'
+        };
 
   const handleGoToPanel = (targetTab, targetSessionId) => {
     if (targetTab) {

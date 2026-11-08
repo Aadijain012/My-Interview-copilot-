@@ -20,7 +20,7 @@
   --cm-surface: #ffffff;
   --cm-tile: #f6f8fb;
   --cm-hover: #f1f5fb;
-  --cm-font: 'Poppins', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --cm-font: 'Lora', 'Merriweather', Georgia, serif;
 }
 
 body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) {
@@ -203,7 +203,7 @@ body.dark-theme .interview-panel-root.copilot-root .setup-navbar .setup-navbar-t
   background: var(--cm-surface);
   border-right: 1px solid var(--cm-line);
   color: var(--cm-text);
-  font-family: var(--font-primary, 'Inter', system-ui, sans-serif);
+  font-family: var(--font-primary, 'Lora', 'Merriweather', Georgia, serif);
   transform: translateX(-100%);
   visibility: hidden;
   transition: transform 0.2s ease, visibility 0s linear 0.2s;
@@ -378,7 +378,7 @@ body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilo
   gap: 6px;
   margin: 0 4px 4px;
   color: var(--cm-muted);
-  font-family: var(--font-primary, 'Inter', system-ui, sans-serif);
+  font-family: var(--font-primary, 'Lora', 'Merriweather', Georgia, serif);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -686,7 +686,7 @@ body.dark-theme .interview-panel-root:is(.copilot-root, .tool-menu-root) .copilo
   background: var(--cs-surface);
   color: var(--cs-ink);
   box-shadow: 0 30px 80px rgba(15, 23, 42, 0.3);
-  font-family: var(--font-primary, 'Inter', system-ui, sans-serif);
+  font-family: var(--font-primary, 'Lora', 'Merriweather', Georgia, serif);
   text-align: left;
 }
 
@@ -760,7 +760,7 @@ body.dark-theme .copilot-settings-icon {
 .copilot-settings-head h2 {
   margin: 0;
   color: var(--cs-ink);
-  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  font-family: var(--cm-font, 'Lora', 'Merriweather', Georgia, serif);
   font-size: 34px;
   font-weight: 700;
   line-height: 1.15;
@@ -802,7 +802,7 @@ body.dark-theme .copilot-settings-icon {
   gap: 10px;
   margin: 0 0 12px;
   color: var(--cs-ink);
-  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  font-family: var(--cm-font, 'Lora', 'Merriweather', Georgia, serif);
   font-size: 19px;
   font-weight: 600;
 }
@@ -1062,7 +1062,7 @@ body.dark-theme .copilot-switch:not(.is-on) {
 .copilot-usage dd {
   margin: 4px 0 0;
   color: var(--cs-ink);
-  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  font-family: var(--cm-font, 'Lora', 'Merriweather', Georgia, serif);
   font-size: 24px;
   font-weight: 700;
 }
@@ -1112,7 +1112,7 @@ body.dark-theme .copilot-settings-status.is-saved {
   min-height: 48px;
   padding: 0 24px;
   border-radius: 999px;
-  font-family: var(--font-primary, 'Inter', system-ui, sans-serif);
+  font-family: var(--font-primary, 'Lora', 'Merriweather', Georgia, serif);
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -1223,7 +1223,7 @@ body.dark-theme .copilot-settings-status.is-saved {
   border-radius: 999px;
   background: #dc2626;
   color: #ffffff;
-  font-family: var(--font-primary, 'Inter', system-ui, sans-serif);
+  font-family: var(--font-primary, 'Lora', 'Merriweather', Georgia, serif);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;

@@ -1,23 +1,23 @@
 .dashboard-country { position: relative; min-width: 0; }
-body .workspace-page .dashboard-country-trigger { display:flex;align-items:center;gap:8px;max-width:190px;min-height:44px;padding:8px 11px;border:1px solid #ffffff5c;border-radius:10px;background:#ffffff10;color:#fff;font:600 14px "Segoe UI",system-ui,sans-serif;cursor:pointer; }
+body .workspace-page .dashboard-country-trigger { display:flex;align-items:center;gap:8px;max-width:190px;min-height:44px;padding:8px 11px;border:1px solid #ffffff5c;border-radius:10px;background:#ffffff10;color:#fff;font:600 14px 'Lora','Merriweather',Georgia,serif;cursor:pointer; }
 body .workspace-page .dashboard-country-trigger:hover { background:#ffffff22; }
 .dashboard-country-trigger>span:not(.dashboard-country-flag):first-of-type { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 .dashboard-country-flag { display:inline-flex;align-items:center;justify-content:center;width:24px;height:18px;object-fit:cover;border-radius:3px;flex:0 0 24px;font-size:18px; }
-.dashboard-country-status { position:absolute;z-index:920;top:calc(100% + 12px);right:0;display:flex;gap:10px;align-items:center;width:290px;max-width:calc(100vw - 24px);padding:12px 14px;border:1px solid #d9e5dd;border-radius:12px;background:#fff;color:#225339;box-shadow:0 8px 30px #101a3026;font:13px/1.5 system-ui,sans-serif; }
+.dashboard-country-status { position:absolute;z-index:920;top:calc(100% + 12px);right:0;display:flex;gap:10px;align-items:center;width:290px;max-width:calc(100vw - 24px);padding:12px 14px;border:1px solid #d9e5dd;border-radius:12px;background:#fff;color:#225339;box-shadow:0 8px 30px #101a3026;font:13px/1.5 'Lora','Merriweather',Georgia,serif; }
 .dashboard-country-status.is-error { color:#992b35;border-color:#edc7cc; }
-.dashboard-country-status button { flex-shrink:0;border:0;background:transparent;color:inherit;text-decoration:underline;cursor:pointer;font:600 13px system-ui,sans-serif;padding:10px 2px; }
-.dashboard-country-dialog { --dc-bg:#fff;--dc-text:#17202e;--dc-muted:#5b6473;--dc-line:#e5e7ed;--dc-soft:#f6f7fa;--dc-selected:#fff0f2;--dc-accent:#9d2940;box-sizing:border-box;position:fixed;inset:var(--country-top,74px) auto auto var(--country-left,12px);margin:0;width:370px;max-width:calc(100vw - 24px);max-height:var(--country-height,calc(100dvh - 100px));padding:0;border:1px solid var(--dc-line);border-radius:18px;background:var(--dc-bg);color:var(--dc-text);box-shadow:0 20px 65px #0c142d33;font:14px/1.5 "Segoe UI",system-ui,sans-serif;overflow:hidden;color-scheme:light; }
+.dashboard-country-status button { flex-shrink:0;border:0;background:transparent;color:inherit;text-decoration:underline;cursor:pointer;font:600 13px 'Lora','Merriweather',Georgia,serif;padding:10px 2px; }
+.dashboard-country-dialog { --dc-bg:#fff;--dc-text:#17202e;--dc-muted:#5b6473;--dc-line:#e5e7ed;--dc-soft:#f6f7fa;--dc-selected:#fff0f2;--dc-accent:#9d2940;box-sizing:border-box;position:fixed;inset:var(--country-top,74px) auto auto var(--country-left,12px);margin:0;width:370px;max-width:calc(100vw - 24px);max-height:var(--country-height,calc(100dvh - 100px));padding:0;border:1px solid var(--dc-line);border-radius:18px;background:var(--dc-bg);color:var(--dc-text);box-shadow:0 20px 65px #0c142d33;font:14px/1.5 'Lora','Merriweather',Georgia,serif;overflow:hidden;color-scheme:light; }
 .dashboard-country-dialog[open] { display:flex;flex-direction:column; }
 .dashboard-country-dialog * { box-sizing:border-box; }
 .dashboard-country-dialog::backdrop { background:#0b142326; }
 .dashboard-country-heading { display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:20px 18px 14px; }
-.dashboard-country-heading h2 { margin:0;color:var(--dc-text);font:700 21px/1.3 "Segoe UI",system-ui,sans-serif;letter-spacing:-.5px; }
+.dashboard-country-heading h2 { margin:0;color:var(--dc-text);font:700 21px/1.3 'Lora','Merriweather',Georgia,serif;letter-spacing:-.5px; }
 .dashboard-country-heading p { margin:6px 0 0;color:var(--dc-muted);font-size:13px; }
-.dashboard-country-heading button { width:36px;height:36px;flex:0 0 36px;padding:0;border:0;border-radius:9px;background:var(--dc-soft);color:var(--dc-muted);font:26px/1 system-ui,sans-serif;cursor:pointer; }
+.dashboard-country-heading button { width:36px;height:36px;flex:0 0 36px;padding:0;border:0;border-radius:9px;background:var(--dc-soft);color:var(--dc-muted);font:26px/1 'Lora','Merriweather',Georgia,serif;cursor:pointer; }
 .dashboard-country-search { display:flex;align-items:center;gap:10px;margin:0 18px 12px;padding:11px 12px;border:1px solid var(--dc-line);border-radius:10px;background:var(--dc-soft); }
 .dashboard-country-search:focus-within { outline:2px solid var(--dc-accent);outline-offset:2px; }
 .dashboard-country-search svg { width:20px;height:20px;flex:0 0 20px;color:var(--dc-muted); }
-.dashboard-country-search input { width:100%;min-width:0;margin:0;padding:0;border:0!important;outline:none!important;box-shadow:none!important;background:transparent!important;color:var(--dc-text)!important;font:16px/1.4 "Segoe UI",system-ui,sans-serif; }
+.dashboard-country-search input { width:100%;min-width:0;margin:0;padding:0;border:0!important;outline:none!important;box-shadow:none!important;background:transparent!important;color:var(--dc-text)!important;font:16px/1.4 'Lora','Merriweather',Georgia,serif; }
 .dashboard-country-search input::placeholder { color:var(--dc-muted);font-size:14px; }
 .dashboard-country-options { list-style:none;min-height:90px;max-height:320px;overflow:auto;overscroll-behavior:contain;flex:1;margin:0;padding:0 8px 8px; }
 .dashboard-country-options li { display:flex;align-items:center;gap:11px;min-height:48px;margin:2px 0;padding:10px;border:1px solid transparent;border-radius:9px;cursor:pointer; }

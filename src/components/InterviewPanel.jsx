@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import BrandLogo from './common/BrandLogo';
 import './InterviewPanel.css';
 import Teleprompter from './Teleprompter';
 import TopBar from './TopBar';
@@ -3330,8 +3331,7 @@ export default function InterviewPanel({ token, user, onLogout, onBackToLanding,
         <div className="setup-overlay">
           <header className="setup-navbar">
             <div className="setup-navbar-left">
-              <div className="setup-navbar-logo"><i className="fa-solid fa-brain"></i></div>
-              <div className="setup-navbar-title">My Interview Copilot</div>
+              <BrandLogo onClick={handleBackToLanding} size="md" />
             </div>
 
             <nav className="setup-navbar-tabs">
@@ -3758,15 +3758,7 @@ export default function InterviewPanel({ token, user, onLogout, onBackToLanding,
               >
                 <i className="fa-solid fa-bars"></i>
               </button>
-              <div className="copilot-brand-lockup">
-                <div className="copilot-brand-logo-mark">
-                  <i className="fa-solid fa-brain"></i>
-                </div>
-                <div>
-                  <div className="copilot-nav-title">MyInterview Copilot</div>
-                  <div className="copilot-nav-session-sub">Live interview session</div>
-                </div>
-              </div>
+              <BrandLogo subtitle="Live interview session" size="md" />
             </div>
 
             <div className="copilot-nav-right">
@@ -4470,12 +4462,7 @@ export default function InterviewPanel({ token, user, onLogout, onBackToLanding,
             <div className="copilot-drawer-backdrop" onClick={() => setShowNavDrawer(false)} />
             <div className="copilot-nav-drawer">
               <div className="copilot-drawer-header">
-                <div className="copilot-drawer-brand">
-                  <div className="copilot-nav-logo-circle">
-                    <i className="fa-solid fa-robot"></i>
-                  </div>
-                  <span>MyInterview Copilot</span>
-                </div>
+                <BrandLogo size="sm" />
                 <button className="copilot-drawer-close-btn" onClick={() => setShowNavDrawer(false)} type="button">
                   &times;
                 </button>

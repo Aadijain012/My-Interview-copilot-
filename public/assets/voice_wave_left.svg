@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 200" fill="none" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="lavenderWave1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c4b5fd" stop-opacity="0.6" />
+      <stop offset="50%" stop-color="#ddd6fe" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#f5f3ff" stop-opacity="0.1" />
+    </linearGradient>
+    <linearGradient id="lavenderWave2" x1="0%" y1="15%" x2="100%" y2="85%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.7" />
+      <stop offset="50%" stop-color="#c4b5fd" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#ede9fe" stop-opacity="0.15" />
+    </linearGradient>
+  </defs>
+  <path d="M0,45 C120,35 240,110 360,160 C400,175 430,190 450,200 L0,200 Z" fill="url(#lavenderWave1)" />
+  <path d="M0,95 C140,85 220,150 320,175 C370,188 410,195 450,200 L0,200 Z" fill="url(#lavenderWave2)" />
+</svg>
+

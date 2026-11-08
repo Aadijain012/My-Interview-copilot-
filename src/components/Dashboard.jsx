@@ -1,4 +1,5 @@
 import React from 'react';
+import BrandLogo from './common/BrandLogo';
 import './Dashboard.css';
 import { getUserCredits } from '../config/creditUsageConfig';
 import { CURRENCIES } from './subscription/currencyData';
@@ -102,11 +103,8 @@ export default function Dashboard({
     <div className={`dashboard-root ${darkMode ? 'dark-theme' : 'light-theme'}`}>
       {/* Top Navbar - Modern Glassmorphism & Dynamic Scroll */}
       <header className={`dashboard-top-navbar ${isScrolled ? 'scrolled' : 'transparent-header'}`}>
-        <div className="dashboard-nav-left" onClick={onBackToLanding} style={{ cursor: 'pointer' }}>
-          <div className="dashboard-logo-avatar">
-            <i className="fa-solid fa-brain"></i>
-          </div>
-          <span className="dashboard-brand-name">MyInterview Copilot</span>
+        <div className="dashboard-nav-left">
+          <BrandLogo onClick={onBackToLanding} size="md" />
         </div>
 
         <div className="dashboard-nav-right">

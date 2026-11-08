@@ -32,11 +32,11 @@ html, body, #root {
 }
 
 /* Global Serif Font Rule Across Entire Website */
-*:not(i):not([class*="fa-"]):not([class*="fa"]):not(code):not(pre):not(kbd):not(.copilot-practice-smarter-badge) {
+*:not(i):not([class*="fa-"]):not([class*="fa"]):not([class*="lucide"]):not(code):not(pre):not(kbd) {
   font-family: var(--font-serif) !important;
 }
 
-button, input, select, textarea, p, h1, h2, h3, h4, h5, h6, span:not(.copilot-practice-smarter-badge), a, label, div, strong, b, em, li, td, th, nav, header, section, footer {
+button, input, select, textarea, p, h1, h2, h3, h4, h5, h6, span, a, label, div, strong, b, em, li, td, th, nav, header, section, footer, main, aside {
   font-family: var(--font-serif) !important;
 }
 

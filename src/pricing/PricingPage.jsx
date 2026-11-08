@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { API_BASE } from '../utils/api';
 import { authHref, viewHref, policyHref, readRoute } from '../routing/appRoutes';
+import BrandLogo from '../components/common/BrandLogo';
 import markUrl from '../assets/brand/myinterview-copilot-mark.png';
-import { readPricing, readCouponPreview, refreshDelay, expiryText, moneyMinor, credits, discountPercent } from './pricingModel';
+import { readPricing, readCouponPreview, refreshDelay, expiryText, moneyMinor, credits, discountPercent, getFallbackCatalog } from './pricingModel';
 import './PricingPage.css';
 import {TestCheckoutDialog,TestCheckoutResult,testCheckoutEnabled,PlanBilling,useCurrentSubscription} from './TestCheckout';
 import {usePricingCountry} from './usePricingCountry';
@@ -129,12 +130,12 @@ export default function PricingPage({ onBack, onNavigate, darkMode, toggleDarkMo
   const accountHref=path=>path==='/app/pricing'?path:rootLink(viewHref(({'/workspace':'workspace','/workspace/profile':'profile','/workspace/credits':'credits'})[path]));
   const {country,chooseCountry,message,status:countryStatus,retry:retryCountry}=usePricingCountry();
   const [checkoutSelection,setCheckoutSelection]=useState(null);
-  const [snapshot,setData]=useState(null),[error,setError]=useState(false),[attempt,setAttempt]=useState(0),[selected,setSelected]=useState(null);
-  const data = snapshot?.country === country ? snapshot : null;
+  const [snapshot,setData]=useState(()=>getFallbackCatalog(country||'IN')),[error,setError]=useState(false),[attempt,setAttempt]=useState(0),[selected,setSelected]=useState(null);
+  const data = (snapshot?.country === country ? snapshot : null) || getFallbackCatalog(country || 'IN');
   useEffect(()=>{
     // Embedded in App (onNavigate), the page stays mounted while hidden; App owns the title there.
     if(!onNavigate)document.title='Plans & pricing · MyInterview Copilot';
-    setData(null);setError(false);if(!country)return;
+    setError(false);if(!country)return;
     let stopped=false,timer,controller,busy=false;
     async function load(){
       if(stopped||busy)return;clearTimeout(timer);busy=true;controller=new AbortController();const start=performance.now();
@@ -143,7 +144,12 @@ export default function PricingPage({ onBack, onNavigate, darkMode, toggleDarkMo
         const response=await fetch(API_BASE+'/api/pricing/catalog?country='+encodeURIComponent(country),{signal:controller.signal,credentials:'omit',cache:'no-store',headers:{Accept:'application/json'}});
         if(!response.ok)throw Error('Pricing unavailable');const catalog=readPricing(await response.json());if(stopped)return;
         setData(catalog);setError(false);next=refreshDelay(catalog,performance.now()-start);
-      }catch{if(!stopped){setData(null);setError(true);}}
+      }catch(err){
+        if(!stopped){
+          setData(getFallbackCatalog(country));
+          setError(false);
+        }
+      }
       finally{clearTimeout(timeout);busy=false;if(!stopped)timer=setTimeout(()=>{if(!document.hidden)load();},next);}
     }
     const visible=()=>{if(!document.hidden)load();};load();document.addEventListener('visibilitychange',visible);
@@ -170,10 +176,7 @@ export default function PricingPage({ onBack, onNavigate, darkMode, toggleDarkMo
             <i className="fa-solid fa-arrow-left"></i>
           </button>
         )}
-        <a className="pricing-brand" href={rootLink(viewHref('workspace'))}>
-          <img src={markUrl} width="34" height="34" alt=""/>
-          <span>MyInterview <b>Copilot</b></span>
-        </a>
+        <BrandLogo onClick={onBack || (() => onNavigate?.('workspace'))} size="md" />
       </div>
       <nav aria-label="Pricing navigation">
         <a href="#support">Support center</a>

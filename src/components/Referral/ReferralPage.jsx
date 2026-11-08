@@ -1,9 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import './ReferralPage.css';
-import { API_BASE } from '../../utils/api';
+import BrandLogo from '../common/BrandLogo';
+import SidebarDrawer from '../SidebarDrawer';
 import AccountDropdown from '../UserProfile/AccountDropdown';
+import { API_BASE } from '../../utils/api';
+import './ReferralPage.css';
 
 const ipcRenderer = window.require ? window.require('electron').ipcRenderer : null;
+
+function getInitials(name, email) {
+  if (name && typeof name === 'string' && name.trim()) {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  if (email && typeof email === 'string') {
+    const localPart = email.trim().split('@')[0];
+    return localPart.slice(0, 2).toUpperCase();
+  }
+  return 'AJ';
+}
 
 const MILESTONES = [
   {
@@ -13,21 +30,21 @@ const MILESTONES = [
     icon: 'fa-user-plus',
   },
   {
-    count: 3,
+    count: 5,
     title: 'Growing Circle',
-    description: 'Invite 3 friends',
+    description: 'Invite 5 friends',
     icon: 'fa-users',
   },
   {
-    count: 5,
+    count: 10,
     title: 'Trading Squad',
-    description: 'Invite 5 friends',
+    description: 'Invite 10 friends',
     icon: 'fa-people-group',
   },
   {
-    count: 10,
+    count: 50,
     title: 'Top Circle',
-    description: 'Invite 10 friends',
+    description: 'Invite 50 friends',
     icon: 'fa-trophy',
   },
 ];
@@ -55,11 +72,15 @@ export default function ReferralPage({
   const [referralData, setReferralData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const userName =
     user?.name ||
     user?.email?.split('@')[0] ||
-    'Trader';
+    'Aadi Jain';
+
+  const displayName = userName;
+  const initials = useMemo(() => getInitials(user?.name, user?.email), [user]);
 
   const loadReferralData = async (isManual = false) => {
     if (!token) {
@@ -209,7 +230,7 @@ export default function ReferralPage({
   }, [unlockedMilestones, joinedCount]);
 
   // Progress bar uses joinedCount (total friends who signed up with your code)
-  const maxFriends = MILESTONES[MILESTONES.length - 1]?.count || 10;
+  const maxFriends = 10;
   const currentProgress = Math.min(joinedCount, maxFriends);
   const progressPercent = Math.min(
     (currentProgress / maxFriends) * 100,
@@ -308,58 +329,66 @@ export default function ReferralPage({
         </div>
       </div>
 
-      {/* Dynamic Navigation Bar */}
-      <header className="setup-navbar">
-        <div className="setup-navbar-left" onClick={onBackToLanding} style={{ cursor: 'pointer' }}>
-          <div className="setup-navbar-logo"><i className="fa-solid fa-brain"></i></div>
-          <div className="setup-navbar-title">My Interview Copilot</div>
+      {/* Slide-out Sidebar Drawer with Full AI Copilot Suite & Workspace Navigation */}
+      <SidebarDrawer
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        user={user}
+        displayName={displayName}
+        initials={initials}
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+        onBackToLanding={onBackToLanding}
+        onGoToDashboard={onGoToDashboard}
+        onGoToSubscription={onGoToSubscription}
+        onGoToPanel={onGoToPanel}
+        onGoToNotetaker={onGoToNotetaker}
+        onGoToVoiceAgent={onGoToVoiceAgent}
+        onGoToUpload={onGoToUpload}
+        onGoToReferral={onGoToReferral}
+        onGoToProfile={onGoToProfile}
+        onLogout={onLogout}
+        showToast={showToast}
+        currentView="referral"
+      />
+
+      {/* Top Main Navbar - Clean, Minimal & Matches Profile */}
+      <header className="referral-top-navbar">
+        <div className="referral-nav-left">
+          <button 
+            className="referral-nav-hamburger" 
+            onClick={() => setIsSidebarOpen(true)} 
+            type="button" 
+            title="Open Features & Navigation Menu"
+            aria-label="Open Navigation Menu"
+          >
+            <i className="fa-solid fa-bars"></i>
+          </button>
+          <BrandLogo onClick={onBackToLanding} size="md" />
         </div>
 
-        <nav className="setup-navbar-tabs">
-          <button onClick={onBackToLanding} className="setup-tab-item" type="button">
+        <nav className="referral-nav-center-tabs">
+          <button onClick={onBackToLanding} className="referral-nav-tab" type="button">
             <i className="fa-solid fa-house"></i> Home
           </button>
-          <button onClick={onGoToDashboard} className="setup-tab-item" type="button">
+          <button onClick={onGoToDashboard} className="referral-nav-tab" type="button">
             <i className="fa-solid fa-chart-line"></i> Dashboard
           </button>
-          <button onClick={() => showToast?.('Mock Interview feature is coming soon!')} className="setup-tab-item" type="button">
-            <i className="fa-solid fa-video"></i> Mock Interview
-          </button>
-          <button onClick={() => showToast?.('Meetings scheduler is coming soon!')} className="setup-tab-item" type="button">
-            <i className="fa-solid fa-calendar-days"></i> Meetings
-          </button>
-          <button onClick={() => showToast?.('History log is coming soon!')} className="setup-tab-item" type="button">
-            <i className="fa-solid fa-clock-rotate-left"></i> History
-          </button>
-          <button onClick={() => showToast?.('Reminders scheduling feature is coming soon!')} className="setup-tab-item" type="button">
-            <i className="fa-solid fa-bell"></i> Reminders
-          </button>
-          <button onClick={onGoToSubscription} className="setup-tab-item" type="button">
+          <button onClick={onGoToSubscription} className="referral-nav-tab" type="button">
             <i className="fa-solid fa-crown"></i> Plans &amp; Pricing
           </button>
         </nav>
 
-        <div className="setup-navbar-right">
-          <button onClick={onGoToPanel} className="setup-action-btn btn-copilot" type="button">
+        <div className="referral-nav-right">
+          <button onClick={onGoToPanel} className="referral-nav-pill-btn btn-copilot" type="button" title="Launch AI Copilot">
             <i className="fa-solid fa-rocket"></i> AI Copilot
           </button>
-          <button onClick={onGoToNotetaker} className="setup-action-btn btn-notetaker" type="button">
-            <i className="fa-solid fa-microphone"></i> Notetaker
+          <button onClick={toggleDarkMode} className="referral-nav-icon-btn" type="button" title="Toggle Theme">
+            <i className={`fa-solid ${darkMode ? 'fa-sun' : 'fa-moon'}`}></i>
           </button>
-          <button onClick={onGoToVoiceAgent} className="setup-action-btn btn-voice-agent" type="button">
-            <i className="fa-solid fa-robot"></i> Voice Agent
-          </button>
-          <button onClick={onGoToUpload} className="setup-action-btn btn-upload" type="button">
-            <i className="fa-solid fa-cloud-arrow-up"></i> Upload
-          </button>
-          <button onClick={onGoToReferral} className="setup-action-btn btn-referral active" type="button">
-            <i className="fa-solid fa-gift"></i> Refer &amp; Earn
-          </button>
-          <button onClick={toggleDarkMode} className={`setup-action-btn btn-theme-toggle ${darkMode ? 'active' : ''}`} type="button">
-            <i className={`fa-solid ${darkMode ? 'fa-sun' : 'fa-moon'}`}></i> {darkMode ? 'Light' : 'Dark'}
-          </button>
-          <div className="setup-lang-picker">
-            <i className="fa-solid fa-globe"></i> US EN
+          <div className="referral-nav-lang-picker" title="Language: English (US)">
+            <i className="fa-solid fa-globe"></i>
+            <span>EN</span>
           </div>
           <AccountDropdown
             user={user}
@@ -372,34 +401,41 @@ export default function ReferralPage({
         </div>
       </header>
 
-      {/* Subheader Breadcrumb */}
-      <div className="setup-subheader-row">
-        <div className="setup-subheader-left">
-          <a href="#" onClick={(e) => { e.preventDefault(); onBackToLanding?.(); }} className="badge-crumb crumb-home">
+      {/* Subheader Breadcrumb & Disclaimer Bar */}
+      <div className="referral-top-bar">
+        <div className="referral-breadcrumb">
+          <a href="#" onClick={(e) => { e.preventDefault(); onBackToLanding?.(); }} className="referral-crumb-home">
             <i className="fa-solid fa-house"></i> Home
           </a>
-          <span className="crumb-separator"><i className="fa-solid fa-chevron-right"></i></span>
-          <span className="badge-crumb crumb-current">
+          <span className="referral-crumb-sep"><i className="fa-solid fa-chevron-right"></i></span>
+          <span className="referral-crumb-active">
             <i className="fa-solid fa-gift"></i> Refer &amp; Earn
           </span>
         </div>
-        <div className="setup-subheader-right">
-          <span className="badge-crumb crumb-tag">
-            <i className="fa-solid fa-coins"></i> Earn credits and unlock community rewards
-          </span>
+        <div className="referral-disclaimer-pill">
+          <i className="fa-solid fa-coins"></i> Earn credits and unlock community rewards
         </div>
       </div>
 
       <main className="referral-content">
         
+        {/* Hero Section - Exact Match to Reference Design */}
         <section className="referral-hero">
+          <img
+            src={darkMode ? "/assets/referral_hero_left_dark.png?v=hd3" : "/assets/referral_hero_left.png?v=hd3"}
+            alt=""
+            className="referral-hero-wave-left"
+            aria-hidden="true"
+          />
+
           <div className="referral-hero-content">
             <span className="referral-eyebrow">
-              <i className="fa-solid fa-gift"></i>
-              Refer & Earn
+              <i className="fa-solid fa-users"></i> Refer &amp; Earn
             </span>
 
-            <h2>Build Your Trading Circle</h2>
+            <h2>
+              Build Your <span className="referral-hero-title-accent">Trading Circle</span>
+            </h2>
 
             <p>
               Invite friends, grow your circle, and unlock exclusive
@@ -407,22 +443,26 @@ export default function ReferralPage({
             </p>
 
             <div className="referral-user-greeting">
-              Welcome, <strong>{userName}</strong>
+              Welcome, <span className="referral-user-name-highlight">{displayName}</span>
             </div>
           </div>
 
-          <div className="referral-hero-icon">
-            <i className="fa-solid fa-users"></i>
+          <div className="referral-hero-art">
+            <img
+              src={darkMode ? "/assets/referral_hero_art_dark.png?v=hd3" : "/assets/referral_hero_art.png?v=hd3"}
+              alt="Build Your Circle Rewards"
+              className="referral-hero-art-img"
+            />
           </div>
         </section>
 
+        {/* Trading Circle Progress Card */}
         <section className="referral-progress-card">
           <div className="section-heading-row">
             <div>
-              <span className="section-label">Trading Circle</span>
+              <span className="section-label">TRADING CIRCLE</span>
               <h2>
-                {joinedCount}
-                <span>/{maxFriends} friends</span>
+                {joinedCount} <span className="fraction-label">/ {maxFriends} friends</span>
               </h2>
             </div>
 
@@ -440,12 +480,12 @@ export default function ReferralPage({
 
           <div className="progress-footer">
             <span>
-              {joinedCount} joined · {qualifiedCount} qualified
+              <i className="fa-solid fa-user-group"></i> {joinedCount} joined • {qualifiedCount} qualified
             </span>
 
             {nextMilestone ? (
               <span>
-                Next milestone: {nextMilestone.count} friends
+                Next milestone: {nextMilestone.count} {nextMilestone.count === 1 ? 'friend' : 'friends'}
               </span>
             ) : (
               <span>All milestones reached!</span>
@@ -453,13 +493,13 @@ export default function ReferralPage({
           </div>
         </section>
 
+        {/* Milestones Section */}
         <section className="referral-section">
           <div className="section-title-block">
-            <span className="section-label">Milestones</span>
+            <span className="section-label">MILESTONES</span>
             <h2>Unlock Community Rewards</h2>
             <p>
-              Grow your qualified referrals to unlock permanent
-              features.
+              Grow your qualified referrals to unlock premium features.
             </p>
           </div>
 
@@ -505,55 +545,55 @@ export default function ReferralPage({
           </div>
         </section>
 
+        {/* Community Rewards Banner */}
         <section className="community-reward-banner">
           <div className="community-reward-icon">
             <i className="fa-solid fa-crown"></i>
           </div>
 
-          <div>
-            <span>Community Rewards</span>
+          <div className="community-reward-text">
+            <span className="banner-sublabel">COMMUNITY REWARDS</span>
             <h3>More friends. More unlocked features.</h3>
             <p>
-              Your milestone progress is based on qualified
-              referrals, not just signups.
+              Your admission progress is based on qualified referrals, not just signups.
             </p>
           </div>
         </section>
 
+        {/* Active Friends Info Card */}
         <section className="active-friends-card">
           <div className="info-icon">
             <i className="fa-solid fa-circle-info"></i>
           </div>
 
-          <div>
+          <div className="active-friends-text">
             <h3>What counts as an active friend?</h3>
             <p>
-              A referral becomes qualified after completing the
-              required activity and remaining active through the
-              qualification period.
+              A referral becomes qualified after completing the required activity and
+              remaining active through the qualification period.
             </p>
 
             <button
               type="button"
+              className="learn-more-btn"
               onClick={() =>
                 showToast?.(
                   'Qualified referrals unlock your milestone rewards.'
                 )
               }
             >
-              Learn More
-              <i className="fa-solid fa-arrow-right"></i>
+              Learn More <i className="fa-solid fa-arrow-right"></i>
             </button>
           </div>
         </section>
 
+        {/* Referral Stats Cards */}
         <section className="referral-stats-section">
           <div className="referral-stat-card">
             <div className="referral-stat-icon">
               <i className="fa-solid fa-share-nodes"></i>
             </div>
-
-            <div>
+            <div className="referral-stat-info">
               <span>Total Referrals</span>
               <strong>{joinedCount + qualifiedCount}</strong>
             </div>
@@ -561,10 +601,9 @@ export default function ReferralPage({
 
           <div className="referral-stat-card">
             <div className="referral-stat-icon">
-              <i className="fa-solid fa-user-plus"></i>
+              <i className="fa-solid fa-user-check"></i>
             </div>
-
-            <div>
+            <div className="referral-stat-info">
               <span>Friends Joined</span>
               <strong>{joinedCount}</strong>
             </div>
@@ -572,10 +611,9 @@ export default function ReferralPage({
 
           <div className="referral-stat-card">
             <div className="referral-stat-icon">
-              <i className="fa-solid fa-coins"></i>
+              <i className="fa-solid fa-gift"></i>
             </div>
-
-            <div>
+            <div className="referral-stat-info">
               <span>Referral Earned</span>
               <strong>{availableCredits}</strong>
             </div>
@@ -585,31 +623,26 @@ export default function ReferralPage({
             <div className="referral-stat-icon">
               <i className="fa-solid fa-clock"></i>
             </div>
-
-            <div>
+            <div className="referral-stat-info">
               <span>Referral Pending</span>
               <strong>{pendingCredits}</strong>
             </div>
           </div>
-
         </section> 
 
+        {/* Referral Code Section */}
         <section className="referral-code-section">
-
           <div className="section-title-block">
-            <span className="section-label">Your Referral Code</span>
-            <h2>{referralCode || 'Loading...'}</h2>
-
-            <p>
-              Share this code with your friends when they sign up.
-            </p>
+            <span className="section-label">YOUR REFERRAL CODE</span>
+            <h2>{loading ? 'Loading...' : referralCode || 'Loading...'}</h2>
+            <p>Share this code with your friends when they sign up.</p>
           </div>
 
           <div className="referral-code-card">
-
             <div className="referral-code-value">
-              <i className="fa-solid fa-gift"></i>
-
+              <div className="gift-icon-box">
+                <i className="fa-solid fa-gift"></i>
+              </div>
               <strong>
                 {loading ? 'Loading...' : referralCode || 'Unavailable'}
               </strong>
@@ -622,31 +655,27 @@ export default function ReferralPage({
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(referralCode);
-
                   if (showToast) {
                     showToast('Referral code copied!');
                   }
                 } catch (error) {
                   console.error('Failed to copy referral code:', error);
-
                   if (showToast) {
                     showToast('Unable to copy referral code');
                   }
                 }
               }}
             >
-              <i className="fa-solid fa-copy"></i>
+              <i className="fa-regular fa-copy"></i>
               Copy Code
             </button>
-
           </div>
-
         </section>
 
+        {/* Referral Rewards Section */}
         <section className="referral-earning-section">
-
           <div className="section-title-block">
-            <span className="section-label">Referral Rewards</span>
+            <span className="section-label">REFERRAL REWARDS</span>
             <h2>Earn More With Every Qualified Referral</h2>
             <p>
               Your friend receives credits when they join,
@@ -655,45 +684,36 @@ export default function ReferralPage({
           </div>
 
           <div className="earning-grid">
-
-            <div className="earning-card">
-              <div className="earning-icon">
+            <div className="earning-card friend-card">
+              <div className="earning-icon-circle green">
                 <i className="fa-solid fa-user-plus"></i>
               </div>
-
-              <span>Your Friend Gets</span>
-
-              <strong>
-                {refereeReward}
-              </strong>
-
-              <small>credits</small>
-            </div>
-
-            <div className="earning-card primary">
-              <div className="earning-icon">
-                <i className="fa-solid fa-coins"></i>
+              <div className="earning-info">
+                <span className="earning-title">Your Friend Gets</span>
+                <strong className="earning-amount">{refereeReward}</strong>
+                <small className="earning-sub">credits</small>
               </div>
-
-              <span>You Earn</span>
-
-              <strong>
-                {referrerReward}
-              </strong>
-
-              <small>
-                credits per qualified referral
-              </small>
             </div>
 
+            <div className="earning-card you-earn-card">
+              <div className="earning-icon-circle amber">
+                <i className="fa-solid fa-trophy"></i>
+              </div>
+              <div className="earning-info">
+                <span className="earning-title">You Earn</span>
+                <strong className="earning-amount">{referrerReward}</strong>
+                <small className="earning-sub">
+                  credits per qualified referral
+                </small>
+              </div>
+            </div>
           </div>
-
         </section>
 
-
+        {/* Referral Link & Invite Section */}
         <section className="referral-link-section">
           <div className="section-title-block">
-            <span className="section-label">Your Referral Link</span>
+            <span className="section-label">YOUR REFERRAL LINK</span>
             <h2>Invite Your Friends</h2>
             <p>
               Share your personal referral link and start building
@@ -707,7 +727,7 @@ export default function ReferralPage({
               <span>
                 {loading
                   ? 'Loading...'
-                  : referralUrl || 'Referral link unavailable'}
+                  : referralUrl || 'https://myinterviewcopilot.com/?ref=yourcodehere'}
               </span>
             </div>
 
@@ -769,7 +789,7 @@ export default function ReferralPage({
               className="share-button more"
               onClick={handleInvite}
             >
-              <i className="fa-solid fa-share-nodes"></i>
+              <i className="fa-solid fa-ellipsis"></i>
               More
             </button>
           </div>

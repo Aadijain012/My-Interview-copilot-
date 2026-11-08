@@ -96,7 +96,7 @@
 }
 
 .usage-page-title {
-  font-family: var(--font-display, 'Outfit', 'Inter', sans-serif);
+  font-family: var(--font-display, 'Lora', 'Merriweather', Georgia, serif);
   font-size: 24px;
   font-weight: 700;
   color: #ffffff;
@@ -209,7 +209,7 @@
 }
 
 .usage-plan-name {
-  font-family: var(--font-display, 'Outfit', 'Inter', sans-serif);
+  font-family: var(--font-display, 'Lora', 'Merriweather', Georgia, serif);
   font-size: 22px;
   font-weight: 700;
   color: #ffffff;
@@ -345,7 +345,7 @@
 }
 
 .usage-section-title {
-  font-family: var(--font-display, 'Outfit', 'Inter', sans-serif);
+  font-family: var(--font-display, 'Lora', 'Merriweather', Georgia, serif);
   font-size: 18px;
   font-weight: 700;
   color: #ffffff;
@@ -516,7 +516,7 @@
 }
 
 .usage-panel-title {
-  font-family: var(--font-display, 'Outfit', 'Inter', sans-serif);
+  font-family: var(--font-display, 'Lora', 'Merriweather', Georgia, serif);
   font-size: 17px;
   font-weight: 700;
   color: #ffffff;
@@ -819,7 +819,7 @@
 }
 
 .usage-modal-title {
-  font-family: var(--font-display, 'Outfit', 'Inter', sans-serif);
+  font-family: var(--font-display, 'Lora', 'Merriweather', Georgia, serif);
   font-size: 18px;
   font-weight: 700;
   color: #ffffff;
@@ -1398,7 +1398,7 @@
   color: #ffffff;
   line-height: 1.1;
   margin-bottom: 4px;
-  font-family: var(--font-display, 'Outfit', 'Inter', sans-serif);
+  font-family: var(--font-display, 'Lora', 'Merriweather', Georgia, serif);
 }
 
 .box-available .c-number { color: #34d399; }

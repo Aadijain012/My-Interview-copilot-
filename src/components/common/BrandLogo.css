@@ -1,0 +1,169 @@
+/* BrandLogo.css - Unified Consistent Brand Identity for My Interview Copilot (Green Emerald Theme) */
+
+.brand-logo-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  user-select: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  vertical-align: middle;
+}
+
+.brand-logo-container.clickable {
+  cursor: pointer;
+}
+
+.brand-logo-container.clickable:hover {
+  transform: translateY(-1px);
+}
+
+.brand-logo-container.clickable:hover .brand-logo-mark {
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+  transform: scale(1.05);
+}
+
+/* Icon Squircle - Emerald Green Gradient matching website theme */
+.brand-logo-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 55%, #34d399 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.brand-logo-mark i,
+.brand-logo-mark svg {
+  color: #ffffff !important;
+  line-height: 1;
+}
+
+/* Sizes */
+.brand-logo-container.size-sm .brand-logo-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.brand-logo-container.size-md .brand-logo-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.brand-logo-container.size-lg .brand-logo-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  font-size: 20px;
+}
+
+/* Typography Group */
+.brand-logo-text-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.15;
+}
+
+.brand-logo-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.brand-logo-main {
+  font-family: 'Lora', 'Merriweather', Georgia, serif;
+  font-weight: 750;
+  color: #0f172a;
+  letter-spacing: -0.4px;
+  transition: color 0.15s ease;
+}
+
+.brand-logo-container.size-sm .brand-logo-main {
+  font-size: 0.88rem;
+}
+
+.brand-logo-container.size-md .brand-logo-main {
+  font-size: 1.02rem;
+}
+
+.brand-logo-container.size-lg .brand-logo-main {
+  font-size: 1.25rem;
+}
+
+.brand-logo-accent {
+  font-family: 'Lora', 'Merriweather', Georgia, serif;
+  font-weight: 800;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.3px;
+}
+
+/* AI Micro-Badge */
+.brand-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Lora', 'Merriweather', Georgia, serif;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1.5px 5.5px;
+  border-radius: 5px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Subtitle */
+.brand-logo-sub {
+  font-family: 'Lora', 'Merriweather', Georgia, serif;
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 2px;
+  letter-spacing: -0.2px;
+}
+
+/* Dark Theme Support */
+.dark-theme .brand-logo-main,
+body.dark-theme .brand-logo-main {
+  color: #ffffff;
+}
+
+.dark-theme .brand-logo-mark,
+body.dark-theme .brand-logo-mark {
+  background: linear-gradient(135deg, #059669 0%, #10b981 55%, #34d399 100%);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.45);
+  border: 1px solid rgba(52, 211, 153, 0.28);
+}
+
+.dark-theme .brand-logo-accent,
+body.dark-theme .brand-logo-accent {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark-theme .brand-logo-badge,
+body.dark-theme .brand-logo-badge {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(52, 211, 153, 0.4);
+  color: #6ee7b7;
+}
+
+.dark-theme .brand-logo-sub,
+body.dark-theme .brand-logo-sub {
+  color: #94a3b8;
+}

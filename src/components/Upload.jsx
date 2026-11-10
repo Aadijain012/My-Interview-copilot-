@@ -273,7 +273,7 @@ export default function Upload({
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showLibraryModal, setShowLibraryModal] = useState(false);
   const [autoTranscribeAfterUpload, setAutoTranscribeAfterUpload] = useState(true);
-  const [activeShowcaseChip, setActiveShowcaseChip] = useState('Ask a question');
+  const [activeShowcaseChip, setActiveShowcaseChip] = useState('');
   const [langSearch, setLangSearch] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
   const [translatedData, setTranslatedData] = useState(null);
@@ -282,6 +282,8 @@ export default function Upload({
 
   // Refs
   const fileInputRef = useRef(null);
+  const fromLangSelectRef = useRef(null);
+  const toLangSelectRef = useRef(null);
   const chatEndRef = useRef(null);
   const audioContextRef = useRef(null);
   const processorNodeRef = useRef(null);
@@ -315,7 +317,7 @@ export default function Upload({
   useEffect(() => {
     if (windowType !== 'upload') {
       if (uploadAbortControllerRef.current) {
-        try { uploadAbortControllerRef.current.abort(); } catch (_) {}
+        try { uploadAbortControllerRef.current.abort(); } catch (_) { }
       }
       stopRecording();
     }
@@ -327,7 +329,7 @@ export default function Upload({
     return () => {
       isMountedRef.current = false;
       if (uploadAbortControllerRef.current) {
-        try { uploadAbortControllerRef.current.abort(); } catch (_) {}
+        try { uploadAbortControllerRef.current.abort(); } catch (_) { }
       }
       stopRecording();
     };
@@ -557,6 +559,13 @@ export default function Upload({
     handleStartUpload(file);
   };
 
+  const handleTaskCardClick = (taskName) => {
+    setActiveShowcaseChip(taskName);
+    if (!selectedFile && !activeSession) {
+      fileInputRef.current?.click();
+    }
+  };
+
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -701,8 +710,8 @@ export default function Upload({
       }
       if (!isMountedRef.current) return null;
       const isAuthError = err.response?.status === 401;
-      const errorMsg = isAuthError 
-        ? 'Your session has expired. Please log in again to upload files.' 
+      const errorMsg = isAuthError
+        ? 'Your session has expired. Please log in again to upload files.'
         : (err.response?.data?.error || err.message || 'File upload failed.');
       showToast(errorMsg);
       setSelectedFileName('');
@@ -866,8 +875,8 @@ export default function Upload({
       }
       if (!isMountedRef.current) return null;
       const isAuthError = err.response?.status === 401;
-      const errorMsg = isAuthError 
-        ? 'Your session has expired. Please log in again to upload files.' 
+      const errorMsg = isAuthError
+        ? 'Your session has expired. Please log in again to upload files.'
         : (err.response?.data?.error || err.message || 'Video processing failed.');
       showToast(errorMsg);
       setSelectedFileName('');
@@ -1051,7 +1060,7 @@ export default function Upload({
               setMediaDuration(updated.duration || '0:30');
               fetchSessions();
             }
-          } catch (_) {}
+          } catch (_) { }
         }
       } else {
         setConnectionStatus('reconnecting');
@@ -1594,7 +1603,7 @@ export default function Upload({
   const seekToTime = (timeInSec) => {
     if (mediaPlayerRef.current) {
       mediaPlayerRef.current.currentTime = timeInSec;
-      mediaPlayerRef.current.play().catch(() => {});
+      mediaPlayerRef.current.play().catch(() => { });
     }
   };
 
@@ -1639,23 +1648,23 @@ export default function Upload({
     try {
       if (processorNodeRef.current) {
         processorNodeRef.current.onaudioprocess = null;
-        try { processorNodeRef.current.disconnect(); } catch (_) {}
+        try { processorNodeRef.current.disconnect(); } catch (_) { }
         processorNodeRef.current = null;
       }
       if (micSourceRef.current) {
-        try { micSourceRef.current.disconnect(); } catch (_) {}
+        try { micSourceRef.current.disconnect(); } catch (_) { }
         micSourceRef.current = null;
       }
       if (audioContextRef.current) {
         try {
           if (audioContextRef.current.state !== 'closed') {
-            audioContextRef.current.close().catch(() => {});
+            audioContextRef.current.close().catch(() => { });
           }
-        } catch (_) {}
+        } catch (_) { }
         audioContextRef.current = null;
       }
       if (audioStreamRef.current) {
-        try { audioStreamRef.current.getTracks().forEach(track => track.stop()); } catch (_) {}
+        try { audioStreamRef.current.getTracks().forEach(track => track.stop()); } catch (_) { }
         audioStreamRef.current = null;
       }
     } catch (e) {
@@ -1677,7 +1686,7 @@ export default function Upload({
         if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
           wsRef.current.close();
         }
-      } catch (_) {}
+      } catch (_) { }
       wsRef.current = null;
     }
 
@@ -1699,7 +1708,7 @@ export default function Upload({
       if (audioCtx.state === 'suspended') {
         await audioCtx.resume();
         if (recordingGenRef.current !== currentGen) {
-          if (audioCtx.state !== 'closed') audioCtx.close().catch(() => {});
+          if (audioCtx.state !== 'closed') audioCtx.close().catch(() => { });
           return;
         }
       }
@@ -1712,7 +1721,7 @@ export default function Upload({
       ws.onopen = () => {
         try {
           if (recordingGenRef.current !== currentGen || !isListeningRef.current) {
-            try { ws.close(); } catch (_) {}
+            try { ws.close(); } catch (_) { }
             return;
           }
           opened = true;
@@ -1775,7 +1784,7 @@ export default function Upload({
               }
             }
           }
-        } catch (_) {}
+        } catch (_) { }
       };
 
       ws.onerror = (err) => {
@@ -1816,7 +1825,7 @@ export default function Upload({
         if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
           wsRef.current.close();
         }
-      } catch (_) {}
+      } catch (_) { }
       wsRef.current = null;
     }
   };
@@ -1882,7 +1891,7 @@ export default function Upload({
   useEffect(() => {
     return () => {
       if (selectedFileBlobUrl) {
-        try { URL.revokeObjectURL(selectedFileBlobUrl); } catch (_) {}
+        try { URL.revokeObjectURL(selectedFileBlobUrl); } catch (_) { }
       }
     };
   }, [selectedFileBlobUrl]);
@@ -1956,9 +1965,9 @@ export default function Upload({
       {/* Top Red Navbar - Matches User Reference Screenshot */}
       <header className="upload-top-navbar">
         <div className="upload-nav-left">
-          <button 
-            className="upload-hamburger-btn" 
-            onClick={() => setShowNavDrawer(true)} 
+          <button
+            className="upload-hamburger-btn"
+            onClick={() => setShowNavDrawer(true)}
             type="button"
             title="Open Menu"
             aria-label="Open Navigation Menu"
@@ -1973,19 +1982,19 @@ export default function Upload({
         </div>
 
         <div className="upload-nav-right">
-          <button 
-            className="upload-settings-btn" 
-            onClick={toggleDarkMode} 
-            type="button" 
+          <button
+            className="upload-settings-btn"
+            onClick={toggleDarkMode}
+            type="button"
             title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             aria-label="Toggle Theme"
           >
             <i className={`fa-solid ${darkMode ? 'fa-sun' : 'fa-moon'}`}></i>
           </button>
-          <button 
-            className="upload-settings-btn" 
-            onClick={() => setShowSettingsModal(true)} 
-            type="button" 
+          <button
+            className="upload-settings-btn"
+            onClick={() => setShowSettingsModal(true)}
+            type="button"
             title="Settings"
             aria-label="Open Settings"
           >
@@ -2014,266 +2023,351 @@ export default function Upload({
             <div className="upload-bg-glow-3"></div>
 
             <div className="upload-container-centered">
-              {/* Hero Top Section: Left (Eyebrow + Title + Subtitle + Langs) | Right (3 Feature Cards) */}
-              <div className="upload-hero-top-row">
-                <div className="upload-hero-left-col">
-                  {/* Category Eyebrow Pill */}
-                  <div className="upload-eyebrow-pill">
-                    <i className="fa-solid fa-cloud-arrow-up"></i>
-                    <span>UPLOAD &amp; ANALYZE</span>
+              {/* 2-Column Main Workspace Grid (Dropzone Left + Configuration Right) */}
+              <div className="upload-workspace-grid">
+                {/* Left Column: Header Title Section + Outer Card with Inner Dashed Dropzone */}
+                <div className="upload-left-column">
+                  {/* Header Title Section from reference design */}
+                  <div className="upload-header-section">
+                    <div className="upload-eyebrow-pill">
+                      <i className="fa-solid fa-cloud-arrow-up"></i>
+                      <span>UPLOAD &amp; ANALYZE</span>
+                    </div>
+                    <h1 className="upload-hero-title">
+                      Drop, upload, and ask AI anything.
+                    </h1>
+                    <p className="upload-hero-subtitle">
+                      Transform any media file into insights instantly.
+                    </p>
                   </div>
 
-                  {/* Main Headline */}
-                  <h1 className="upload-hero-title">
-                    Upload a file. <span className="upload-hero-title-accent">Ask AI.</span>
-                  </h1>
+                  {/* Outer Card with Inner Dashed Dropzone */}
+                  <div className="upload-dropzone-outer-card">
+                  {!selectedFile && !isUploading ? (
+                    <div
+                      className={`upload-dropzone-inner-dashed ${isDragging ? 'dragging' : ''}`}
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="upload-dropzone-cloud-glow">
+                        <i className="fa-solid fa-cloud-arrow-up"></i>
+                      </div>
 
-                  {/* Subheadline */}
-                  <p className="upload-hero-subtitle">
-                    Upload audio or video to get a transcript, translate it, or ask AI for summaries, key points and answers about your content.
-                  </p>
+                      <h2 className="upload-dropzone-title">Drag and Drop your media files here</h2>
+                      <p className="upload-dropzone-browse-sub">
+                        or <span className="upload-browse-link" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>browse files</span> on your device
+                      </p>
 
-                  {/* Language Selection Row: From -> To */}
-                  <div className="upload-lang-row">
-                    <div className="upload-lang-col">
-                      <span className="upload-lang-label">
-                        <i className="fa-solid fa-globe"></i> From
-                      </span>
-                      <div className="upload-select-pill">
-                        <i className="fa-solid fa-globe upload-select-leading-icon"></i>
-                        <select 
-                          value={transcribeLang} 
-                          onChange={(e) => setTranscribeLang(e.target.value)}
-                          className="upload-custom-select"
-                          aria-label="Spoken language"
-                        >
-                          <option value="auto">Auto-detect language</option>
-                          {TRANSCRIPTION_LANGUAGES.filter(l => l.code !== 'auto').map(lang => (
-                            <option key={lang.code} value={lang.code}>{lang.label}</option>
-                          ))}
-                        </select>
-                        <i className="fa-solid fa-chevron-down upload-select-chevron"></i>
+                      <div className="upload-dropzone-formats-pill">
+                        MP3, WAV, M4A, MP4, WEBM or MOV – up to 10 GB
+                      </div>
+
+                      <button
+                        type="button"
+                        className="upload-choose-file-btn upload-browse-cta-btn"
+                        onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                      >
+                        Browse files
+                      </button>
+
+                      <div className="upload-dropzone-bottom-disclaimer">
+                        Files will be encrypted and processed automatically on secure servers.
                       </div>
                     </div>
+                  ) : (
+                    /* Selected File / Uploading Progress Card inside the inner container */
+                    <div className="upload-dropzone-inner-dashed upload-active-file-card">
+                      <div className="upload-dropzone-cloud-glow active-glow">
+                        <i className={isVideoFile(selectedFile || transcribingFile) ? "fa-solid fa-video" : "fa-solid fa-volume-high"}></i>
+                      </div>
 
-                    <div className="upload-lang-arrow-btn" title="Translate Flow">
-                      <i className="fa-solid fa-arrow-right"></i>
-                    </div>
+                      <h2 className="upload-dropzone-title" style={{ fontSize: '20px', wordBreak: 'break-word' }}>
+                        {selectedFileName || selectedFile?.name || transcribingFile?.name}
+                      </h2>
+                      <p className="upload-dropzone-browse-sub">
+                        {formatFileSize(selectedFile?.size || transcribingFile?.size)}
+                        {isUploading && (
+                          <span> · {isVideoFile(selectedFile || transcribingFile) && videoStage === 'converting' ? 'Extracting audio via FFmpeg...' : 'Uploading file...'}</span>
+                        )}
+                      </p>
 
-                    <div className="upload-lang-col">
-                      <span className="upload-lang-label">
-                        <span className="upload-lang-text-icon">文A</span> To
-                      </span>
-                      <div className="upload-select-pill">
-                        <span className="upload-select-leading-text-icon">文A</span>
-                        <select 
-                          value={selectedTargetLang?.code || 'original'} 
-                          onChange={(e) => {
-                            if (e.target.value === 'original') {
-                              setSelectedTargetLang(null);
-                            } else {
-                              const found = LANGUAGES_LIST.find(l => l.code === e.target.value);
-                              if (found) setSelectedTargetLang(found);
-                            }
-                          }}
-                          className="upload-custom-select"
-                          aria-label="Target translation language"
-                        >
-                          <option value="original">Original only</option>
-                          {LANGUAGES_LIST.map(lang => (
-                            <option key={lang.code} value={lang.code}>{lang.english} ({lang.native})</option>
-                          ))}
-                        </select>
-                        <i className="fa-solid fa-chevron-down upload-select-chevron"></i>
+                      {isUploading && (
+                        <div className="upload-card-progress-wrapper" style={{ width: '100%', maxWidth: '440px', margin: '14px auto' }}>
+                          <div className="upload-progress-bar-track">
+                            <div
+                              className="upload-progress-bar-fill"
+                              style={{ width: `${isVideoFile(selectedFile || transcribingFile) && videoStage === 'converting' ? (convertingProgress > 0 ? convertingProgress : Math.min(95, 15 + convertingElapsed * 4)) : (videoUploadProgress || uploadProgress)}%` }}
+                            />
+                          </div>
+                          <div className="upload-progress-info" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
+                            <span>
+                              {isVideoFile(selectedFile || transcribingFile) && videoStage === 'converting'
+                                ? `Extracting audio (${convertingElapsed}s)...`
+                                : `Uploading... ${videoUploadProgress || uploadProgress}%`}
+                            </span>
+                            <span>{isVideoFile(selectedFile || transcribingFile) && videoStage === 'converting' ? `${convertingProgress}%` : `${videoUploadProgress || uploadProgress}%`}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '16px', justifyContent: 'center' }}>
+                        {isUploading ? (
+                          <button type="button" onClick={cancelUpload} className="upload-cancel-btn">
+                            <i className="fa-solid fa-xmark"></i> Cancel Upload
+                          </button>
+                        ) : (
+                          <>
+                            <button type="button" onClick={() => fileInputRef.current?.click()} className="upload-secondary-btn">
+                              Choose another
+                            </button>
+                            <button type="button" onClick={() => handleStartUpload(selectedFile)} className="upload-choose-file-btn">
+                              <i className="fa-solid fa-cloud-arrow-up"></i> Upload Now
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
-                  </div>
+                  )}
+                </div>
                 </div>
 
-                {/* Right Column: 3 Feature Cards */}
-                <div className="upload-hero-right-col">
-                  {/* Card 1: Auto-Detect Language */}
-                  <div 
-                    className="upload-feature-mini-card card-purple"
-                    onClick={() => setTranscribeLang('auto')}
-                    role="button"
-                    tabIndex={0}
-                    title="Enable auto-detect language"
-                  >
-                    <div className="upload-feature-icon-circle bg-purple">
-                      <i className="fa-solid fa-microphone"></i>
+                {/* Right Column: AI Task Center Panel */}
+                <div className="upload-config-panel upload-task-center-card">
+                  <div className="upload-config-header">
+                    <h3 className="upload-config-heading">AI Task Center</h3>
+                    <span className="upload-config-subheading">Set Languages &amp; Task</span>
+                    <span className="upload-task-section-label">Lang selection</span>
+                  </div>
+
+                  {/* Language FROM -> TO Card */}
+                  <div className="upload-task-lang-row">
+                    {/* FROM Capsule */}
+                    <div
+                      className="upload-task-lang-capsule from-capsule"
+                      onClick={() => {
+                        try {
+                          if (fromLangSelectRef.current?.showPicker) {
+                            fromLangSelectRef.current.showPicker();
+                          } else {
+                            fromLangSelectRef.current?.focus();
+                          }
+                        } catch (_) {
+                          fromLangSelectRef.current?.focus();
+                        }
+                      }}
+                    >
+                      <div className="upload-task-lang-inner">
+                        <span className="upload-task-lang-tag">FROM:</span>
+                        <div className="upload-task-select-wrapper" onClick={(e) => e.stopPropagation()}>
+                          <select
+                            ref={fromLangSelectRef}
+                            value={transcribeLang}
+                            onChange={(e) => {
+                              setTranscribeLang(e.target.value);
+                            }}
+                            className="upload-task-clean-select"
+                            aria-label="From Language"
+                          >
+                            <option value="auto">Auto-detect language</option>
+                            {TRANSCRIPTION_LANGUAGES.filter(l => l.code !== 'auto').map(lang => (
+                              <option key={lang.code} value={lang.code}>{lang.label.split(' (')[0]}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
                     </div>
-                    <div className="upload-feature-title">Auto-Detect Language</div>
-                    <div className="upload-feature-sub">Smart detection</div>
-                    <div className="upload-feature-arrow-btn btn-purple">
-                      <i className="fa-solid fa-arrow-right"></i>
+
+                    {/* Swap Arrow Icon */}
+                    <div
+                      className="upload-task-lang-swap-icon"
+                      title="Language swap"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (selectedTargetLang) {
+                          const prevFrom = transcribeLang;
+                          const prevTo = selectedTargetLang;
+                          setTranscribeLang(prevTo.code);
+                          const newTo = LANGUAGES_LIST.find(l => l.code === prevFrom);
+                          setSelectedTargetLang(newTo || null);
+                        }
+                      }}
+                    >
+                      <i className="fa-solid fa-arrows-rotate"></i>
+                    </div>
+
+                    {/* TO Capsule */}
+                    <div
+                      className="upload-task-lang-capsule to-capsule"
+                      onClick={() => {
+                        try {
+                          if (toLangSelectRef.current?.showPicker) {
+                            toLangSelectRef.current.showPicker();
+                          } else {
+                            toLangSelectRef.current?.focus();
+                          }
+                        } catch (_) {
+                          toLangSelectRef.current?.focus();
+                        }
+                      }}
+                    >
+                      <div className="upload-task-lang-inner">
+                        <span className="upload-task-lang-tag">TO:</span>
+                        <div className="upload-task-select-wrapper" onClick={(e) => e.stopPropagation()}>
+                          <select
+                            ref={toLangSelectRef}
+                            value={selectedTargetLang?.code || 'original'}
+                            onChange={(e) => {
+                              if (e.target.value === 'original') {
+                                setSelectedTargetLang(null);
+                              } else {
+                                const found = LANGUAGES_LIST.find(l => l.code === e.target.value);
+                                if (found) setSelectedTargetLang(found);
+                              }
+                            }}
+                            className="upload-task-clean-select"
+                            aria-label="To Language"
+                          >
+                            <option value="original">Original only / English</option>
+                            {LANGUAGES_LIST.map(lang => (
+                              <option key={lang.code} value={lang.code}>{lang.english}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Card 2: Multi-Language Support */}
-                  <div 
-                    className="upload-feature-mini-card card-orange"
-                    role="button"
-                    tabIndex={0}
-                    title="Multi-language support"
-                  >
-                    <div className="upload-feature-icon-circle bg-orange">
-                      <span className="upload-feature-icon-text">文A</span>
+                  {/* Vertical Stack of 5 Feature Cards */}
+                  <div className="upload-task-items-list">
+                    {/* Card 1: Ask a Question */}
+                    <div
+                      className={`upload-task-card ${activeShowcaseChip === 'Ask a question' ? 'active-selected' : ''}`}
+                      onClick={() => handleTaskCardClick('Ask a question')}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="upload-task-card-left">
+                        <div className="upload-task-card-icon icon-blue">
+                          <i className="fa-solid fa-comments"></i>
+                        </div>
+                        <div className="upload-task-card-text">
+                          <span className="upload-task-card-title">Ask a Question</span>
+                          <span className="upload-task-card-sub">Chat with AI about content</span>
+                        </div>
+                      </div>
+                      <div className="upload-task-card-right">
+                        <div className="upload-task-chat-graphic">
+                          <div className="chat-bubble-filled">
+                            <span className="dot"></span>
+                            <span className="dot"></span>
+                            <span className="dot"></span>
+                          </div>
+                          <div className="chat-bubble-shadow"></div>
+                          {activeShowcaseChip === 'Ask a question' && (
+                            <div className="chat-bubble-check">
+                              <i className="fa-solid fa-circle-check"></i>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="upload-feature-title">Multi-Language Support</div>
-                    <div className="upload-feature-sub">Translate easily</div>
-                    <div className="upload-feature-arrow-btn btn-orange">
-                      <i className="fa-solid fa-arrow-right"></i>
-                    </div>
-                  </div>
 
-                  {/* Card 3: AI Insights */}
-                  <div 
-                    className="upload-feature-mini-card card-green"
-                    onClick={() => setActiveShowcaseChip('Summarize')}
-                    role="button"
-                    tabIndex={0}
-                    title="Get AI Key Takeaways"
-                  >
-                    <div className="upload-feature-icon-circle bg-green">
-                      <i className="fa-solid fa-wand-magic-sparkles"></i>
+                    {/* Card 2: Full Transcript */}
+                    <div
+                      className={`upload-task-card ${activeShowcaseChip === 'Transcribe' ? 'active-selected' : ''}`}
+                      onClick={() => handleTaskCardClick('Transcribe')}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="upload-task-card-left">
+                        <div className="upload-task-card-icon icon-muted">
+                          <i className="fa-regular fa-comments"></i>
+                        </div>
+                        <div className="upload-task-card-text">
+                          <span className="upload-task-card-title">Full Transcript</span>
+                        </div>
+                      </div>
+                      <div className="upload-task-card-right">
+                        <div className="upload-task-single-chat-icon">
+                          <i className="fa-regular fa-comments"></i>
+                        </div>
+                      </div>
                     </div>
-                    <div className="upload-feature-title">AI Insights</div>
-                    <div className="upload-feature-sub">Get key takeaways</div>
-                    <div className="upload-feature-arrow-btn btn-green">
-                      <i className="fa-solid fa-arrow-right"></i>
+
+                    {/* Card 3: Translate Media */}
+                    <div
+                      className={`upload-task-card ${activeShowcaseChip === 'Translate' || selectedTargetLang ? 'active-selected' : ''}`}
+                      onClick={() => handleTaskCardClick('Translate')}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="upload-task-card-left">
+                        <div className="upload-task-card-icon icon-glyph">
+                          <span className="upload-glyph-bold">文A</span>
+                        </div>
+                        <div className="upload-task-card-text">
+                          <span className="upload-task-card-title">Translate Media</span>
+                          <span className="upload-task-card-sub">Translation</span>
+                        </div>
+                      </div>
+                      <div className="upload-task-card-right">
+                        <div className="upload-task-dropdown-pill" onClick={(e) => e.stopPropagation()}>
+                          <select
+                            value={selectedTargetLang?.code || ''}
+                            onChange={(e) => {
+                              const found = LANGUAGES_LIST.find(l => l.code === e.target.value);
+                              setSelectedTargetLang(found || null);
+                              setActiveShowcaseChip('Translate');
+                            }}
+                            className="upload-task-pill-select"
+                            aria-label="Select Language"
+                          >
+                            <option value="">Select Language ▾</option>
+                            {LANGUAGES_LIST.map(lang => (
+                              <option key={lang.code} value={lang.code}>{lang.english}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card 4: Executive Summary */}
+                    <div
+                      className={`upload-task-card ${activeShowcaseChip === 'Summarize' ? 'active-selected' : ''}`}
+                      onClick={() => handleTaskCardClick('Summarize')}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="upload-task-card-left">
+                        <div className="upload-task-card-icon">
+                          <i className="fa-solid fa-list-ul"></i>
+                        </div>
+                        <div className="upload-task-card-text">
+                          <span className="upload-task-card-title">Executive Summary</span>
+                        </div>
+                      </div>
+                      <div className="upload-task-card-right">
+                        <div className="upload-task-summary-graphic">
+                          <div className="summary-bars">
+                            <div className="summary-bar bar-long"></div>
+                            <div className="summary-bar bar-med"></div>
+                            <div className="summary-bar bar-short"></div>
+                          </div>
+                          {activeShowcaseChip === 'Summarize' && (
+                            <div className="summary-check-icon">
+                              <i className="fa-solid fa-circle-check"></i>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Main Dropzone Card */}
-              {!selectedFile && !isUploading ? (
-                <>
-                  <div 
-                    className={`upload-dropzone-card ${isDragging ? 'dragging' : ''}`}
-                    onClick={() => fileInputRef.current?.click()}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    role="button"
-                    tabIndex={0}
-                  >
-                    <div className="upload-dropzone-cloud-header">
-                      <div className="upload-dropzone-flank-line"></div>
-                      <div className="upload-dropzone-cloud-glow">
-                        <i className="fa-solid fa-cloud-arrow-up"></i>
-                      </div>
-                      <div className="upload-dropzone-flank-line"></div>
-                    </div>
-
-                    <h2 className="upload-dropzone-title">Drop an audio or video file here</h2>
-                    <p className="upload-dropzone-formats">MP3, WAV, M4A, MP4, WEBM or MOV – up to 10 GB</p>
-
-                    <button 
-                      type="button" 
-                      className="upload-choose-file-btn"
-                      onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                    >
-                      <i className="fa-solid fa-folder"></i> Choose File
-                    </button>
-                  </div>
-
-                  {/* Showcase Action Chips */}
-                  <div className="upload-showcase-chips-row">
-                    {[
-                      { id: "Ask a question", label: "Ask a question", icon: "fa-solid fa-question", isSpecial: true },
-                      { id: "Transcribe", label: "Transcribe", icon: "fa-solid fa-bars-staggered" },
-                      { id: "Translate", label: "Translate", textIcon: "文A" },
-                      { id: "Summarize", label: "Summarize", icon: "fa-solid fa-list-ul" },
-                      { id: "Extract tables", label: "Extract tables", icon: "fa-solid fa-table-cells" }
-                    ].map((chip) => {
-                      const isActive = activeShowcaseChip === chip.id;
-                      return (
-                        <button
-                          key={chip.id}
-                          type="button"
-                          className={`upload-showcase-chip ${isActive ? 'active' : ''}`}
-                          onClick={() => {
-                            setActiveShowcaseChip(chip.id);
-                            if (!selectedFile) {
-                              fileInputRef.current?.click();
-                            }
-                          }}
-                        >
-                          {chip.textIcon ? (
-                            <span className="upload-chip-text-glyph">{chip.textIcon}</span>
-                          ) : chip.isSpecial ? (
-                            <span className="upload-chip-special-bubble">
-                              <i className={chip.icon}></i>
-                            </span>
-                          ) : (
-                            <i className={chip.icon}></i>
-                          )}
-                          <span>{chip.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              ) : (
-                /* Selected File / Uploading Progress Card */
-                <div className="upload-dropzone-card upload-active-file-card">
-                  <div className="upload-dropzone-cloud-header">
-                    <div className="upload-dropzone-flank-line"></div>
-                    <div className="upload-dropzone-cloud-glow active-glow">
-                      <i className={isVideoFile(selectedFile || transcribingFile) ? "fa-solid fa-video" : "fa-solid fa-volume-high"}></i>
-                    </div>
-                    <div className="upload-dropzone-flank-line"></div>
-                  </div>
-
-                  <h2 className="upload-dropzone-title" style={{ fontSize: '20px', wordBreak: 'break-word' }}>
-                    {selectedFileName || selectedFile?.name || transcribingFile?.name}
-                  </h2>
-                  <p className="upload-dropzone-formats">
-                    {formatFileSize(selectedFile?.size || transcribingFile?.size)}
-                    {isUploading && (
-                      <span> · {isVideoFile(selectedFile || transcribingFile) && videoStage === 'converting' ? 'Extracting audio via FFmpeg...' : 'Uploading file...'}</span>
-                    )}
-                  </p>
-
-                  {isUploading && (
-                    <div className="upload-card-progress-wrapper" style={{ width: '100%', maxWidth: '440px', margin: '14px auto' }}>
-                      <div className="upload-progress-bar-track">
-                        <div
-                          className="upload-progress-bar-fill"
-                          style={{ width: `${isVideoFile(selectedFile || transcribingFile) && videoStage === 'converting' ? (convertingProgress > 0 ? convertingProgress : Math.min(95, 15 + convertingElapsed * 4)) : (videoUploadProgress || uploadProgress)}%` }}
-                        />
-                      </div>
-                      <div className="upload-progress-info" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
-                        <span>
-                          {isVideoFile(selectedFile || transcribingFile) && videoStage === 'converting'
-                            ? `Extracting audio (${convertingElapsed}s)...`
-                            : `Uploading... ${videoUploadProgress || uploadProgress}%`}
-                        </span>
-                        <span>{isVideoFile(selectedFile || transcribingFile) && videoStage === 'converting' ? `${convertingProgress}%` : `${videoUploadProgress || uploadProgress}%`}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div style={{ display: 'flex', gap: '10px', marginTop: '16px', justifyContent: 'center' }}>
-                    {isUploading ? (
-                      <button type="button" onClick={cancelUpload} className="upload-cancel-btn">
-                        <i className="fa-solid fa-xmark"></i> Cancel Upload
-                      </button>
-                    ) : (
-                      <>
-                        <button type="button" onClick={() => fileInputRef.current?.click()} className="upload-secondary-btn">
-                          Choose another
-                        </button>
-                        <button type="button" onClick={() => handleStartUpload(selectedFile)} className="upload-choose-file-btn">
-                          <i className="fa-solid fa-cloud-arrow-up"></i> Upload Now
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
 
               {/* Bottom Security & Privacy Full Pill Banner */}
               <div className="upload-security-banner">
@@ -2306,7 +2400,7 @@ export default function Upload({
             </div>
 
             {/* Floating Assistant Widget (Bottom Right) */}
-            <div 
+            <div
               className="upload-floating-assistant"
               onClick={() => {
                 if (!activeSession) {
@@ -2320,238 +2414,332 @@ export default function Upload({
             </div>
           </div>
         ) : (
-            /* =================== VIEW 2: ACTIVE SESSION & TABS =================== */
-            <div className="upload-active-workspace">
-              {/* Back to Upload and Library Pill Bar */}
-              <div className="upload-session-top-banner">
-                <button 
-                  type="button" 
-                  onClick={startNewSession} 
-                  className="upload-back-btn"
-                  title="Upload another file"
-                >
-                  <i className="fa-solid fa-arrow-left"></i> Upload Another File
-                </button>
-                <button 
-                  type="button" 
-                  onClick={() => setShowNavDrawer(true)} 
-                  className="upload-library-pill-btn"
-                >
-                  <i className="fa-solid fa-folder-open"></i> Your Library ({sessions.length + videoSessions.length})
-                </button>
-              </div>
+          /* =================== VIEW 2: ACTIVE SESSION & TABS =================== */
+          <div className="upload-active-workspace">
+            {/* Back to Upload and Library Pill Bar */}
+            <div className="upload-session-top-banner">
+              <button
+                type="button"
+                onClick={startNewSession}
+                className="upload-back-btn"
+                title="Upload another file"
+              >
+                <i className="fa-solid fa-arrow-left"></i> Upload Another File
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowNavDrawer(true)}
+                className="upload-library-pill-btn"
+              >
+                <i className="fa-solid fa-folder-open"></i> Your Library ({sessions.length + videoSessions.length})
+              </button>
+            </div>
 
-              {/* Active Session Header */}
-              <div className="active-session-header">
-                <div className="session-title-row">
-                  <div className="session-file-icon">
-                    <i className="fa-solid fa-table-cells"></i>
-                  </div>
-                  <div className="session-title-text">
-                    {activeSession?.fileName || selectedFileName || transcribingFile?.name || 'interview_audio.webm'}
-                  </div>
+            {/* Active Session Header */}
+            <div className="active-session-header">
+              <div className="session-title-row">
+                <div className="session-file-icon">
+                  <i className="fa-solid fa-table-cells"></i>
                 </div>
-                <div className="session-meta-row">
-                  <span className="meta-filename">{activeSession?.fileName || selectedFileName || transcribingFile?.name}</span>
-                  <span className="meta-dot">·</span>
-                  <span className="meta-size">{fileSizeDisplay}</span>
-                  <span className="meta-dot">·</span>
-                  {isUploading ? (
-                    <div className="meta-uploading-row">
-                      <span className="meta-transcribing-badge">
-                        <i className="fa-solid fa-circle-notch fa-spin"></i> Uploading... {uploadProgress || videoUploadProgress}%
-                      </span>
+                <div className="session-title-text">
+                  {activeSession?.fileName || selectedFileName || transcribingFile?.name || 'interview_audio.webm'}
+                </div>
+              </div>
+              <div className="session-meta-row">
+                <span className="meta-filename">{activeSession?.fileName || selectedFileName || transcribingFile?.name}</span>
+                <span className="meta-dot">·</span>
+                <span className="meta-size">{fileSizeDisplay}</span>
+                <span className="meta-dot">·</span>
+                {isUploading ? (
+                  <div className="meta-uploading-row">
+                    <span className="meta-transcribing-badge">
+                      <i className="fa-solid fa-circle-notch fa-spin"></i> Uploading... {uploadProgress || videoUploadProgress}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={cancelUpload}
+                      className="meta-cancel-upload-btn"
+                      title="Cancel upload"
+                    >
+                      <i className="fa-solid fa-xmark"></i> Cancel
+                    </button>
+                  </div>
+                ) : isTranscribing ? (
+                  <span className="meta-transcribing-badge">
+                    <i className="fa-solid fa-circle-notch fa-spin"></i> Transcribing... {transcribeElapsed > 0 ? `(${transcribeElapsed}s)` : ''}
+                  </span>
+                ) : !activeSession?.transcript ? (
+                  <>
+                    <span className="meta-uploaded-badge">
+                      <i className="fa-solid fa-circle-check"></i> Audio Ready
+                    </span>
+                    <span className="meta-dot">·</span>
+                    <span className="meta-storage-badge">
+                      <i className={activeSession?.storageMode === 's3' ? "fa-solid fa-cloud" : "fa-solid fa-hard-drive"}></i> {activeSession?.storageMode === 's3' ? 'Stored in S3' : 'Stored Locally'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="meta-duration">{displayDuration}</span>
+                    <span className="meta-dot">·</span>
+                    <span className="meta-speakers">{speakersCount} speakers</span>
+                    <span className="meta-dot">·</span>
+                    <span className="meta-storage-badge">
+                      <i className={activeSession?.storageMode === 's3' ? "fa-solid fa-cloud" : "fa-solid fa-hard-drive"}></i> {activeSession?.storageMode === 's3' ? 'Stored in S3' : 'Stored Locally'}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Media Player Container - Show as soon as audio is uploaded */}
+            {!isUploading && (
+              <div className="media-player-wrapper is-audio">
+                {playableMediaUrl ? (
+                  <audio
+                    key={playableMediaUrl}
+                    ref={mediaPlayerRef}
+                    controls
+                    src={playableMediaUrl}
+                    onLoadedMetadata={handleMediaLoaded}
+                    className="upload-native-player upload-audio-player"
+                  />
+                ) : (
+                  <div className="media-player-placeholder">
+                    <i className="fa-solid fa-circle-notch fa-spin"></i>
+                    <span>Loading media stream...</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Navigation Tabs Bar */}
+            <div className="upload-tabs-bar">
+              <button
+                type="button"
+                onClick={handleTranscriptTabClick}
+                className={`upload-tab-btn ${activeTab === 'transcript' ? 'active' : ''}`}
+              >
+                {isTranscribing ? (
+                  <>
+                    <i className="fa-solid fa-circle-notch fa-spin"></i> {transcriptionStatus === 'reconnecting' ? 'Reconnecting...' : 'Transcribing...'} {transcribeElapsed > 0 ? `(${transcribeElapsed}s)` : ''}
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-bars-staggered"></i> Transcript
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('translate')}
+                className={`upload-tab-btn ${activeTab === 'translate' ? 'active' : ''}`}
+              >
+                <i className="fa-solid fa-language"></i> Translate & PDF
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('ask_ai')}
+                className={`upload-tab-btn ${activeTab === 'ask_ai' ? 'active' : ''}`}
+              >
+                <i className="fa-regular fa-comment-dots"></i> Ask AI
+              </button>
+            </div>
+
+            {/* Tab Stage Content Area */}
+            <div className="upload-tab-content-area">
+              {/* TAB 1: TRANSCRIPT */}
+              {activeTab === 'transcript' && (
+                <div className="transcript-tab-view">
+                  {isTranscribing ? (
+                    <div className="transcribing-center-state">
+                      <div className="transcribing-spinner-ring"></div>
+                      <h3 className="transcribing-headline">
+                        {transcriptionStatus === 'reconnecting'
+                          ? `Reconnecting to Server... (${transcribeElapsed}s)`
+                          : transcriptionStatus === 'preparing'
+                            ? 'Preparing Transcription...'
+                            : `Transcribing... ${transcribeElapsed > 0 ? `(${transcribeElapsed}s)` : ''}`}
+                      </h3>
+                      <p className="transcribing-subtext">
+                        {transcriptionStatus === 'reconnecting'
+                          ? 'Temporary network interruption detected. Reconnecting and syncing transcription progress...'
+                          : 'Converting audio with speaker diarization in parallel chunks (typically ~6–10s)...'}
+                      </p>
+                    </div>
+                  ) : transcriptionError ? (
+                    <div className="transcript-error-state">
+                      <div className="transcript-error-icon">
+                        <i className={`fa-solid ${isNetworkError ? 'fa-wifi' : 'fa-triangle-exclamation'}`}></i>
+                      </div>
+                      <h3 className="transcript-error-headline">
+                        {isNetworkError ? 'Connection Interrupted' : 'Transcription Failed'}
+                      </h3>
+                      <p className="transcript-error-subtext">{transcriptionError}</p>
                       <button
                         type="button"
-                        onClick={cancelUpload}
-                        className="meta-cancel-upload-btn"
-                        title="Cancel upload"
+                        className="transcript-action-btn transcript-retry-btn"
+                        onClick={() => handleStartTranscription(activeSession?.id, null, true)}
+                        disabled={isTranscribing}
                       >
-                        <i className="fa-solid fa-xmark"></i> Cancel
+                        <i className={`fa-solid ${isTranscribing ? 'fa-spinner fa-spin' : 'fa-rotate-right'}`}></i> {isTranscribing ? 'Transcribing...' : (isNetworkError ? 'Reconnect & Resume' : 'Transcript (Retry)')}
                       </button>
                     </div>
-                  ) : isTranscribing ? (
-                    <span className="meta-transcribing-badge">
-                      <i className="fa-solid fa-circle-notch fa-spin"></i> Transcribing... {transcribeElapsed > 0 ? `(${transcribeElapsed}s)` : ''}
-                    </span>
                   ) : !activeSession?.transcript ? (
-                    <>
-                      <span className="meta-uploaded-badge">
-                        <i className="fa-solid fa-circle-check"></i> Audio Ready
-                      </span>
-                      <span className="meta-dot">·</span>
-                      <span className="meta-storage-badge">
-                        <i className={activeSession?.storageMode === 's3' ? "fa-solid fa-cloud" : "fa-solid fa-hard-drive"}></i> {activeSession?.storageMode === 's3' ? 'Stored in S3' : 'Stored Locally'}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="meta-duration">{displayDuration}</span>
-                      <span className="meta-dot">·</span>
-                      <span className="meta-speakers">{speakersCount} speakers</span>
-                      <span className="meta-dot">·</span>
-                      <span className="meta-storage-badge">
-                        <i className={activeSession?.storageMode === 's3' ? "fa-solid fa-cloud" : "fa-solid fa-hard-drive"}></i> {activeSession?.storageMode === 's3' ? 'Stored in S3' : 'Stored Locally'}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Media Player Container - Show as soon as audio is uploaded */}
-              {!isUploading && (
-                <div className="media-player-wrapper is-audio">
-                  {playableMediaUrl ? (
-                    <audio
-                      key={playableMediaUrl}
-                      ref={mediaPlayerRef}
-                      controls
-                      src={playableMediaUrl}
-                      onLoadedMetadata={handleMediaLoaded}
-                      className="upload-native-player upload-audio-player"
-                    />
-                  ) : (
-                    <div className="media-player-placeholder">
-                      <i className="fa-solid fa-circle-notch fa-spin"></i>
-                      <span>Loading media stream...</span>
+                    <div className="transcript-ready-state">
+                      <div className="transcript-ready-badge">
+                        <i className="fa-solid fa-circle-check"></i> Audio Uploaded
+                      </div>
+                      <h3 className="transcript-ready-headline">Uploaded Successfully</h3>
+                      <p className="transcript-ready-subtext">
+                        Your audio file is ready. Click the Transcript button below to start transcribing automatically.
+                      </p>
+                      <button
+                        type="button"
+                        className="transcript-action-btn"
+                        onClick={() => handleStartTranscription(activeSession?.id)}
+                        disabled={isTranscribing}
+                      >
+                        <i className={`fa-solid ${isTranscribing ? 'fa-spinner fa-spin' : 'fa-bars-staggered'}`}></i> {isTranscribing ? 'Transcribing...' : 'Transcript'}
+                      </button>
                     </div>
+                  ) : sessionUtterances.length === 0 ? (
+                    <div className="transcript-empty-state">
+                      <div className="transcript-no-content">
+                        No transcript available yet.
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="transcript-toolbar-row">
+                        <div className="transcript-toolbar-badges">
+                          <span className="transcript-badge-pill">
+                            <i className="fa-solid fa-users"></i> {speakersCount} {speakersCount === 1 ? 'Speaker' : 'Speakers'}
+                          </span>
+                          {activeSession?.detectedLanguage && (
+                            <span className="transcript-badge-pill">
+                              <i className="fa-solid fa-globe"></i> {activeSession.detectedLanguage.toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="transcript-toolbar-actions">
+                          <button
+                            type="button"
+                            className="transcript-retranscribe-btn"
+                            onClick={() => handleStartTranscription(activeSession?.id, null, true)}
+                            disabled={isTranscribing}
+                            title="Re-run transcription automatically"
+                          >
+                            <i className="fa-solid fa-rotate-right"></i> Re-transcribe
+                          </button>
+                        </div>
+                      </div>
+                      <div className="transcript-turns-list">
+                        {sessionUtterances.map((turn, idx) => (
+                          <div key={idx} className="transcript-turn-row">
+                            <div className="turn-speaker-col">
+                              <span className="turn-speaker-label">{turn.speaker}</span>
+                              <span
+                                className="turn-timecode"
+                                onClick={() => seekToTime(turn.start || 0)}
+                                title="Click to jump to this timestamp"
+                              >
+                                {turn.timecode || '0:00'}
+                              </span>
+                            </div>
+                            <div className="turn-content-col">
+                              {turn.text}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
               )}
 
-              {/* Navigation Tabs Bar */}
-              <div className="upload-tabs-bar">
-                <button
-                  type="button"
-                  onClick={handleTranscriptTabClick}
-                  className={`upload-tab-btn ${activeTab === 'transcript' ? 'active' : ''}`}
-                >
-                  {isTranscribing ? (
-                    <>
-                      <i className="fa-solid fa-circle-notch fa-spin"></i> {transcriptionStatus === 'reconnecting' ? 'Reconnecting...' : 'Transcribing...'} {transcribeElapsed > 0 ? `(${transcribeElapsed}s)` : ''}
-                    </>
-                  ) : (
-                    <>
-                      <i className="fa-solid fa-bars-staggered"></i> Transcript
-                    </>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('translate')}
-                  className={`upload-tab-btn ${activeTab === 'translate' ? 'active' : ''}`}
-                >
-                  <i className="fa-solid fa-language"></i> Translate & PDF
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('ask_ai')}
-                  className={`upload-tab-btn ${activeTab === 'ask_ai' ? 'active' : ''}`}
-                >
-                  <i className="fa-regular fa-comment-dots"></i> Ask AI
-                </button>
-              </div>
+              {/* TAB 2: TRANSLATE & PDF */}
+              {activeTab === 'translate' && (
+                <div className="translate-tab-view">
+                  {/* Search Languages input */}
+                  <div className="translate-search-wrapper">
+                    <i className="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input
+                      type="text"
+                      value={langSearch}
+                      onChange={(e) => setLangSearch(e.target.value)}
+                      placeholder="Search languages..."
+                      className="translate-search-input"
+                    />
+                  </div>
 
-              {/* Tab Stage Content Area */}
-              <div className="upload-tab-content-area">
-                {/* TAB 1: TRANSCRIPT */}
-                {activeTab === 'transcript' && (
-                  <div className="transcript-tab-view">
-                    {isTranscribing ? (
-                      <div className="transcribing-center-state">
-                        <div className="transcribing-spinner-ring"></div>
-                        <h3 className="transcribing-headline">
-                          {transcriptionStatus === 'reconnecting'
-                            ? `Reconnecting to Server... (${transcribeElapsed}s)`
-                            : transcriptionStatus === 'preparing'
-                            ? 'Preparing Transcription...'
-                            : `Transcribing... ${transcribeElapsed > 0 ? `(${transcribeElapsed}s)` : ''}`}
-                        </h3>
-                        <p className="transcribing-subtext">
-                          {transcriptionStatus === 'reconnecting'
-                            ? 'Temporary network interruption detected. Reconnecting and syncing transcription progress...'
-                            : 'Converting audio with speaker diarization in parallel chunks (typically ~6–10s)...'}
-                        </p>
+                  {/* 22 Language Cards Grid */}
+                  <div className="languages-grid-22">
+                    {filteredLanguages.map(lang => (
+                      <div
+                        key={lang.code}
+                        onClick={() => setSelectedTargetLang(lang)}
+                        className={`lang-card ${selectedTargetLang?.code === lang.code ? 'selected' : ''}`}
+                      >
+                        <div className="lang-native">{lang.native}</div>
+                        <div className="lang-english">{lang.english}</div>
                       </div>
-                    ) : transcriptionError ? (
-                      <div className="transcript-error-state">
-                        <div className="transcript-error-icon">
-                          <i className={`fa-solid ${isNetworkError ? 'fa-wifi' : 'fa-triangle-exclamation'}`}></i>
-                        </div>
-                        <h3 className="transcript-error-headline">
-                          {isNetworkError ? 'Connection Interrupted' : 'Transcription Failed'}
-                        </h3>
-                        <p className="transcript-error-subtext">{transcriptionError}</p>
+                    ))}
+                  </div>
+
+                  {/* Translate Button */}
+                  <div className="translate-action-row">
+                    <button
+                      type="button"
+                      onClick={handleTranslate}
+                      disabled={isTranslating}
+                      className="translate-primary-btn"
+                    >
+                      <i className="fa-solid fa-language"></i>
+                      {isTranslating ? (
+                        <>Translating into {selectedTargetLang?.english}... {translationProgress !== null && translationProgress > 0 ? `(${translationProgress}%)` : ''}</>
+                      ) : (
+                        <>Translate into {selectedTargetLang?.english}</>
+                      )}
+                    </button>
+
+                    {translatedData && (
+                      <button
+                        type="button"
+                        onClick={handleExportPDF}
+                        className="export-pdf-action-btn"
+                        title="Print or save PDF side-by-side"
+                      >
+                        <i className="fa-regular fa-file-pdf"></i> Export as PDF
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Translated Output View */}
+                  {translatedData && (
+                    <div className="translation-results-panel">
+                      <div className="translation-panel-header">
+                        <span className="results-badge">
+                          <i className="fa-solid fa-circle-check"></i> {selectedTargetLang?.english} Translation
+                        </span>
                         <button
                           type="button"
-                          className="transcript-action-btn transcript-retry-btn"
-                          onClick={() => handleStartTranscription(activeSession?.id, null, true)}
-                          disabled={isTranscribing}
+                          className="transcript-retranscribe-btn"
+                          onClick={() => handleTranslate(true)}
+                          disabled={isTranslating}
+                          title="Re-run translation fresh"
                         >
-                          <i className={`fa-solid ${isTranscribing ? 'fa-spinner fa-spin' : 'fa-rotate-right'}`}></i> {isTranscribing ? 'Transcribing...' : (isNetworkError ? 'Reconnect & Resume' : 'Transcript (Retry)')}
+                          <i className={`fa-solid ${isTranslating ? 'fa-spinner fa-spin' : 'fa-rotate-right'}`}></i> {isTranslating ? 'Translating...' : 'Re-translate'}
                         </button>
                       </div>
-                    ) : !activeSession?.transcript ? (
-                      <div className="transcript-ready-state">
-                        <div className="transcript-ready-badge">
-                          <i className="fa-solid fa-circle-check"></i> Audio Uploaded
-                        </div>
-                        <h3 className="transcript-ready-headline">Uploaded Successfully</h3>
-                        <p className="transcript-ready-subtext">
-                          Your audio file is ready. Click the Transcript button below to start transcribing automatically.
-                        </p>
-                        <button
-                          type="button"
-                          className="transcript-action-btn"
-                          onClick={() => handleStartTranscription(activeSession?.id)}
-                          disabled={isTranscribing}
-                        >
-                          <i className={`fa-solid ${isTranscribing ? 'fa-spinner fa-spin' : 'fa-bars-staggered'}`}></i> {isTranscribing ? 'Transcribing...' : 'Transcript'}
-                        </button>
-                      </div>
-                    ) : sessionUtterances.length === 0 ? (
-                      <div className="transcript-empty-state">
-                        <div className="transcript-no-content">
-                          No transcript available yet.
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="transcript-toolbar-row">
-                          <div className="transcript-toolbar-badges">
-                            <span className="transcript-badge-pill">
-                              <i className="fa-solid fa-users"></i> {speakersCount} {speakersCount === 1 ? 'Speaker' : 'Speakers'}
-                            </span>
-                            {activeSession?.detectedLanguage && (
-                              <span className="transcript-badge-pill">
-                                <i className="fa-solid fa-globe"></i> {activeSession.detectedLanguage.toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                          <div className="transcript-toolbar-actions">
-                            <button
-                              type="button"
-                              className="transcript-retranscribe-btn"
-                              onClick={() => handleStartTranscription(activeSession?.id, null, true)}
-                              disabled={isTranscribing}
-                              title="Re-run transcription automatically"
-                            >
-                              <i className="fa-solid fa-rotate-right"></i> Re-transcribe
-                            </button>
-                          </div>
-                        </div>
-                        <div className="transcript-turns-list">
-                          {sessionUtterances.map((turn, idx) => (
-                            <div key={idx} className="transcript-turn-row">
+
+                      {translatedData.translatedUtterances && translatedData.translatedUtterances.length > 0 ? (
+                        <div className="translated-turns-list">
+                          {translatedData.translatedUtterances.map((turn, idx) => (
+                            <div key={idx} className="transcript-turn-row translated-row">
                               <div className="turn-speaker-col">
                                 <span className="turn-speaker-label">{turn.speaker}</span>
-                                <span
-                                  className="turn-timecode"
-                                  onClick={() => seekToTime(turn.start || 0)}
-                                  title="Click to jump to this timestamp"
-                                >
-                                  {turn.timecode || '0:00'}
-                                </span>
+                                <span className="turn-timecode">{turn.timecode || '0:00'}</span>
                               </div>
                               <div className="turn-content-col">
                                 {turn.text}
@@ -2559,268 +2747,174 @@ export default function Upload({
                             </div>
                           ))}
                         </div>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {/* TAB 2: TRANSLATE & PDF */}
-                {activeTab === 'translate' && (
-                  <div className="translate-tab-view">
-                    {/* Search Languages input */}
-                    <div className="translate-search-wrapper">
-                      <i className="fa-solid fa-magnifying-glass search-icon"></i>
-                      <input
-                        type="text"
-                        value={langSearch}
-                        onChange={(e) => setLangSearch(e.target.value)}
-                        placeholder="Search languages..."
-                        className="translate-search-input"
-                      />
-                    </div>
-
-                    {/* 22 Language Cards Grid */}
-                    <div className="languages-grid-22">
-                      {filteredLanguages.map(lang => (
-                        <div
-                          key={lang.code}
-                          onClick={() => setSelectedTargetLang(lang)}
-                          className={`lang-card ${selectedTargetLang?.code === lang.code ? 'selected' : ''}`}
-                        >
-                          <div className="lang-native">{lang.native}</div>
-                          <div className="lang-english">{lang.english}</div>
+                      ) : (
+                        <div className="translated-full-text">
+                          {translatedData.translatedText}
                         </div>
-                      ))}
-                    </div>
-
-                    {/* Translate Button */}
-                    <div className="translate-action-row">
-                      <button
-                        type="button"
-                        onClick={handleTranslate}
-                        disabled={isTranslating}
-                        className="translate-primary-btn"
-                      >
-                        <i className="fa-solid fa-language"></i>
-                        {isTranslating ? (
-                          <>Translating into {selectedTargetLang?.english}... {translationProgress !== null && translationProgress > 0 ? `(${translationProgress}%)` : ''}</>
-                        ) : (
-                          <>Translate into {selectedTargetLang?.english}</>
-                        )}
-                      </button>
-
-                      {translatedData && (
-                        <button
-                          type="button"
-                          onClick={handleExportPDF}
-                          className="export-pdf-action-btn"
-                          title="Print or save PDF side-by-side"
-                        >
-                          <i className="fa-regular fa-file-pdf"></i> Export as PDF
-                        </button>
                       )}
                     </div>
+                  )}
+                </div>
+              )}
 
-                    {/* Translated Output View */}
-                    {translatedData && (
-                      <div className="translation-results-panel">
-                        <div className="translation-panel-header">
-                          <span className="results-badge">
-                            <i className="fa-solid fa-circle-check"></i> {selectedTargetLang?.english} Translation
-                          </span>
-                          <button
-                            type="button"
-                            className="transcript-retranscribe-btn"
-                            onClick={() => handleTranslate(true)}
-                            disabled={isTranslating}
-                            title="Re-run translation fresh"
-                          >
-                            <i className={`fa-solid ${isTranslating ? 'fa-spinner fa-spin' : 'fa-rotate-right'}`}></i> {isTranslating ? 'Translating...' : 'Re-translate'}
-                          </button>
-                        </div>
-
-                        {translatedData.translatedUtterances && translatedData.translatedUtterances.length > 0 ? (
-                          <div className="translated-turns-list">
-                            {translatedData.translatedUtterances.map((turn, idx) => (
-                              <div key={idx} className="transcript-turn-row translated-row">
-                                <div className="turn-speaker-col">
-                                  <span className="turn-speaker-label">{turn.speaker}</span>
-                                  <span className="turn-timecode">{turn.timecode || '0:00'}</span>
-                                </div>
-                                <div className="turn-content-col">
-                                  {turn.text}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="translated-full-text">
-                            {translatedData.translatedText}
-                          </div>
-                        )}
+              {/* TAB 3: ASK AI */}
+              {activeTab === 'ask_ai' && (
+                <div className="ask-ai-tab-view">
+                  {messages.length === 0 ? (
+                    <div className="ask-ai-empty-prompt-state">
+                      <div className="ask-ai-center-icon">
+                        <i className="fa-regular fa-comments"></i>
                       </div>
-                    )}
-                  </div>
-                )}
-
-                {/* TAB 3: ASK AI */}
-                {activeTab === 'ask_ai' && (
-                  <div className="ask-ai-tab-view">
-                    {messages.length === 0 ? (
-                      <div className="ask-ai-empty-prompt-state">
-                        <div className="ask-ai-center-icon">
-                          <i className="fa-regular fa-comments"></i>
-                        </div>
-                        <h2 className="ask-ai-headline">Ask anything about this recording</h2>
-                        <div className="ask-ai-prompt-chips">
-                          <button
-                            type="button"
-                            className="prompt-chip-btn"
-                            onClick={() => handleSendMessage(null, 'What were the main objections?')}
-                          >
-                            "What were the main objections?"
-                          </button>
-                          <span className="chip-separator">·</span>
-                          <button
-                            type="button"
-                            className="prompt-chip-btn"
-                            onClick={() => handleSendMessage(null, 'Summarise the action items')}
-                          >
-                            "Summarise the action items"
-                          </button>
-                          <span className="chip-separator">·</span>
-                          <button
-                            type="button"
-                            className="prompt-chip-btn"
-                            onClick={() => handleSendMessage(null, 'Did they mention pricing?')}
-                          >
-                            "Did they mention pricing?"
-                          </button>
-                        </div>
+                      <h2 className="ask-ai-headline">Ask anything about this recording</h2>
+                      <div className="ask-ai-prompt-chips">
+                        <button
+                          type="button"
+                          className="prompt-chip-btn"
+                          onClick={() => handleSendMessage(null, 'What were the main objections?')}
+                        >
+                          "What were the main objections?"
+                        </button>
+                        <span className="chip-separator">·</span>
+                        <button
+                          type="button"
+                          className="prompt-chip-btn"
+                          onClick={() => handleSendMessage(null, 'Summarise the action items')}
+                        >
+                          "Summarise the action items"
+                        </button>
+                        <span className="chip-separator">·</span>
+                        <button
+                          type="button"
+                          className="prompt-chip-btn"
+                          onClick={() => handleSendMessage(null, 'Did they mention pricing?')}
+                        >
+                          "Did they mention pricing?"
+                        </button>
                       </div>
-                    ) : (
-                      <div className="ask-ai-messages-scroller">
-                        {messages.map((m, idx) => (
-                          <div key={idx} className={`chat-message-row ${m.sender === 'user' ? 'user-side' : 'ai-side'}`}>
-                            <div className="chat-bubble">
-                              <div className="bubble-author">{m.sender === 'user' ? 'You' : 'Assistant'}</div>
-                              <div className="bubble-text">{cleanDisplayText(m.text)}</div>
+                    </div>
+                  ) : (
+                    <div className="ask-ai-messages-scroller">
+                      {messages.map((m, idx) => (
+                        <div key={idx} className={`chat-message-row ${m.sender === 'user' ? 'user-side' : 'ai-side'}`}>
+                          <div className="chat-bubble">
+                            <div className="bubble-author">{m.sender === 'user' ? 'You' : 'Assistant'}</div>
+                            <div className="bubble-text">{cleanDisplayText(m.text)}</div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {isSending && (
+                        <div className="chat-message-row ai-side">
+                          <div className="chat-bubble thinking-bubble">
+                            <div className="bubble-author">Assistant</div>
+                            <div className="thinking-row">
+                              <div className="spinner-mini"></div>
+                              <span>Analyzing recording and answering...</span>
                             </div>
                           </div>
-                        ))}
-
-                        {isSending && (
-                          <div className="chat-message-row ai-side">
-                            <div className="chat-bubble thinking-bubble">
-                              <div className="bubble-author">Assistant</div>
-                              <div className="thinking-row">
-                                <div className="spinner-mini"></div>
-                                <span>Analyzing recording and answering...</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        <div ref={chatEndRef} />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Bottom Pinned Prompt Bar */}
-              <div className="upload-bottom-bar-wrapper">
-                <form onSubmit={handleSendMessage} className="upload-pill-prompt-bar">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="pill-attach-btn"
-                    title="Upload another audio or video file"
-                    disabled={isUploading}
-                  >
-                    <i className="fa-solid fa-plus"></i>
-                  </button>
-
-                  {selectedFile && (
-                    <div className="chat-selected-file-chip">
-                      <i className={isVideoFile(selectedFile) ? "fa-solid fa-video" : "fa-solid fa-file-audio"}></i>
-                      <span className="chat-selected-file-name" title={selectedFile.name}>{selectedFile.name}</span>
-                      <button
-                        type="button"
-                        onClick={isUploading ? cancelUpload : clearSelectedFile}
-                        className="chat-selected-file-clear"
-                        title={isUploading ? "Cancel upload" : "Remove file"}
-                      >
-                        <i className="fa-solid fa-xmark"></i>
-                      </button>
+                        </div>
+                      )}
+                      <div ref={chatEndRef} />
                     </div>
                   )}
+                </div>
+              )}
+            </div>
 
-                  <input
-                    type="text"
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    placeholder={selectedFile ? "Click Upload or Send to process this file..." : "Ask anything about this recording..."}
-                    className="pill-prompt-input"
-                    disabled={isUploading || isSending}
-                  />
+            {/* Bottom Pinned Prompt Bar */}
+            <div className="upload-bottom-bar-wrapper">
+              <form onSubmit={handleSendMessage} className="upload-pill-prompt-bar">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="pill-attach-btn"
+                  title="Upload another audio or video file"
+                  disabled={isUploading}
+                >
+                  <i className="fa-solid fa-plus"></i>
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={toggleMic}
-                    className={`pill-mic-btn ${isListening ? 'listening' : ''}`}
-                    title={isListening ? 'Stop listening' : 'Speak your question'}
-                    disabled={isUploading || isSending}
-                  >
-                    <i className={`fa-solid ${isListening ? 'fa-microphone-lines' : 'fa-microphone'}`}></i>
-                  </button>
+                {selectedFile && (
+                  <div className="chat-selected-file-chip">
+                    <i className={isVideoFile(selectedFile) ? "fa-solid fa-video" : "fa-solid fa-file-audio"}></i>
+                    <span className="chat-selected-file-name" title={selectedFile.name}>{selectedFile.name}</span>
+                    <button
+                      type="button"
+                      onClick={isUploading ? cancelUpload : clearSelectedFile}
+                      className="chat-selected-file-clear"
+                      title={isUploading ? "Cancel upload" : "Remove file"}
+                    >
+                      <i className="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                )}
 
-                  {selectedFile ? (
-                    isUploading ? (
-                      <button
-                        type="button"
-                        onClick={cancelUpload}
-                        className="pill-cancel-action-btn"
-                        title="Cancel upload"
-                      >
-                        <i className="fa-solid fa-xmark"></i> Cancel
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleStartUpload(selectedFile)}
-                        className="pill-upload-action-btn"
-                        title="Upload selected file"
-                      >
-                        <i className="fa-solid fa-cloud-arrow-up"></i> Upload
-                      </button>
-                    )
+                <input
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder={selectedFile ? "Click Upload or Send to process this file..." : "Ask anything about this recording..."}
+                  className="pill-prompt-input"
+                  disabled={isUploading || isSending}
+                />
+
+                <button
+                  type="button"
+                  onClick={toggleMic}
+                  className={`pill-mic-btn ${isListening ? 'listening' : ''}`}
+                  title={isListening ? 'Stop listening' : 'Speak your question'}
+                  disabled={isUploading || isSending}
+                >
+                  <i className={`fa-solid ${isListening ? 'fa-microphone-lines' : 'fa-microphone'}`}></i>
+                </button>
+
+                {selectedFile ? (
+                  isUploading ? (
+                    <button
+                      type="button"
+                      onClick={cancelUpload}
+                      className="pill-cancel-action-btn"
+                      title="Cancel upload"
+                    >
+                      <i className="fa-solid fa-xmark"></i> Cancel
+                    </button>
                   ) : (
                     <button
-                      type="submit"
-                      className="pill-send-btn"
-                      disabled={!inputText.trim() || isUploading || isSending}
-                      title="Send question"
+                      type="button"
+                      onClick={() => handleStartUpload(selectedFile)}
+                      className="pill-upload-action-btn"
+                      title="Upload selected file"
                     >
-                      <i className={`fa-solid ${isSending ? 'fa-spinner fa-spin' : 'fa-arrow-up'}`}></i>
+                      <i className="fa-solid fa-cloud-arrow-up"></i> Upload
                     </button>
-                  )}
-                </form>
+                  )
+                ) : (
+                  <button
+                    type="submit"
+                    className="pill-send-btn"
+                    disabled={!inputText.trim() || isUploading || isSending}
+                    title="Send question"
+                  >
+                    <i className={`fa-solid ${isSending ? 'fa-spinner fa-spin' : 'fa-arrow-up'}`}></i>
+                  </button>
+                )}
+              </form>
 
-                <div className="upload-footer-footnote">
-                  Transcription by Deepgram · answers and translation by Grok · files up to 10 GB
-                </div>
+              <div className="upload-footer-footnote">
+                Transcription by Deepgram · answers and translation by Grok · files up to 10 GB
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Floating Toast Notification during Transcribing */}
-          {(isTranscribing || activeSession?.isTranscribing) && (
-            <div className="transcribing-bottom-toast">
-              <i className="fa-solid fa-circle-info"></i>
-              <span>Uploaded. Transcribing with speaker identification... {transcribeElapsed > 0 ? `(${transcribeElapsed}s)` : ''}</span>
-            </div>
-          )}
-        </div>
+        {/* Floating Toast Notification during Transcribing */}
+        {(isTranscribing || activeSession?.isTranscribing) && (
+          <div className="transcribing-bottom-toast">
+            <i className="fa-solid fa-circle-info"></i>
+            <span>Uploaded. Transcribing with speaker identification... {transcribeElapsed > 0 ? `(${transcribeElapsed}s)` : ''}</span>
+          </div>
+        )}
+      </div>
 
       {/* Centralized Credit-Based Restriction & Usage Modal */}
       <CreditUsagePromptModal

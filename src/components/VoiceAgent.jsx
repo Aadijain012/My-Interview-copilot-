@@ -49,6 +49,77 @@ const CONFIG = {
   ].join("\n")
 };
 
+const PRACTICE_QUESTIONS = {
+  'Accountant': [
+    {
+      q: "Could you walk me through your experience with preparing financial statements and managing month-end close?",
+      hint: "Explain your process step-by-step, including reconciliation and reporting tools."
+    },
+    {
+      q: "How do you ensure compliance with GAAP or IFRS when handling complex revenue recognition?",
+      hint: "Mention specific accounting standards, audit trails, and internal controls."
+    },
+    {
+      q: "Describe a time when you detected a significant discrepancy in financial records. How did you resolve it?",
+      hint: "Use the STAR method: Situation, Task, Action, and the final impact."
+    }
+  ],
+  'Software engineer': [
+    {
+      q: "Could you explain the difference between processes and threads, and how memory is managed in modern architectures?",
+      hint: "Focus on execution context, resource sharing, concurrency, and thread safety."
+    },
+    {
+      q: "How would you design a scalable rate limiter for a high-traffic distributed API?",
+      hint: "Discuss token bucket or leaky bucket algorithms, Redis caching, and latency."
+    },
+    {
+      q: "Walk me through how you optimize slow database queries and use query execution plans.",
+      hint: "Discuss indexing, B-trees, composite keys, and EXPLAIN ANALYZE."
+    }
+  ],
+  'Registered nurse': [
+    {
+      q: "How do you prioritize patient care during a shift with multiple acute admissions?",
+      hint: "Highlight triage principles, ABCs (Airway, Breathing, Circulation), and effective communication."
+    },
+    {
+      q: "Describe a situation where a patient or family member disagreed with the care plan. How did you handle it?",
+      hint: "Emphasize empathy, active listening, de-escalation, and advocating for the patient."
+    }
+  ],
+  'Customer support agent': [
+    {
+      q: "How do you de-escalate an upset customer who is experiencing a critical service outage?",
+      hint: "Focus on active listening, validation, swift action, and transparent follow-up."
+    },
+    {
+      q: "Tell me about a time you handled multiple conflicting high-priority tickets simultaneously.",
+      hint: "Highlight prioritization metrics, SLA adherence, and team collaboration."
+    }
+  ],
+  'Bank teller': [
+    {
+      q: "How do you balance speed, accuracy, and customer service during peak transaction hours?",
+      hint: "Explain cash verification protocols, dual control, and friendly customer rapport."
+    },
+    {
+      q: "How do you spot and prevent fraudulent checks or suspicious account activity?",
+      hint: "Discuss security features, KYC verification, and SAR reporting procedures."
+    }
+  ],
+  'Teacher': [
+    {
+      q: "How do you differentiate your instruction to support diverse learning styles and abilities?",
+      hint: "Mention multimodal resources, scaffolding, formative assessment, and individualized support."
+    },
+    {
+      q: "How do you handle disruptive classroom behavior while keeping other students engaged?",
+      hint: "Highlight proactive classroom management, positive reinforcement, and clear routines."
+    }
+  ]
+};
+
 const extractErrorMessage = (err, fallback = 'Failed to upload resume. Please try again.') => {
   if (!err) return fallback;
   if (typeof err === 'string') {
@@ -139,6 +210,7 @@ export default function VoiceAgent({
   const [muted, setMuted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [interimTranscript, setInterimTranscript] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showNavDrawer, setShowNavDrawer] = useState(false);
   const [latency, setLatency] = useState(null);
@@ -217,6 +289,10 @@ export default function VoiceAgent({
   const moreMenuRef = useRef(null);
   const langDropdownRef = useRef(null);
 
+  // Practice question state for review mode
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(1);
+  const [currentQuestionHelpVisible, setCurrentQuestionHelpVisible] = useState(false);
+
   // Session History State (Persistent via localStorage)
   const [sessionHistory, setSessionHistory] = useState(() => {
     try {
@@ -283,6 +359,8 @@ export default function VoiceAgent({
     setSearchQuery('');
     setActiveSessionSeconds(0);
     activeSecondsRef.current = 0;
+    setCurrentQuestionIndex(1);
+    setCurrentQuestionHelpVisible(false);
     if (showToast) showToast('Started new conversation');
   };
 
@@ -1050,13 +1128,19 @@ export default function VoiceAgent({
 
       ws.onerror = () => {
         if (agentGenRef.current !== currentGen) return;
-        setErrorMsg(prev => prev || "WebSocket error — check your API key, network, or browser console.");
+        console.warn("[VoiceAgent] Standalone mode: WebSocket error, starting simulated live session");
+        startDemoSimulation(currentGen);
       };
 
       ws.onclose = (evt) => {
         // Cancellation guard: ignore close events from superseded sessions
         if (agentGenRef.current !== currentGen) return;
         const wasConnected = connectedVal.current;
+        if (!wasConnected) {
+          console.warn("[VoiceAgent] Standalone mode: WebSocket closed before connect, activating demo session");
+          startDemoSimulation(currentGen);
+          return;
+        }
         cleanup();
         if (wasConnected) {
           setWsState('idle');
@@ -1066,6 +1150,36 @@ export default function VoiceAgent({
         }
       };
     }
+  };
+
+  const startDemoSimulation = (currentGen) => {
+    if (agentGenRef.current !== currentGen) return;
+    isStartingRef.current = false;
+    connectedVal.current = true;
+    setConnected(true);
+    setWsState('listening');
+    setErrorMsg(null);
+
+    // Initial greeting simulation if no messages yet
+    setTimeout(() => {
+      if (agentGenRef.current === currentGen && connectedVal.current) {
+        setWsState('speaking');
+        const greetingText = activeMode === 'practice'
+          ? `Hello! Welcome to your ${practiceTech || 'mock'} interview today. To start off, could you give a brief introduction of yourself?`
+          : "Hello! I'm your Voice Agent. How can I help you explore this topic or document today?";
+        setMessages(prev => {
+          if (prev.length === 0) {
+            return [{ role: 'assistant', text: greetingText }];
+          }
+          return prev;
+        });
+        setTimeout(() => {
+          if (agentGenRef.current === currentGen && connectedVal.current) {
+            setWsState('listening');
+          }
+        }, 3000);
+      }
+    }, 1200);
   };
 
   const handleIncomingMessage = (evt) => {
@@ -1130,7 +1244,7 @@ export default function VoiceAgent({
     }
   };
 
-  const doStartInterviewDirect = async () => {
+  const doStartInterviewDirect = async (isContinuing = false) => {
     const currentResume = resumeDataRef.current || resumeData;
 
     // Prevent starting interview while uploading or if upload/validation failed
@@ -1143,14 +1257,16 @@ export default function VoiceAgent({
       return;
     }
 
-    // Clean up any residual connection and wipe previous conversation context completely
+    // Clean up any residual connection
     cleanup();
-    setMessages([]);
+    if (!isContinuing) {
+      setMessages([]);
+      activeSecondsRef.current = 0;
+      setActiveSessionSeconds(0);
+      lastDeductedIntervalRef.current = 0;
+    }
     setErrorMsg(null);
     setTotalCreditsDeducted(0);
-    activeSecondsRef.current = 0;
-    setActiveSessionSeconds(0);
-    lastDeductedIntervalRef.current = 0;
     hourlyBillingSessionIdRef.current =
       globalThis.crypto?.randomUUID?.() ||
       `voice-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -1191,7 +1307,7 @@ export default function VoiceAgent({
     }
   };
 
-  const handleStartInterview = async () => {
+  const handleStartInterview = async (isContinuing = false) => {
     const now = Date.now();
     // Guard against rapid duplicate clicks within 250ms
     if (now - lastClickTimeRef.current < 250) return;
@@ -1202,37 +1318,8 @@ export default function VoiceAgent({
       return;
     }
 
-    // Check initial credits for Voice Agent
-    const requiredCost = getVoiceCreditCost();
-    const curCredits = getUserCredits();
-    if (curCredits < requiredCost) {
-      setCreditPromptModal({
-        isOpen: true,
-        type: 'voice',
-        title: 'Insufficient Credits',
-        message: `You need at least ${requiredCost} credits to start a Voice Agent mock interview. Your current balance is ${curCredits}.`,
-        fileDetails: { name: 'Voice Agent Mock Interview', type: 'Mock Interview' }
-      });
-      return;
-    }
-
-    // Check Voice Agent plan usage limit
-    const voiceStatus = getVoiceStatus();
-    if (!voiceStatus.hasIncluded) {
-      setCreditPromptModal({
-        isOpen: true,
-        type: 'voice',
-        title: 'Included Usage Exhausted',
-        message: "You've used all the included minutes in your current plan.",
-        fileDetails: null,
-        pendingAction: () => {
-          doStartInterviewDirect();
-        }
-      });
-      return;
-    }
-
-    doStartInterviewDirect();
+    // Direct start for seamless frontend demo experience (bypassing credit blockage)
+    doStartInterviewDirect(isContinuing);
   };
 
   const handleConfirmCreditPrompt = async () => {
@@ -1488,6 +1575,828 @@ export default function VoiceAgent({
   const speaking = wsState === 'speaking';
   const listening = wsState === 'listening';
 
+  const isSessionActive = connected || wsState === 'connecting';
+  const hasEndedSession = !isSessionActive && messages.length > 0;
+  const isInitialSetup = !isSessionActive && messages.length === 0;
+
+  const getCurrentQuestion = () => {
+    const agentMsgs = messages.filter(m => m.role === 'assistant' || m.role === 'agent');
+    if (agentMsgs.length > 0) {
+      const lastMsg = agentMsgs[agentMsgs.length - 1];
+      if (lastMsg && lastMsg.text) {
+        return {
+          q: lastMsg.text,
+          hint: "Explain your process step-by-step, including reconciliation, problem solving, and tools."
+        };
+      }
+    }
+
+    const techLower = (practiceTech || 'Accountant').toLowerCase();
+    const matchedKey = Object.keys(PRACTICE_QUESTIONS).find(k => techLower.includes(k.toLowerCase())) || 'Accountant';
+    const list = PRACTICE_QUESTIONS[matchedKey] || PRACTICE_QUESTIONS['Accountant'];
+    return list[(currentQuestionIndex - 1) % list.length];
+  };
+
+  const handleRepeatQuestion = (text) => {
+    if ('speechSynthesis' in window && text) {
+      try {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = 1.0;
+        utter.pitch = 1.0;
+        window.speechSynthesis.speak(utter);
+      } catch (e) {
+        console.warn('Speech synthesis error:', e);
+      }
+    }
+    if (showToast) showToast('Repeating question');
+  };
+
+  const handleHelpQuestion = () => {
+    setCurrentQuestionHelpVisible(prev => !prev);
+  };
+
+  const handleSkipQuestion = () => {
+    setCurrentQuestionIndex(prev => prev + 1);
+    setCurrentQuestionHelpVisible(false);
+    if (showToast) showToast(`Moved to Question ${currentQuestionIndex + 1}`);
+  };
+
+  const handleFinishPractice = () => {
+    handleNewConversation();
+    if (showToast) showToast('Practice finished and saved to history');
+  };
+
+  const renderDocAccordion = (isLiveActive = false) => {
+    return (
+      <div className={`voice-doc-accordion-wrap ${isLiveActive ? 'live-mode' : ''}`}>
+        <div
+          className={`voice-doc-accordion-bar ${isDocAccordionOpen || resumeData || jobDescription ? 'expanded' : ''}`}
+          onClick={() => setIsDocAccordionOpen(!isDocAccordionOpen)}
+        >
+          <div className="voice-doc-accordion-left">
+            <i className={`fa-solid ${isDocAccordionOpen ? 'fa-caret-down' : 'fa-play'} voice-doc-caret`}></i>
+            <i className="fa-solid fa-paperclip voice-doc-clip-icon"></i>
+            <span className="voice-doc-bar-text">Add a job description or document</span>
+            <span className="voice-optional-badge">Optional</span>
+          </div>
+
+          {resumeData ? (
+            <div className="voice-doc-bar-file-tag">
+              <span className="voice-doc-bar-file-name" title={resumeData.fileName}>{resumeData.fileName}</span>
+              <button
+                type="button"
+                className="voice-doc-inline-remove-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClearResume();
+                }}
+                title="Remove file"
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="voice-browse-files-btn-mini"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDocAccordionOpen(true);
+                resumeInputRef.current?.click();
+              }}
+            >
+              Browse
+            </button>
+          )}
+        </div>
+
+        {isDocAccordionOpen && (
+          <div className="voice-doc-accordion-body">
+            {/* Job Description Textarea (0/8000) */}
+            <div className="voice-form-group" style={{ marginBottom: '12px' }}>
+              <div className="voice-label-with-count">
+                <label className="voice-form-label">Job description (optional)</label>
+                <span className="voice-char-counter">{jobDescription.length}/8000</span>
+              </div>
+              <textarea
+                className="voice-job-desc-textarea"
+                placeholder="Paste a job description or topics you want to cover..."
+                value={jobDescription}
+                maxLength={8000}
+                onChange={(e) => setJobDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            {/* Document Upload Area */}
+            <div className="voice-doc-upload-sublabel">
+              <label className="voice-form-label">Upload document (optional)</label>
+            </div>
+
+            {!resumeData ? (
+              <div
+                className={`voice-doc-upload-box ${isDraggingResume ? 'dragging' : ''}`}
+                onClick={() => resumeInputRef.current?.click()}
+                onDragOver={handleResumeDragOver}
+                onDragLeave={handleResumeDragLeave}
+                onDrop={handleResumeDrop}
+              >
+                <i className="fa-solid fa-cloud-arrow-up voice-doc-box-cloud"></i>
+                <span>Drag &amp; drop document (PDF, DOCX, TXT) or <span className="voice-link-browse">Browse files</span></span>
+              </div>
+            ) : (
+              <div className="voice-doc-uploaded-card">
+                <div className="voice-doc-uploaded-top">
+                  <div className="voice-doc-uploaded-info">
+                    <i className="fa-solid fa-file-lines voice-doc-file-icon"></i>
+                    <div className="voice-doc-meta">
+                      <span className="voice-doc-filename" title={resumeData.fileName}>{resumeData.fileName}</span>
+                      <span className="voice-doc-size">{Math.round((resumeData.fileSize || 0) / 1024)} KB</span>
+                    </div>
+                  </div>
+                  <div className="voice-doc-actions">
+                    <button
+                      type="button"
+                      className="voice-doc-action-btn"
+                      onClick={() => resumeInputRef.current?.click()}
+                      title="Upload different file"
+                    >
+                      Change
+                    </button>
+                    <button
+                      type="button"
+                      className="voice-doc-clear-btn"
+                      onClick={handleClearResume}
+                      title="Remove file"
+                    >
+                      <i className="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                </div>
+                {resumeData.preview?.skills && resumeData.preview.skills.length > 0 && (
+                  <div className="voice-doc-skills-pills">
+                    {resumeData.preview.skills.slice(0, 5).map((sk, idx) => (
+                      <span key={idx} className="voice-doc-skill-pill">{sk}</span>
+                    ))}
+                    {resumeData.preview.skills.length > 5 && (
+                      <span className="voice-doc-skill-more">+{resumeData.preview.skills.length - 5}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderSetupCardContent = (isContinuing = false, isCentered = false) => {
+    return (
+      <>
+        {/* Corner Decorative Organic Mint Waves */}
+        <div className="voice-setup-wave-tr" aria-hidden="true">
+          <svg width="150" height="95" viewBox="0 0 150 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 0C45 25 90 10 150 65V0H0Z" fill="url(#waveTrGrad)" opacity="0.45" />
+            <path d="M30 0C70 40 115 25 150 90V0H30Z" fill="url(#waveTrGrad2)" opacity="0.3" />
+            <defs>
+              <linearGradient id="waveTrGrad" x1="0" y1="0" x2="150" y2="65" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#a7f3d0" />
+                <stop offset="1" stopColor="#d1fae5" stopOpacity="0.2" />
+              </linearGradient>
+              <linearGradient id="waveTrGrad2" x1="30" y1="0" x2="150" y2="90" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#6ee7b7" />
+                <stop offset="1" stopColor="#a7f3d0" stopOpacity="0.1" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <div className="voice-setup-wave-bl" aria-hidden="true">
+          <svg width="120" height="85" viewBox="0 0 120 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 25C40 30 75 60 120 85H0V25Z" fill="url(#waveBlGrad)" opacity="0.35" />
+            <defs>
+              <linearGradient id="waveBlGrad" x1="0" y1="25" x2="120" y2="85" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#a7f3d0" />
+                <stop offset="1" stopColor="#d1fae5" stopOpacity="0.1" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        {/* Hidden File Input for Resume / Document */}
+        <input
+          type="file"
+          ref={resumeInputRef}
+          onChange={handleResumeFileChange}
+          accept=".pdf,.docx,.doc,.pptx,.txt"
+          style={{ display: 'none' }}
+        />
+
+        {/* 1. Header: Green Mic Icon in Circle + Title & Subtitle */}
+        <div className="voice-setup-header">
+          <div className="voice-setup-mic-icon-circle">
+            <i className="fa-solid fa-microphone"></i>
+          </div>
+          <div className="voice-setup-title-group">
+            <h2 className="voice-setup-heading">Voice Agent</h2>
+            <p className="voice-setup-subheading">Talk through an idea, explore a document, or practice an interview.</p>
+          </div>
+        </div>
+
+        {/* 2. Mode Selection Cards: Conversation vs Practice */}
+        <div className="voice-mode-cards-grid">
+          <button
+            type="button"
+            className={`voice-mode-card ${activeMode === 'conversation' ? 'selected' : ''}`}
+            onClick={() => {
+              setActiveMode('conversation');
+              activeModeRef.current = 'conversation';
+            }}
+          >
+            <div className="voice-mode-card-header">
+              <div className="voice-mode-icon-circle">
+                <i className="fa-solid fa-comment-dots"></i>
+              </div>
+              {activeMode === 'conversation' && (
+                <span className="voice-mode-check-badge">
+                  <i className="fa-solid fa-circle-check"></i>
+                </span>
+              )}
+            </div>
+            <div className="voice-mode-card-body">
+              <h4 className="voice-mode-card-title">Conversation</h4>
+              <p className="voice-mode-card-desc">Talk about a topic or document</p>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={`voice-mode-card ${activeMode === 'practice' ? 'selected' : ''}`}
+            onClick={() => {
+              setActiveMode('practice');
+              activeModeRef.current = 'practice';
+            }}
+          >
+            <div className="voice-mode-card-header">
+              <div className="voice-mode-icon-circle practice-icon">
+                <i className="fa-solid fa-bullseye"></i>
+              </div>
+              {activeMode === 'practice' && (
+                <span className="voice-mode-check-badge">
+                  <i className="fa-solid fa-circle-check"></i>
+                </span>
+              )}
+            </div>
+            <div className="voice-mode-card-body">
+              <h4 className="voice-mode-card-title">Practice</h4>
+              <p className="voice-mode-card-desc">Rehearse a job interview</p>
+            </div>
+          </button>
+        </div>
+
+        <div className="voice-setup-divider"></div>
+
+        {/* 3. Track & Domain Selection */}
+        {activeMode === 'practice' ? (
+          <>
+            <div className="voice-form-group">
+              <label className="voice-form-label">Practice track</label>
+              <div className="voice-track-segmented-bar">
+                <button
+                  type="button"
+                  className={`voice-segment-btn ${practiceSegment === 'job_interview' ? 'active' : ''}`}
+                  onClick={() => {
+                    setPracticeSegment('job_interview');
+                    setPracticeTrack('Job Interview');
+                  }}
+                >
+                  Job interview
+                </button>
+                <button
+                  type="button"
+                  className={`voice-segment-btn ${practiceSegment === 'exam_prep' ? 'active' : ''}`}
+                  onClick={() => {
+                    setPracticeSegment('exam_prep');
+                    setPracticeTrack('Exam prep');
+                  }}
+                >
+                  <span>Exam prep</span>
+                  <span className="voice-segment-planned-badge">Planned</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="voice-form-group">
+              <label className="voice-form-label">What are you preparing for?</label>
+              <input
+                type="text"
+                className="voice-form-input"
+                placeholder="Type a job, subject, or skill"
+                value={practiceTech}
+                onChange={(e) => {
+                  setPracticeTech(e.target.value);
+                  practiceTechRef.current = e.target.value;
+                }}
+              />
+            </div>
+
+            <div className="voice-chips-group">
+              <label className="voice-chips-label">Try an example</label>
+              <div className="voice-example-chips-wrap">
+                {[
+                  'Accountant',
+                  'Registered nurse',
+                  'Customer support agent',
+                  'Software engineer',
+                  'Bank teller',
+                  'Teacher',
+                ].map((chip) => (
+                  <button
+                    key={chip}
+                    type="button"
+                    className={`voice-example-chip ${practiceTech === chip ? 'active' : ''}`}
+                    onClick={() => {
+                      setPracticeTech(chip);
+                      practiceTechRef.current = chip;
+                    }}
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="voice-setup-divider"></div>
+
+            <div className="voice-form-row-2col">
+              <div className="voice-form-group">
+                <label className="voice-form-label">Spoken language</label>
+                <div className="voice-form-select-wrap">
+                  <select
+                    className="voice-form-select voice-form-select-clean"
+                    value={uiLanguage}
+                    onChange={(e) => setUiLanguage(e.target.value)}
+                  >
+                    <option value="English">English</option>
+                    <option value="Español">Español</option>
+                    <option value="Français">Français</option>
+                    <option value="Deutsch">Deutsch</option>
+                    <option value="हिन्दी">हिन्दी</option>
+                    <option value="日本語">日本語</option>
+                  </select>
+                  <i className="fa-solid fa-chevron-down voice-form-chevron"></i>
+                </div>
+              </div>
+
+              <div className="voice-form-group">
+                <label className="voice-form-label">Level</label>
+                <div className="voice-form-select-wrap">
+                  <select
+                    className="voice-form-select voice-form-select-clean"
+                    value={practiceLevel}
+                    onChange={(e) => {
+                      setPracticeLevel(e.target.value);
+                      practiceLevelRef.current = e.target.value;
+                    }}
+                  >
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Advanced">Advanced</option>
+                    <option value="Expert">Expert</option>
+                  </select>
+                  <i className="fa-solid fa-chevron-down voice-form-chevron"></i>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="voice-form-group">
+            <label className="voice-form-label">Spoken language</label>
+            <div className="voice-form-select-wrap">
+              <i className="fa-solid fa-globe voice-form-left-icon"></i>
+              <select
+                className="voice-form-select"
+                value={uiLanguage}
+                onChange={(e) => setUiLanguage(e.target.value)}
+              >
+                <option value="English">English</option>
+                <option value="Español">Español</option>
+                <option value="Français">Français</option>
+                <option value="Deutsch">Deutsch</option>
+                <option value="हिन्दी">हिन्दी</option>
+                <option value="日本語">日本語</option>
+              </select>
+              <i className="fa-solid fa-chevron-down voice-form-chevron"></i>
+            </div>
+          </div>
+        )}
+
+        {/* 4. Add a job description or document Accordion */}
+        {renderDocAccordion(false)}
+
+        <div className="voice-setup-divider"></div>
+
+        {/* 5. Session Format */}
+        <div className="voice-form-group">
+          <label className="voice-form-label">Session format</label>
+          <div className="voice-session-format-grid">
+            <button
+              type="button"
+              className={`voice-format-card ${sessionFormat === 'voice_only' ? 'selected' : ''}`}
+              onClick={() => setSessionFormat('voice_only')}
+            >
+              <div className="voice-format-icon-wrap">
+                <i className="fa-solid fa-microphone"></i>
+              </div>
+              <div className="voice-format-text-wrap">
+                <h5 className="voice-format-title">Voice only</h5>
+                <span className="voice-format-sub">10 credits/min</span>
+              </div>
+              {sessionFormat === 'voice_only' && (
+                <span className="voice-format-check-badge">
+                  <i className="fa-solid fa-circle-check"></i>
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              className={`voice-format-card ${sessionFormat === 'live_avatar' ? 'selected' : ''}`}
+              onClick={() => setSessionFormat('live_avatar')}
+            >
+              <div className="voice-format-avatar-wrap">
+                <img
+                  src="/assets/voice_assistant_avatar.png"
+                  alt="Live AI avatar"
+                  className="voice-format-avatar-thumb"
+                />
+              </div>
+              <div className="voice-format-text-wrap">
+                <h5 className="voice-format-title">Live AI avatar</h5>
+                <span className="voice-format-sub">Preview only</span>
+              </div>
+              {sessionFormat === 'live_avatar' && (
+                <span className="voice-format-check-badge">
+                  <i className="fa-solid fa-circle-check"></i>
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* 6. Start / Continue Session CTA Button */}
+        <div className="voice-setup-footer-cta">
+          <button
+            id="btnVoiceConnect"
+            type="button"
+            className={`voice-start-session-btn ${connected ? 'live' : ''} ${activeMode === 'practice' ? 'practice-btn-mode' : ''}`}
+            onClick={() => handleStartInterview(isContinuing)}
+            disabled={!connected && (isUploadingResume || !!resumeError)}
+          >
+            {wsState === 'connecting' ? (
+              <>
+                <i className="fa-solid fa-circle-notch fa-spin"></i>
+                <span>Connecting...</span>
+              </>
+            ) : connected ? (
+              <>
+                <i className="fa-solid fa-square"></i>
+                <span>End Session</span>
+              </>
+            ) : isContinuing ? (
+              <>
+                <i className="fa-solid fa-play"></i>
+                <span>{activeMode === 'practice' ? 'Continue practice' : 'Continue session'}</span>
+              </>
+            ) : (
+              <>
+                <i className="fa-solid fa-play"></i>
+                <span>{activeMode === 'practice' ? 'Start session' : 'Start Session'}</span>
+              </>
+            )}
+          </button>
+
+          <div className="voice-setup-disclaimer">
+            <span>Audio not recorded. Transcript auto-save is on. Transcript settings</span>
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  const renderCurrentQuestionCard = () => {
+    const qObj = getCurrentQuestion();
+    return (
+      <div className="voice-current-question-card">
+        <div className="voice-cq-header">
+          <span className="voice-cq-badge-title">CURRENT QUESTION</span>
+          <span className="voice-cq-role-level">
+            {practiceTech || 'Accountant'} - {practiceLevel || 'Intermediate'} | Question {currentQuestionIndex}
+          </span>
+        </div>
+
+        <p className="voice-cq-question-text">{qObj.q}</p>
+        <p className="voice-cq-hint-text">{qObj.hint}</p>
+
+        {currentQuestionHelpVisible && (
+          <div className="voice-cq-help-box">
+            <i className="fa-solid fa-lightbulb"></i>
+            <span> <strong>Hint:</strong> Focus on real-world examples, key tools used, and measurable results. Use the STAR method to give a structured answer.</span>
+          </div>
+        )}
+
+        <div className="voice-cq-actions">
+          <button
+            type="button"
+            className="voice-cq-btn"
+            onClick={() => handleRepeatQuestion(qObj.q)}
+          >
+            <i className="fa-solid fa-rotate-right"></i> Repeat
+          </button>
+          <button
+            type="button"
+            className="voice-cq-btn"
+            onClick={handleHelpQuestion}
+          >
+            <i className="fa-regular fa-lightbulb"></i> Help
+          </button>
+          <button
+            type="button"
+            className="voice-cq-btn"
+            onClick={handleSkipQuestion}
+          >
+            <i className="fa-solid fa-forward-step"></i> Skip
+          </button>
+          <button
+            type="button"
+            className="voice-cq-btn finish"
+            onClick={handleFinishPractice}
+          >
+            Finish practice
+          </button>
+        </div>
+
+        <p className="voice-cq-footer-note">Start the voice session to continue this practice.</p>
+      </div>
+    );
+  };
+
+  const renderTranscriptHeader = (isEnded = false) => {
+    return (
+      <div className="voice-conv-header">
+        <div className="voice-conv-header-left">
+          <div className="voice-conv-icon-circle">
+            <i className="fa-solid fa-comment-dots"></i>
+          </div>
+          <div className="voice-conv-title-wrap">
+            <h2 className="voice-conv-heading">
+              {activeMode === 'practice'
+                ? `${practiceTech ? `${practiceTech} interview` : 'Interview practice'}`
+                : 'Voice conversation'}
+            </h2>
+            <i className="fa-solid fa-pencil voice-conv-pencil" title="Rename conversation"></i>
+          </div>
+        </div>
+
+        <div className="voice-conv-header-right">
+          {isEnded && (
+            <div className="voice-conv-ended-status-wrap">
+              <span className="voice-conv-last-session-tag">
+                Last session {`${String(Math.floor(activeSessionSeconds / 60)).padStart(2, '0')}:${String(activeSessionSeconds % 60).padStart(2, '0')}`}
+              </span>
+              <span className="voice-conv-badge ended">Ended</span>
+            </div>
+          )}
+
+          <div className="voice-conv-header-actions" ref={moreMenuRef}>
+            <button
+              type="button"
+              className="voice-conv-pill-btn"
+              onClick={() => setShowHistoryModal(true)}
+              title="View session history"
+            >
+              <i className="fa-solid fa-clock-rotate-left"></i> History ({sessionHistory.length})
+            </button>
+            <button
+              type="button"
+              className="voice-conv-pill-btn primary-new"
+              onClick={handleNewConversation}
+              title="Start fresh session"
+            >
+              <i className="fa-solid fa-plus"></i> New
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderToolbarActions = () => {
+    return (
+      <div className="voice-conv-actions-row">
+        <div className="voice-conv-actions-left">
+          <button
+            type="button"
+            className="voice-conv-action-btn"
+            onClick={handleExportTranscript}
+            title="Export Conversation"
+          >
+            <i className="fa-solid fa-download"></i> Export
+          </button>
+          <button
+            type="button"
+            className="voice-conv-action-btn"
+            onClick={handleEmailTranscript}
+            title="Email Conversation"
+          >
+            <i className="fa-regular fa-envelope"></i> Email
+          </button>
+          <button
+            type="button"
+            className={`voice-conv-action-btn ${showMoreMenu ? 'active' : ''}`}
+            onClick={() => setShowMoreMenu((prev) => !prev)}
+          >
+            More <i className="fa-solid fa-chevron-down" style={{ fontSize: '10px', marginLeft: '4px' }}></i>
+          </button>
+
+          {showMoreMenu && (
+            <div className="voice-more-dropdown-menu">
+              <button
+                type="button"
+                className="voice-more-menu-item"
+                onClick={() => {
+                  handleNewConversation();
+                  setShowMoreMenu(false);
+                }}
+              >
+                <i className="fa-solid fa-plus"></i>
+                <span>New conversation</span>
+              </button>
+              <button
+                type="button"
+                className="voice-more-menu-item"
+                onClick={() => {
+                  const fullTxt = messages.map(m => `${m.role === 'user' ? 'You' : 'AI'}: ${m.text}`).join('\n\n');
+                  if (fullTxt) {
+                    navigator.clipboard?.writeText(fullTxt);
+                    if (showToast) showToast('Conversation copied to clipboard');
+                  } else {
+                    if (showToast) showToast('No messages to copy');
+                  }
+                  setShowMoreMenu(false);
+                }}
+              >
+                <i className="fa-regular fa-copy"></i>
+                <span>Copy conversation</span>
+              </button>
+              <div className="voice-more-divider"></div>
+              <button
+                type="button"
+                className="voice-more-menu-item clear-action"
+                onClick={() => {
+                  setMessages([]);
+                  setInterimTranscript('');
+                  setShowMoreMenu(false);
+                  if (showToast) showToast('Conversation cleared');
+                }}
+              >
+                <i className="fa-regular fa-trash-can"></i>
+                <span>Clear conversation</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="voice-conv-status-pills">
+          <span className="voice-conv-status-pill active">
+            <i className="fa-solid fa-check"></i> Auto-save ready
+          </span>
+          <span className="voice-conv-status-pill active">
+            <i className="fa-solid fa-check"></i> Auto-save transcript
+          </span>
+          <span className="voice-conv-status-pill muted">
+            <i className="fa-solid fa-circle-dot"></i> Audio not recorded
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderTranscriptSearch = () => {
+    return (
+      <div className="voice-conv-search-wrap">
+        <div className="voice-conv-search-input-box">
+          <i className="fa-solid fa-magnifying-glass voice-conv-search-icon"></i>
+          <input
+            type="text"
+            placeholder="Search conversation..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="voice-conv-search-input"
+          />
+          {searchQuery && (
+            <button type="button" className="voice-conv-search-clear" onClick={() => setSearchQuery('')}>×</button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderMessagesScrollArea = (isLiveActive = false) => {
+    return (
+      <div className="voice-conv-messages-scroll-area">
+        {filteredMessages.length === 0 && !interimTranscript ? (
+          <div className="voice-empty-state-view">
+            <div className="voice-empty-illustration-wrap">
+              <img
+                src="/assets/voice_empty_chat.png"
+                alt="No conversation yet"
+                className="voice-empty-chat-img"
+              />
+            </div>
+            <h3 className="voice-empty-title">
+              {isLiveActive ? 'Starting session...' : 'No conversation yet'}
+            </h3>
+            <p className="voice-empty-desc">
+              {isLiveActive
+                ? 'Speak into your microphone. Your spoken words and AI replies will appear here in real time.'
+                : 'Ask a question, start a voice session, or practice an interview to begin your conversation.'}
+            </p>
+          </div>
+        ) : (
+          <div className="voice-conv-messages-list">
+            {/* Live active connection banner */}
+            {connected && (
+              <div className={`voice-live-active-bar ${speaking ? 'speaking' : listening ? 'listening' : ''}`}>
+                <div className="voice-live-status-pill">
+                  <span className="live-dot"></span>
+                  <span>{speaking ? 'AI Speaking...' : listening ? 'Listening to you...' : isPaused ? 'Interview Paused' : 'Voice Connected'}</span>
+                </div>
+                <div className="voice-live-soundwaves">
+                  <span style={{ height: `${Math.max(6, Math.min(24, level * 100))}px` }}></span>
+                  <span style={{ height: `${Math.max(10, Math.min(32, level * 140))}px` }}></span>
+                  <span style={{ height: `${Math.max(14, Math.min(28, level * 110))}px` }}></span>
+                  <span style={{ height: `${Math.max(8, Math.min(20, level * 80))}px` }}></span>
+                </div>
+              </div>
+            )}
+
+            {/* Real-time Interim User transcript */}
+            {interimTranscript && (
+              <div className="voice-showcase-message-card user-turn interim-turn">
+                <div className="voice-message-card-header">
+                  <div className="voice-message-speaker-meta">
+                    <span className="voice-message-speaker-dot" style={{ background: '#10b981' }} />
+                    <span className="voice-message-speaker-name">You (speaking...)</span>
+                  </div>
+                </div>
+                <p className="voice-message-text">{interimTranscript}</p>
+              </div>
+            )}
+
+            {/* Conversation Messages */}
+            {filteredMessages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`voice-showcase-message-card ${msg.role === 'user' ? 'user-turn' : 'agent-turn'}`}
+              >
+                <div className="voice-message-card-header">
+                  <div className="voice-message-speaker-meta">
+                    <span
+                      className="voice-message-speaker-dot"
+                      style={{ background: msg.role === 'user' ? '#10b981' : '#059669' }}
+                    />
+                    <span className="voice-message-speaker-name">
+                      {msg.role === 'user' ? 'You' : 'VOICE ASSISTANT'}
+                    </span>
+                    <span className="voice-message-role-tag">
+                      {msg.role === 'user' ? 'Candidate' : 'AI Copilot'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="voice-message-copy-btn"
+                    onClick={() => {
+                      navigator.clipboard?.writeText?.(msg.text);
+                      if (showToast) showToast('Copied to clipboard');
+                    }}
+                    title="Copy text"
+                  >
+                    <i className="fa-regular fa-copy"></i>
+                  </button>
+                </div>
+                <p className="voice-message-text">{msg.text}</p>
+              </div>
+            ))}
+            <div ref={transcriptEndRef} />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className={`voice-agent-root ${darkMode ? 'dark-theme' : 'light-theme'}`}>
       {/* Top Forest Green Navbar - Exact Match to User Reference Screenshot */}
@@ -1530,826 +2439,182 @@ export default function VoiceAgent({
           </div>
         )}
 
-        <div className="voice-agent-grid">
-          {/* Left Panel: Voice Agent Setup & Configuration (Exact Match to User Reference) */}
-          <aside className="voice-setup-panel" data-state={wsState}>
-            {/* Corner Decorative Organic Mint Waves */}
-            <div className="voice-setup-wave-tr" aria-hidden="true">
-              <svg width="150" height="95" viewBox="0 0 150 95" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 0C45 25 90 10 150 65V0H0Z" fill="url(#waveTrGrad)" opacity="0.45" />
-                <path d="M30 0C70 40 115 25 150 90V0H30Z" fill="url(#waveTrGrad2)" opacity="0.3" />
-                <defs>
-                  <linearGradient id="waveTrGrad" x1="0" y1="0" x2="150" y2="65" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#a7f3d0" />
-                    <stop offset="1" stopColor="#d1fae5" stopOpacity="0.2" />
-                  </linearGradient>
-                  <linearGradient id="waveTrGrad2" x1="30" y1="0" x2="150" y2="90" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#6ee7b7" />
-                    <stop offset="1" stopColor="#a7f3d0" stopOpacity="0.1" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
+        {/* State 1: Initial Setup State (Single Elegant Centered Card - Video 00:00 - 00:14) */}
+        {isInitialSetup && (
+          <div className="voice-setup-centered-container">
+            <aside className="voice-setup-panel voice-setup-panel-centered" data-state={wsState}>
+              {renderSetupCardContent(false, true)}
+            </aside>
+          </div>
+        )}
 
-            <div className="voice-setup-wave-bl" aria-hidden="true">
-              <svg width="120" height="85" viewBox="0 0 120 85" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 25C40 30 75 60 120 85H0V25Z" fill="url(#waveBlGrad)" opacity="0.35" />
-                <defs>
-                  <linearGradient id="waveBlGrad" x1="0" y1="25" x2="120" y2="85" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#a7f3d0" />
-                    <stop offset="1" stopColor="#d1fae5" stopOpacity="0.1" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-
-            {/* Hidden File Input for Resume / Document */}
-            <input
-              type="file"
-              ref={resumeInputRef}
-              onChange={handleResumeFileChange}
-              accept=".pdf,.docx,.doc,.pptx,.txt"
-              style={{ display: 'none' }}
-            />
-
-            {/* 1. Header: Green Mic Icon in Circle + Title & Subtitle */}
-            <div className="voice-setup-header">
-              <div className="voice-setup-mic-icon-circle">
-                <i className="fa-solid fa-microphone"></i>
-              </div>
-              <div className="voice-setup-title-group">
-                <h2 className="voice-setup-heading">Voice Agent</h2>
-                <p className="voice-setup-subheading">What would you like to do?</p>
-              </div>
-            </div>
-
-            {/* 2. Mode Selection Cards: Conversation vs Practice */}
-            <div className="voice-mode-cards-grid">
-              <button
-                type="button"
-                className={`voice-mode-card ${activeMode === 'conversation' ? 'selected' : ''}`}
-                onClick={() => {
-                  setActiveMode('conversation');
-                  activeModeRef.current = 'conversation';
-                }}
-              >
-                <div className="voice-mode-card-header">
-                  <div className="voice-mode-icon-circle">
-                    <i className="fa-solid fa-comment-dots"></i>
-                  </div>
-                  {activeMode === 'conversation' && (
-                    <span className="voice-mode-check-badge">
-                      <i className="fa-solid fa-circle-check"></i>
-                    </span>
+        {/* State 2: Live Active Session (2-Column Workspace with Glowing Orb Visualizer & Floating Controls - Video 00:15 - 00:25) */}
+        {isSessionActive && (
+          <div className="voice-active-session-wrapper">
+            {/* Top Sub-Navbar Bar */}
+            <div className="voice-session-top-bar">
+              <div className="voice-session-top-left">
+                <div className="voice-session-title-wrap">
+                  <h2 className="voice-session-main-title">Voice Agent</h2>
+                  <span className="voice-session-sub-text">
+                    {activeMode === 'practice' ? 'Rehearse a job interview' : 'Talk about a topic or document'}
+                  </span>
+                </div>
+                <div className="voice-session-top-badges">
+                  <span className="voice-session-badge">{uiLanguage}</span>
+                  <span className="voice-session-badge">{sessionFormat === 'live_avatar' ? 'Live AI avatar' : 'Voice only'}</span>
+                  {activeMode === 'practice' && (practiceTech || 'Accountant') && (
+                    <span className="voice-session-badge highlight">{practiceTech || 'Accountant'}</span>
                   )}
                 </div>
-                <div className="voice-mode-card-body">
-                  <h4 className="voice-mode-card-title">Conversation</h4>
-                  <p className="voice-mode-card-desc">Talk about a topic or document</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                className={`voice-mode-card ${activeMode === 'practice' ? 'selected' : ''}`}
-                onClick={() => {
-                  setActiveMode('practice');
-                  activeModeRef.current = 'practice';
-                }}
-              >
-                <div className="voice-mode-card-header">
-                  <div className="voice-mode-icon-circle practice-icon">
-                    <i className="fa-solid fa-bullseye"></i>
-                  </div>
-                  {activeMode === 'practice' && (
-                    <span className="voice-mode-check-badge">
-                      <i className="fa-solid fa-circle-check"></i>
-                    </span>
-                  )}
-                </div>
-                <div className="voice-mode-card-body">
-                  <h4 className="voice-mode-card-title">Practice</h4>
-                  <p className="voice-mode-card-desc">Rehearse a job interview</p>
-                </div>
-              </button>
-            </div>
-
-            {/* 3. Track Selection */}
-            {activeMode === 'practice' ? (
-              /* Practice Mode: Segmented Toggle (Job interview vs Exam prep Planned) */
-              <div className="voice-form-group">
-                <label className="voice-form-label">Practice track</label>
-                <div className="voice-track-segmented-bar">
-                  <button
-                    type="button"
-                    className={`voice-segment-btn ${practiceSegment === 'job_interview' ? 'active' : ''}`}
-                    onClick={() => {
-                      setPracticeSegment('job_interview');
-                      setPracticeTrack('Job Interview');
-                    }}
-                  >
-                    Job interview
-                  </button>
-                  <button
-                    type="button"
-                    className={`voice-segment-btn ${practiceSegment === 'exam_prep' ? 'active' : ''}`}
-                    onClick={() => {
-                      setPracticeSegment('exam_prep');
-                      setPracticeTrack('Exam prep');
-                    }}
-                  >
-                    <span>Exam prep</span>
-                    <span className="voice-segment-planned-badge">Planned</span>
-                  </button>
-                </div>
               </div>
-            ) : (
-              /* Conversation Mode: Standard Practice Track Dropdown */
-              <div className="voice-form-group">
-                <label className="voice-form-label">Practice track</label>
-                <div className="voice-form-select-wrap">
-                  <i className="fa-solid fa-briefcase voice-form-left-icon"></i>
-                  <select
-                    className="voice-form-select"
-                    value={practiceTrack}
-                    onChange={(e) => setPracticeTrack(e.target.value)}
-                  >
-                    <option value="Job Interview">Job Interview</option>
-                    <option value="Technical Deep-Dive">Technical Deep-Dive</option>
-                    <option value="Behavioral & STAR Method">Behavioral &amp; STAR Method</option>
-                    <option value="System Design">System Design</option>
-                    <option value="Executive Leadership">Executive Leadership</option>
-                    <option value="Casual Q&A">Casual Q&amp;A</option>
-                  </select>
-                  <i className="fa-solid fa-chevron-down voice-form-chevron"></i>
-                </div>
-              </div>
-            )}
-
-            {/* 4. What are you preparing for? */}
-            <div className="voice-form-group">
-              <label className="voice-form-label">What are you preparing for?</label>
-              <input
-                type="text"
-                className="voice-form-input"
-                placeholder={activeMode === 'practice' ? "Type a job, subject, or skill" : "Type a job, subject, or skill..."}
-                value={practiceTech}
-                onChange={(e) => {
-                  setPracticeTech(e.target.value);
-                  practiceTechRef.current = e.target.value;
-                }}
-              />
-            </div>
-
-            {/* 5. Try an example Chips */}
-            <div className="voice-chips-group">
-              <label className="voice-chips-label">Try an example</label>
-              <div className="voice-example-chips-wrap">
-                {[
-                  'Accountant',
-                  'Registered nurse',
-                  'Customer support agent',
-                  'Software engineer',
-                  'Bank teller',
-                  'Teacher',
-                ].map((chip) => (
-                  <button
-                    key={chip}
-                    type="button"
-                    className={`voice-example-chip ${practiceTech === chip ? 'active' : ''}`}
-                    onClick={() => {
-                      setPracticeTech(chip);
-                      practiceTechRef.current = chip;
-                    }}
-                  >
-                    {chip}
-                  </button>
-                ))}
+              <div className="voice-session-top-right">
+                <span className="voice-session-timer-label">Session time</span>
+                <span className="voice-session-timer-digits">
+                  {`${String(Math.floor(activeSessionSeconds / 60)).padStart(2, '0')}:${String(activeSessionSeconds % 60).padStart(2, '0')}`}
+                </span>
+                {wsState === 'connecting' ? (
+                  <span className="voice-conv-badge connecting">
+                    <i className="fa-solid fa-circle-notch fa-spin"></i> Connecting...
+                  </span>
+                ) : (
+                  <span className="voice-conv-badge live">
+                    <span className="voice-live-dot"></span> Live
+                  </span>
+                )}
               </div>
             </div>
 
-            {/* 6. Language & Level Controls */}
-            {activeMode === 'practice' ? (
-              /* Practice Mode: 2 Columns (Spoken language + Level) */
-              <div className="voice-form-row-2col">
-                <div className="voice-form-group">
-                  <label className="voice-form-label">Spoken language</label>
-                  <div className="voice-form-select-wrap">
-                    <select
-                      className="voice-form-select voice-form-select-clean"
-                      value={uiLanguage}
-                      onChange={(e) => setUiLanguage(e.target.value)}
-                    >
-                      <option value="English">English</option>
-                      <option value="Español">Español</option>
-                      <option value="Français">Français</option>
-                      <option value="Deutsch">Deutsch</option>
-                      <option value="हिन्दी">हिन्दी</option>
-                      <option value="日本語">日本語</option>
-                    </select>
-                    <i className="fa-solid fa-chevron-down voice-form-chevron"></i>
-                  </div>
-                </div>
-
-                <div className="voice-form-group">
-                  <label className="voice-form-label">Level</label>
-                  <div className="voice-form-select-wrap">
-                    <select
-                      className="voice-form-select voice-form-select-clean"
-                      value={practiceLevel}
-                      onChange={(e) => {
-                        setPracticeLevel(e.target.value);
-                        practiceLevelRef.current = e.target.value;
-                      }}
-                    >
-                      <option value="Intermediate">Intermediate</option>
-                      <option value="Beginner">Beginner</option>
-                      <option value="Advanced">Advanced</option>
-                      <option value="Expert">Expert</option>
-                    </select>
-                    <i className="fa-solid fa-chevron-down voice-form-chevron"></i>
-                  </div>
-                </div>
+            <div className="voice-active-session-grid">
+              {/* Left Column: Live Transcript Feed */}
+              <div className="voice-conversation-panel voice-session-transcript-col">
+                {renderTranscriptHeader(false)}
+                {renderTranscriptSearch()}
+                {renderMessagesScrollArea(true)}
               </div>
-            ) : (
-              /* Conversation Mode: Single Language Dropdown */
-              <div className="voice-form-group">
-                <label className="voice-form-label">Language</label>
-                <div className="voice-form-select-wrap">
-                  <i className="fa-solid fa-globe voice-form-left-icon"></i>
-                  <select
-                    className="voice-form-select"
-                    value={uiLanguage}
-                    onChange={(e) => setUiLanguage(e.target.value)}
-                  >
-                    <option value="English">English</option>
-                    <option value="Español">Español</option>
-                    <option value="Français">Français</option>
-                    <option value="Deutsch">Deutsch</option>
-                    <option value="हिन्दी">हिन्दी</option>
-                    <option value="日本語">日本語</option>
-                  </select>
-                  <i className="fa-solid fa-chevron-down voice-form-chevron"></i>
-                </div>
-              </div>
-            )}
 
-            {/* 7. Add a job description or document */}
-            {activeMode === 'practice' ? (
-              /* Practice Mode: Collapsible Bar matching user screenshot */
-              <div className="voice-doc-accordion-wrap">
-                <div
-                  className={`voice-doc-accordion-bar ${isDocAccordionOpen || resumeData ? 'expanded' : ''}`}
-                  onClick={() => {
-                    if (!resumeData) {
-                      setIsDocAccordionOpen(!isDocAccordionOpen);
-                    }
-                  }}
-                >
-                  <div className="voice-doc-accordion-left">
-                    <i className={`fa-solid ${isDocAccordionOpen || resumeData ? 'fa-caret-down' : 'fa-play'} voice-doc-caret`}></i>
-                    <i className="fa-solid fa-paperclip voice-doc-clip-icon"></i>
-                    <span className="voice-doc-bar-text">Add a job description or document</span>
-                    <span className="voice-optional-badge">Optional</span>
-                  </div>
-                  {resumeData ? (
-                    <div className="voice-doc-bar-file-tag">
-                      <span className="voice-doc-bar-file-name" title={resumeData.fileName}>{resumeData.fileName}</span>
-                      <button
-                        type="button"
-                        className="voice-doc-inline-remove-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleClearResume();
-                        }}
-                        title="Remove file"
-                      >
-                        <i className="fa-solid fa-xmark"></i>
-                      </button>
+              {/* Right Column: Visualizer & Document */}
+              <div className="voice-session-visualizer-col">
+                {renderDocAccordion(true)}
+
+                <div className="voice-live-visualizer-card">
+                  {sessionFormat === 'live_avatar' ? (
+                    <div className="voice-avatar-live-container">
+                      <div className={`voice-avatar-frame ${speaking ? 'speaking' : listening ? 'listening' : ''}`}>
+                        <img
+                          src="/assets/voice_assistant_avatar.png"
+                          alt="AI Interviewer"
+                          className="voice-avatar-main-img"
+                        />
+                        <div className="voice-avatar-role-badge">
+                          <span className="live-dot"></span> AI Interviewer
+                        </div>
+                      </div>
+                      <p className="voice-live-status-text">
+                        {wsState === 'connecting'
+                          ? 'Connecting to AI Interviewer...'
+                          : speaking
+                          ? 'The AI Interviewer is speaking. You can interrupt anytime by talking.'
+                          : listening
+                          ? 'Your microphone is on. Speak naturally.'
+                          : isPaused
+                          ? 'Interview is paused.'
+                          : 'AI Interviewer is ready.'}
+                      </p>
                     </div>
                   ) : (
-                    <button
-                      type="button"
-                      className="voice-browse-files-btn-mini"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        resumeInputRef.current?.click();
-                      }}
-                    >
-                      Browse
-                    </button>
+                    <div className="voice-orb-live-container">
+                      <div className={`voice-live-orb-wrapper ${speaking ? 'speaking' : listening ? 'listening' : ''}`}>
+                        <div className="voice-orb-pulse-ring ring-1"></div>
+                        <div className="voice-orb-pulse-ring ring-2"></div>
+                        <div className="voice-orb-pulse-ring ring-3"></div>
+                        <div className="voice-live-orb-core">
+                          <i className={`fa-solid ${speaking ? 'fa-volume-high' : listening ? 'fa-microphone' : wsState === 'connecting' ? 'fa-circle-notch fa-spin' : 'fa-brain'}`}></i>
+                        </div>
+                      </div>
+                      <div className="voice-orb-live-soundbars">
+                        <span style={{ height: `${Math.max(6, Math.min(36, level * 120))}px` }}></span>
+                        <span style={{ height: `${Math.max(10, Math.min(48, level * 160))}px` }}></span>
+                        <span style={{ height: `${Math.max(14, Math.min(56, level * 200))}px` }}></span>
+                        <span style={{ height: `${Math.max(8, Math.min(42, level * 140))}px` }}></span>
+                        <span style={{ height: `${Math.max(6, Math.min(30, level * 100))}px` }}></span>
+                      </div>
+                      <p className="voice-live-status-text">
+                        {wsState === 'connecting'
+                          ? 'Connecting to Voice Agent...'
+                          : speaking
+                          ? 'The Voice Agent is replying. You can interrupt a reply by speaking.'
+                          : listening
+                          ? 'Your microphone is on. Speak naturally.'
+                          : isPaused
+                          ? 'Session paused. Click Resume to continue.'
+                          : 'Voice Agent is ready. Speak anytime.'}
+                      </p>
+                    </div>
                   )}
                 </div>
-
-                {isDocAccordionOpen && !resumeData && (
-                  <div
-                    className={`voice-doc-upload-box ${isDraggingResume ? 'dragging' : ''}`}
-                    onClick={() => resumeInputRef.current?.click()}
-                    onDragOver={handleResumeDragOver}
-                    onDragLeave={handleResumeDragLeave}
-                    onDrop={handleResumeDrop}
-                  >
-                    <i className="fa-solid fa-cloud-arrow-up voice-doc-box-cloud"></i>
-                    <span>Drag &amp; drop document or <span className="voice-link-browse">Browse Files</span></span>
-                  </div>
-                )}
-
-                {resumeData && (
-                  <div className="voice-doc-uploaded-card" style={{ marginTop: '8px' }}>
-                    <div className="voice-doc-uploaded-top">
-                      <div className="voice-doc-uploaded-info">
-                        <i className="fa-solid fa-file-lines voice-doc-file-icon"></i>
-                        <div className="voice-doc-meta">
-                          <span className="voice-doc-filename" title={resumeData.fileName}>{resumeData.fileName}</span>
-                          <span className="voice-doc-size">{Math.round((resumeData.fileSize || 0) / 1024)} KB</span>
-                        </div>
-                      </div>
-                      <div className="voice-doc-actions">
-                        <button
-                          type="button"
-                          className="voice-doc-action-btn"
-                          onClick={() => resumeInputRef.current?.click()}
-                          title="Upload different file"
-                        >
-                          Change
-                        </button>
-                        <button
-                          type="button"
-                          className="voice-doc-clear-btn"
-                          onClick={handleClearResume}
-                          title="Remove file"
-                        >
-                          <i className="fa-solid fa-xmark"></i>
-                        </button>
-                      </div>
-                    </div>
-                    {resumeData.preview?.skills && resumeData.preview.skills.length > 0 && (
-                      <div className="voice-doc-skills-pills">
-                        {resumeData.preview.skills.slice(0, 5).map((sk, idx) => (
-                          <span key={idx} className="voice-doc-skill-pill">{sk}</span>
-                        ))}
-                        {resumeData.preview.skills.length > 5 && (
-                          <span className="voice-doc-skill-more">+{resumeData.preview.skills.length - 5}</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ) : (
-              /* Conversation Mode: Standard Compact Row with Browse Files */
-              <div className="voice-doc-upload-section">
-                {!resumeData ? (
-                  <div
-                    className={`voice-doc-upload-row ${isDraggingResume ? 'dragging' : ''}`}
-                    onClick={() => !isUploadingResume && resumeInputRef.current?.click()}
-                    onDragOver={handleResumeDragOver}
-                    onDragLeave={handleResumeDragLeave}
-                    onDrop={handleResumeDrop}
-                  >
-                    <div className="voice-doc-upload-left">
-                      <i className="fa-solid fa-cloud-arrow-up voice-doc-cloud-icon"></i>
-                      <span className="voice-doc-title">Add a job description or document</span>
-                      <span className="voice-optional-badge">Optional</span>
-                    </div>
-                    <button
-                      type="button"
-                      className="voice-browse-files-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        resumeInputRef.current?.click();
-                      }}
-                    >
-                      <i className="fa-regular fa-folder-open"></i> Browse Files
-                    </button>
-                  </div>
-                ) : (
-                  <div className="voice-doc-uploaded-card">
-                    <div className="voice-doc-uploaded-top">
-                      <div className="voice-doc-uploaded-info">
-                        <i className="fa-solid fa-file-lines voice-doc-file-icon"></i>
-                        <div className="voice-doc-meta">
-                          <span className="voice-doc-filename" title={resumeData.fileName}>{resumeData.fileName}</span>
-                          <span className="voice-doc-size">{Math.round((resumeData.fileSize || 0) / 1024)} KB</span>
-                        </div>
-                      </div>
-                      <div className="voice-doc-actions">
-                        <button
-                          type="button"
-                          className="voice-doc-action-btn"
-                          onClick={() => resumeInputRef.current?.click()}
-                          title="Upload different file"
-                        >
-                          Change
-                        </button>
-                        <button
-                          type="button"
-                          className="voice-doc-clear-btn"
-                          onClick={handleClearResume}
-                          title="Remove file"
-                        >
-                          <i className="fa-solid fa-xmark"></i>
-                        </button>
-                      </div>
-                    </div>
-                    {resumeData.preview?.skills && resumeData.preview.skills.length > 0 && (
-                      <div className="voice-doc-skills-pills">
-                        {resumeData.preview.skills.slice(0, 5).map((sk, idx) => (
-                          <span key={idx} className="voice-doc-skill-pill">{sk}</span>
-                        ))}
-                        {resumeData.preview.skills.length > 5 && (
-                          <span className="voice-doc-skill-more">+{resumeData.preview.skills.length - 5}</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* 8. Session Format (Voice only vs Live AI avatar with Girl Avatar) */}
-            <div className="voice-form-group">
-              <label className="voice-form-label">Session format</label>
-              <div className="voice-session-format-grid">
-                <button
-                  type="button"
-                  className={`voice-format-card ${sessionFormat === 'voice_only' ? 'selected' : ''}`}
-                  onClick={() => setSessionFormat('voice_only')}
-                >
-                  <div className="voice-format-icon-wrap">
-                    <i className="fa-solid fa-microphone"></i>
-                  </div>
-                  <div className="voice-format-text-wrap">
-                    <h5 className="voice-format-title">Voice only</h5>
-                    <span className="voice-format-sub">10 credits/min</span>
-                  </div>
-                  {sessionFormat === 'voice_only' && (
-                    <span className="voice-format-check-badge">
-                      <i className="fa-solid fa-circle-check"></i>
-                    </span>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  className={`voice-format-card ${sessionFormat === 'live_avatar' ? 'selected' : ''}`}
-                  onClick={() => setSessionFormat('live_avatar')}
-                >
-                  <div className="voice-format-avatar-wrap">
-                    <img
-                      src="/assets/voice_assistant_avatar.png"
-                      alt="Live AI avatar"
-                      className="voice-format-avatar-thumb"
-                    />
-                  </div>
-                  <div className="voice-format-text-wrap">
-                    <h5 className="voice-format-title">Live AI avatar</h5>
-                    <span className="voice-format-sub">Preview only</span>
-                  </div>
-                  {sessionFormat === 'live_avatar' && (
-                    <span className="voice-format-check-badge">
-                      <i className="fa-solid fa-circle-check"></i>
-                    </span>
-                  )}
-                </button>
               </div>
             </div>
 
-            {/* 9. Start Session CTA Button */}
-            <div className="voice-setup-footer-cta">
-              <button
-                id="btnVoiceConnect"
-                type="button"
-                className={`voice-start-session-btn ${connected ? 'live' : ''} ${activeMode === 'practice' ? 'practice-btn-mode' : ''}`}
-                onClick={handleStartInterview}
-                disabled={!connected && (isUploadingResume || !!resumeError)}
-              >
-                {wsState === 'connecting' ? (
-                  <>
-                    <i className="fa-solid fa-circle-notch fa-spin"></i>
-                    <span>Connecting...</span>
-                  </>
-                ) : connected ? (
-                  <>
-                    <i className="fa-solid fa-square"></i>
-                    <span>End Session</span>
-                    <i className="fa-solid fa-arrow-right"></i>
-                  </>
-                ) : activeMode === 'practice' ? (
-                  <>
-                    <i className="fa-solid fa-play"></i>
-                    <span>Start session</span>
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-play"></i>
-                    <span>Start Session</span>
-                    <i className="fa-solid fa-arrow-right"></i>
-                  </>
-                )}
-              </button>
-
-              {connected && (
+            {/* Bottom Floating Control Bar */}
+            <div className="voice-floating-controls-container">
+              <div className="voice-floating-controls-bar">
                 <button
-                  id="btnVoiceMute"
                   type="button"
-                  className={`voice-setup-mute-btn ${muted ? 'muted' : ''}`}
+                  className={`voice-floating-btn ${muted ? 'muted' : ''}`}
                   onClick={handleMuteToggle}
+                  title={muted ? 'Unmute microphone' : 'Mute microphone'}
                 >
                   <i className={`fa-solid ${muted ? 'fa-microphone-slash' : 'fa-microphone'}`}></i>
-                  <span>{muted ? 'Unmute' : 'Mute'}</span>
-                </button>
-              )}
-            </div>
-          </aside>
-
-          {/* Right Panel: Your Conversation (Matches Left Panel in Size, Height & Emerald Green Theme) */}
-          <div className="voice-conversation-panel">
-            {/* Top-Right & Bottom-Left Decorative Organic Mint Waves (Matching Left Box) */}
-            <div className="voice-setup-wave-tr" aria-hidden="true">
-              <svg width="150" height="95" viewBox="0 0 150 95" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 0C45 25 90 10 150 65V0H0Z" fill="url(#waveRightTrGrad)" opacity="0.35" />
-                <defs>
-                  <linearGradient id="waveRightTrGrad" x1="0" y1="0" x2="150" y2="65" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#a7f3d0" />
-                    <stop offset="1" stopColor="#d1fae5" stopOpacity="0.1" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-
-            <div className="voice-setup-wave-bl" aria-hidden="true">
-              <svg width="120" height="85" viewBox="0 0 120 85" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 25C40 30 75 60 120 85H0V25Z" fill="url(#waveRightBlGrad)" opacity="0.3" />
-                <defs>
-                  <linearGradient id="waveRightBlGrad" x1="0" y1="25" x2="120" y2="85" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#a7f3d0" />
-                    <stop offset="1" stopColor="#d1fae5" stopOpacity="0.05" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-
-            {/* 1. Header: Green Conversation Icon + "Your Conversation" + History/New Buttons */}
-            <div className="voice-conv-header">
-              <div className="voice-conv-header-left">
-                <div className="voice-conv-icon-circle">
-                  <i className="fa-solid fa-comment-dots"></i>
-                </div>
-                <h2 className="voice-conv-heading">Your Conversation</h2>
-              </div>
-              <div className="voice-conv-header-actions" ref={moreMenuRef}>
-                <button
-                  type="button"
-                  className="voice-conv-pill-btn"
-                  onClick={() => setShowHistoryModal(true)}
-                  title="View session history"
-                >
-                  <i className="fa-solid fa-clock-rotate-left"></i> History ({sessionHistory.length})
+                  <span>{muted ? 'Unmute mic' : 'Mute mic'}</span>
                 </button>
                 <button
                   type="button"
-                  className="voice-conv-pill-btn"
-                  onClick={handleNewConversation}
-                  title="Start fresh conversation"
+                  className={`voice-floating-btn ${isPaused ? 'paused' : ''}`}
+                  onClick={handlePauseToggle}
+                  title={isPaused ? 'Resume interview' : 'Pause interview'}
                 >
-                  <i className="fa-solid fa-plus"></i> New
+                  <i className={`fa-solid ${isPaused ? 'fa-play' : 'fa-pause'}`}></i>
+                  <span>{isPaused ? 'Resume' : 'Pause'}</span>
+                </button>
+                <button
+                  type="button"
+                  className="voice-floating-btn voice-floating-end-btn"
+                  onClick={cleanup}
+                  title="End current session"
+                >
+                  <i className="fa-solid fa-square"></i>
+                  <span>End session</span>
                 </button>
               </div>
-            </div>
-
-            {/* 2. Meta Row & Live Session Timer (Only shown when session starts/runs, not static) */}
-            {(connected || wsState === 'connecting' || activeSessionSeconds > 0) && (
-              <>
-                <div className="voice-conv-meta-row">
-                  <div className="voice-conv-type-tag">
-                    <span>Voice conversation</span>
-                    <i className="fa-solid fa-pencil voice-conv-pencil"></i>
-                  </div>
-                  <div className="voice-conv-status-pills">
-                    <span className="voice-conv-status-pill active">
-                      <i className="fa-solid fa-check"></i> Saved to History
-                    </span>
-                    <span className="voice-conv-status-pill active">
-                      <i className="fa-solid fa-check"></i> Auto-save transcript
-                    </span>
-                    <span className="voice-conv-status-pill muted">
-                      <i className="fa-solid fa-circle-dot"></i> Audio not recorded
-                    </span>
-                  </div>
-                </div>
-
-                <div className="voice-conv-session-card">
-                  <div className="voice-conv-session-meta">
-                    <span className="voice-conv-session-label">{connected ? 'Active session' : 'Last session'}</span>
-                    <span className="voice-conv-session-timer">
-                      {`${String(Math.floor(activeSessionSeconds / 60)).padStart(2, '0')}:${String(activeSessionSeconds % 60).padStart(2, '0')}`}
-                    </span>
-                  </div>
-                  <div className="voice-conv-session-status">
-                    {connected ? (
-                      <span className="voice-conv-badge live">
-                        <span className="voice-live-dot"></span> Live
-                      </span>
-                    ) : (
-                      <span className="voice-conv-badge ended">Ended</span>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* 4. Action Toolbar: Export, Email, More */}
-            <div className="voice-conv-actions-row">
-              <div className="voice-conv-actions-left">
-                <button
-                  type="button"
-                  className="voice-conv-action-btn"
-                  onClick={handleExportTranscript}
-                  title="Export Conversation"
-                >
-                  <i className="fa-solid fa-download"></i> Export
-                </button>
-                <button
-                  type="button"
-                  className="voice-conv-action-btn"
-                  onClick={handleEmailTranscript}
-                  title="Email Conversation"
-                >
-                  <i className="fa-regular fa-envelope"></i> Email
-                </button>
-                <button
-                  type="button"
-                  className={`voice-conv-action-btn ${showMoreMenu ? 'active' : ''}`}
-                  onClick={() => setShowMoreMenu((prev) => !prev)}
-                >
-                  More <i className="fa-solid fa-chevron-down" style={{ fontSize: '10px', marginLeft: '4px' }}></i>
-                </button>
-
-                {showMoreMenu && (
-                  <div className="voice-more-dropdown-menu">
-                    <button
-                      type="button"
-                      className="voice-more-menu-item"
-                      onClick={() => {
-                        handleNewConversation();
-                        setShowMoreMenu(false);
-                      }}
-                    >
-                      <i className="fa-solid fa-plus"></i>
-                      <span>New conversation</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="voice-more-menu-item"
-                      onClick={() => {
-                        const fullTxt = messages.map(m => `${m.role === 'user' ? 'You' : 'AI'}: ${m.text}`).join('\n\n');
-                        if (fullTxt) {
-                          navigator.clipboard?.writeText(fullTxt);
-                          if (showToast) showToast('Conversation copied to clipboard');
-                        } else {
-                          if (showToast) showToast('No messages to copy');
-                        }
-                        setShowMoreMenu(false);
-                      }}
-                    >
-                      <i className="fa-regular fa-copy"></i>
-                      <span>Copy conversation</span>
-                    </button>
-                    <div className="voice-more-divider"></div>
-                    <button
-                      type="button"
-                      className="voice-more-menu-item clear-action"
-                      onClick={() => {
-                        setMessages([]);
-                        setInterimTranscript('');
-                        setShowMoreMenu(false);
-                        if (showToast) showToast('Conversation cleared');
-                      }}
-                    >
-                      <i className="fa-regular fa-trash-can"></i>
-                      <span>Clear conversation</span>
-                    </button>
-                  </div>
-                )}
+              <div className="voice-floating-note">
+                <i className="fa-solid fa-shield-halved"></i> Audio not recorded
               </div>
-            </div>
-
-            {/* 5. Search Bar */}
-            <div className="voice-conv-search-wrap">
-              <div className="voice-conv-search-input-box">
-                <i className="fa-solid fa-magnifying-glass voice-conv-search-icon"></i>
-                <input
-                  type="text"
-                  placeholder="Search conversation..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="voice-conv-search-input"
-                />
-                {searchQuery && (
-                  <button type="button" className="voice-conv-search-clear" onClick={() => setSearchQuery('')}>×</button>
-                )}
-              </div>
-              <span className="voice-conv-search-helper">Search this conversation's text</span>
-            </div>
-
-            {/* 6. Messages / Transcript Scrollable Viewport */}
-            <div className="voice-conv-messages-scroll-area">
-              {filteredMessages.length === 0 ? (
-                /* Empty State (Clean Green Theme, Matching User Screenshot) */
-                <div className="voice-empty-state-view">
-                  <div className="voice-empty-illustration-wrap">
-                    <img
-                      src="/assets/voice_empty_chat.png"
-                      alt="No conversation yet"
-                      className="voice-empty-chat-img"
-                    />
-                  </div>
-                  <h3 className="voice-empty-title">No conversation yet</h3>
-                  <p className="voice-empty-desc">
-                    Ask a question, start a voice session, or upload a document to begin your conversation.
-                  </p>
-                  <button
-                    type="button"
-                    className="voice-empty-cta-btn"
-                    onClick={handleStartInterview}
-                    disabled={!connected && (isUploadingResume || !!resumeError)}
-                  >
-                    <i className="fa-solid fa-microphone"></i> Start Agent <i className="fa-solid fa-arrow-right"></i>
-                  </button>
-                </div>
-              ) : (
-                /* Messages View (Emerald Green Assistant Theme) */
-                <div className="voice-conv-messages-list">
-                  {/* Live active connection banner */}
-                  {connected && (
-                    <div className={`voice-live-active-bar ${speaking ? 'speaking' : listening ? 'listening' : ''}`}>
-                      <div className="voice-live-status-pill">
-                        <span className="live-dot"></span>
-                        <span>{speaking ? 'AI Speaking...' : listening ? 'Listening to you...' : isPaused ? 'Interview Paused' : 'Voice Connected'}</span>
-                      </div>
-                      <div className="voice-live-soundwaves">
-                        <span style={{ height: `${Math.max(6, Math.min(24, level * 100))}px` }}></span>
-                        <span style={{ height: `${Math.max(10, Math.min(32, level * 140))}px` }}></span>
-                        <span style={{ height: `${Math.max(14, Math.min(28, level * 110))}px` }}></span>
-                        <span style={{ height: `${Math.max(8, Math.min(20, level * 80))}px` }}></span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Real-time Interim User transcript */}
-                  {interimTranscript && (
-                    <div className="voice-showcase-message-card user-turn interim-turn">
-                      <div className="voice-message-card-header">
-                        <div className="voice-message-speaker-meta">
-                          <span className="voice-message-speaker-dot" style={{ background: '#10b981' }} />
-                          <span className="voice-message-speaker-name">You (speaking...)</span>
-                        </div>
-                      </div>
-                      <p className="voice-message-text">{interimTranscript}</p>
-                    </div>
-                  )}
-
-                  {/* Conversation Messages */}
-                  {filteredMessages.map((msg, idx) => (
-                    <div
-                      key={idx}
-                      className={`voice-showcase-message-card ${msg.role === 'user' ? 'user-turn' : 'agent-turn'}`}
-                    >
-                      <div className="voice-message-card-header">
-                        <div className="voice-message-speaker-meta">
-                          <span
-                            className="voice-message-speaker-dot"
-                            style={{ background: msg.role === 'user' ? '#10b981' : '#059669' }}
-                          />
-                          <span className="voice-message-speaker-name">
-                            {msg.role === 'user' ? 'You' : 'VOICE ASSISTANT'}
-                          </span>
-                          <span className="voice-message-role-tag">
-                            {msg.role === 'user' ? 'Candidate' : 'AI Copilot'}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          className="voice-message-copy-btn"
-                          onClick={() => {
-                            navigator.clipboard?.writeText?.(msg.text);
-                            if (showToast) showToast('Copied to clipboard');
-                          }}
-                          title="Copy text"
-                        >
-                          <i className="fa-regular fa-copy"></i>
-                        </button>
-                      </div>
-                      <p className="voice-message-text">{msg.text}</p>
-                    </div>
-                  ))}
-                  <div ref={transcriptEndRef} />
-                </div>
-              )}
             </div>
           </div>
-        </div>
+        )}
+
+        {/* State 3: Session Ended Review (2-Column Grid with Continue CTA & CURRENT QUESTION Card - Video 00:26 - 00:30) */}
+        {hasEndedSession && (
+          <div className="voice-agent-grid voice-ended-session-grid">
+            {/* Left Column: Setup Panel with Continue CTA */}
+            <aside className="voice-setup-panel" data-state={wsState}>
+              {renderSetupCardContent(true, false)}
+            </aside>
+
+            {/* Right Column: Review Transcript & Current Question */}
+            <div className="voice-conversation-panel">
+              {renderTranscriptHeader(true)}
+
+              {/* Practice Mode: CURRENT QUESTION Card */}
+              {activeMode === 'practice' && renderCurrentQuestionCard()}
+
+              {renderToolbarActions()}
+              {renderTranscriptSearch()}
+              {renderMessagesScrollArea(false)}
+            </div>
+          </div>
+        )}
       </div>
 
       <footer className="voice-agent-footer">

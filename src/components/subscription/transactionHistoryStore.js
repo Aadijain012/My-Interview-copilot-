@@ -160,8 +160,8 @@ export function getUserCredits() {
     }
   } catch (_) {}
 
-  // Strict Audio Requirement: Free Plan starts with exactly 50 credits!
-  const defaultFreeCredits = 50;
+  // Generous demo credits for frontend deployment
+  const defaultFreeCredits = 5000;
   try {
     localStorage.setItem(key, String(defaultFreeCredits));
   } catch (_) {}

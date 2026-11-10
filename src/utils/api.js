@@ -23,7 +23,11 @@ export const userSession = typeof window === 'undefined' ? null : createSessionR
 });
 
 export function websocketProtocols(token) {
-  return token ? [`bearer.${token}`] : [];
+  if (!token) return [];
+  // RFC 6455 / RFC 2616: subprotocol tokens cannot contain '=' padding, spaces, or separators.
+  // Sanitize to valid base64url characters to avoid "Failed to construct 'WebSocket'" DOMException.
+  const cleanToken = String(token).trim().replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  return cleanToken ? [`bearer.${cleanToken}`] : [];
 }
 
 let lastNotificationTime = 0;

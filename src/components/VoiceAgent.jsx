@@ -1082,73 +1082,79 @@ export default function VoiceAgent({
     } else {
       // ── Browser Mode: Use standard WebSocket proxy ──
       const authToken = token || localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token') || '';
-      const ws = new WebSocket(`${WS_BASE}/api/voice-agent/converse`, websocketProtocols(authToken));
-      ws.binaryType = "arraybuffer";
-      wsRef.current = ws;
+      try {
+        const protocols = websocketProtocols(authToken);
+        const ws = new WebSocket(`${WS_BASE}/api/voice-agent/converse`, protocols);
+        ws.binaryType = "arraybuffer";
+        wsRef.current = ws;
 
-      ws.onopen = () => {
-        if (agentGenRef.current !== currentGen) {
-          try {
-            ws.close();
-          } catch (_) { }
-          return;
-        }
-
-        isStartingRef.current = false;
-        connectedVal.current = true;
-        setConnected(true);
-        setWsState('connected');
-
-        startHourlyBilling();
-        ws.send(JSON.stringify(settings));
-
-        if (keepAliveTimerRef.current) {
-          clearInterval(keepAliveTimerRef.current);
-        }
-
-        keepAliveTimerRef.current = setInterval(() => {
+        ws.onopen = () => {
           if (agentGenRef.current !== currentGen) {
-            if (keepAliveTimerRef.current) {
-              clearInterval(keepAliveTimerRef.current);
-              keepAliveTimerRef.current = null;
-            }
+            try {
+              ws.close();
+            } catch (_) { }
             return;
           }
 
-          if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify({ type: "KeepAlive" }));
+          isStartingRef.current = false;
+          connectedVal.current = true;
+          setConnected(true);
+          setWsState('connected');
+
+          startHourlyBilling();
+          ws.send(JSON.stringify(settings));
+
+          if (keepAliveTimerRef.current) {
+            clearInterval(keepAliveTimerRef.current);
           }
-        }, 8000);
-      };
-      ws.onmessage = (evt) => {
-        // Cancellation guard: discard messages from old generations
-        if (agentGenRef.current !== currentGen) return;
-        handleIncomingMessage(evt);
-      };
 
-      ws.onerror = () => {
-        if (agentGenRef.current !== currentGen) return;
-        console.warn("[VoiceAgent] Standalone mode: WebSocket error, starting simulated live session");
-        startDemoSimulation(currentGen);
-      };
+          keepAliveTimerRef.current = setInterval(() => {
+            if (agentGenRef.current !== currentGen) {
+              if (keepAliveTimerRef.current) {
+                clearInterval(keepAliveTimerRef.current);
+                keepAliveTimerRef.current = null;
+              }
+              return;
+            }
 
-      ws.onclose = (evt) => {
-        // Cancellation guard: ignore close events from superseded sessions
-        if (agentGenRef.current !== currentGen) return;
-        const wasConnected = connectedVal.current;
-        if (!wasConnected) {
-          console.warn("[VoiceAgent] Standalone mode: WebSocket closed before connect, activating demo session");
+            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+              wsRef.current.send(JSON.stringify({ type: "KeepAlive" }));
+            }
+          }, 8000);
+        };
+        ws.onmessage = (evt) => {
+          // Cancellation guard: discard messages from old generations
+          if (agentGenRef.current !== currentGen) return;
+          handleIncomingMessage(evt);
+        };
+
+        ws.onerror = () => {
+          if (agentGenRef.current !== currentGen) return;
+          console.warn("[VoiceAgent] Standalone mode: WebSocket error, starting simulated live session");
           startDemoSimulation(currentGen);
-          return;
-        }
-        cleanup();
-        if (wasConnected) {
-          setWsState('idle');
-        } else if (evt && evt.code !== 1000) {
-          setErrorMsg(prev => prev || ("Connection failed (code " + evt.code + "). Check API key validity."));
-          setWsState('idle');
-        }
-      };
+        };
+
+        ws.onclose = (evt) => {
+          // Cancellation guard: ignore close events from superseded sessions
+          if (agentGenRef.current !== currentGen) return;
+          const wasConnected = connectedVal.current;
+          if (!wasConnected) {
+            console.warn("[VoiceAgent] Standalone mode: WebSocket closed before connect, activating demo session");
+            startDemoSimulation(currentGen);
+            return;
+          }
+          cleanup();
+          if (wasConnected) {
+            setWsState('idle');
+          } else if (evt && evt.code !== 1000) {
+            setErrorMsg(prev => prev || ("Connection failed (code " + evt.code + "). Check API key validity."));
+            setWsState('idle');
+          }
+        };
+      } catch (wsErr) {
+        console.warn("[VoiceAgent] WebSocket creation exception, falling back to demo session:", wsErr);
+        startDemoSimulation(currentGen);
+      }
     }
   };
 
@@ -1157,29 +1163,21 @@ export default function VoiceAgent({
     isStartingRef.current = false;
     connectedVal.current = true;
     setConnected(true);
-    setWsState('listening');
+    setWsState('speaking');
     setErrorMsg(null);
 
-    // Initial greeting simulation if no messages yet
+    const greetingText = activeMode === 'practice'
+      ? `Hello! Welcome to your ${practiceTech || 'mock'} interview today. To start off, could you give a brief introduction of yourself?`
+      : "Hello! I'm your Voice Agent. How can I help you explore this topic or document today?";
+
+    // Ensure session transcript has initial question for review
+    setMessages(prev => (prev.length === 0 ? [{ role: 'assistant', text: greetingText }] : prev));
+
     setTimeout(() => {
       if (agentGenRef.current === currentGen && connectedVal.current) {
-        setWsState('speaking');
-        const greetingText = activeMode === 'practice'
-          ? `Hello! Welcome to your ${practiceTech || 'mock'} interview today. To start off, could you give a brief introduction of yourself?`
-          : "Hello! I'm your Voice Agent. How can I help you explore this topic or document today?";
-        setMessages(prev => {
-          if (prev.length === 0) {
-            return [{ role: 'assistant', text: greetingText }];
-          }
-          return prev;
-        });
-        setTimeout(() => {
-          if (agentGenRef.current === currentGen && connectedVal.current) {
-            setWsState('listening');
-          }
-        }, 3000);
+        setWsState('listening');
       }
-    }, 1200);
+    }, 2400);
   };
 
   const handleIncomingMessage = (evt) => {

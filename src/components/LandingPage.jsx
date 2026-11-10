@@ -264,7 +264,7 @@ export default function LandingPage({ token, user, onLogout,onGoToReferral,onGoT
         setMessageType('success');
         setMessage('Welcome back! Signing you in...');
 
-        const demoHeader = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+        const demoHeader = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
         const demoPayload = btoa(JSON.stringify({
           sub: 'user_demo_123',
           email: 'test@gmail.com',
@@ -272,8 +272,8 @@ export default function LandingPage({ token, user, onLogout,onGoToReferral,onGoT
           role: 'candidate',
           credits: 100,
           exp: Math.floor(Date.now() / 1000) + 31536000
-        }));
-        const demoSignature = btoa('demo_signature');
+        })).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+        const demoSignature = btoa('demo_signature').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
         const demoToken = `${demoHeader}.${demoPayload}.${demoSignature}`;
         const demoUser = {
           id: 'user_demo_123',
@@ -461,7 +461,7 @@ export default function LandingPage({ token, user, onLogout,onGoToReferral,onGoT
 
     if (email.trim().toLowerCase() === 'test@gmail.com') {
       if (cleanCode === '123456') {
-        const demoHeader = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+        const demoHeader = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
         const demoPayload = btoa(JSON.stringify({
           sub: 'user_demo_123',
           email: 'test@gmail.com',
@@ -469,8 +469,8 @@ export default function LandingPage({ token, user, onLogout,onGoToReferral,onGoT
           role: 'candidate',
           credits: 100,
           exp: Math.floor(Date.now() / 1000) + 31536000
-        }));
-        const demoSignature = btoa('demo_signature');
+        })).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+        const demoSignature = btoa('demo_signature').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
         const demoToken = `${demoHeader}.${demoPayload}.${demoSignature}`;
         const demoUser = {
           id: 'user_demo_123',

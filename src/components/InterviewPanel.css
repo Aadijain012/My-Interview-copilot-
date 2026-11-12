@@ -27,9 +27,9 @@
 
 body.dark-theme,
 .interview-panel-root.dark-theme {
-  --copilot-bg: #0b1320;
-  --copilot-card-bg: #111a28;
-  --copilot-border: rgba(59, 130, 246, 0.2);
+  --copilot-bg: #000000;
+  --copilot-card-bg: #0a0c10;
+  --copilot-border: #1a1e26;
   --copilot-text-main: #f8fafc;
   --copilot-text-muted: #94a3b8;
   --copilot-purple: #3b82f6;
@@ -40,7 +40,7 @@ body.dark-theme,
   --copilot-active-tab-text: #93c5fd;
   --copilot-icon-box-bg: rgba(37, 99, 235, 0.2);
   --copilot-icon-blue: #60a5fa;
-  --copilot-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  --copilot-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.65);
 }
 
 .interview-panel-root {

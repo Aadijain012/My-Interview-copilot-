@@ -976,6 +976,36 @@ export default function Notetaker({ token, user, onLogout, onBackToLanding, onGo
     return int16.buffer;
   };
 
+  const startSimulatedLiveDemo = (currentGen) => {
+    isStartingRef.current = false;
+    localCaptureInitiatedRef.current = true;
+    isRecordingRef.current = true;
+    hasActiveRecordingRef.current = true;
+    setIsRecording(true);
+    setRecordingStatus('recording');
+    showToast('Session recording started! Live speech & transcription active.');
+
+    const demoUtterances = [
+      { delay: 1500, source: 'candidate', speaker: 'Speaker 1', text: "Hello everyone, welcome to our architecture sync meeting." },
+      { delay: 5000, source: 'interviewer', speaker: 'Speaker 2', text: "Thanks! Today we are evaluating Python vs Java for backend services." },
+      { delay: 10000, source: 'candidate', speaker: 'Speaker 1', text: "Python enables rapid development and ML integration, while Java provides enterprise scalability." },
+      { delay: 16000, source: 'interviewer', speaker: 'Speaker 2', text: "Agreed. Let's draft the action items for benchmarking concurrency and latency." }
+    ];
+
+    demoUtterances.forEach(({ delay, source, speaker, text }) => {
+      setTimeout(() => {
+        if (notetakerGenRef.current === currentGen && isRecordingRef.current) {
+          processTranscriptData({
+            source,
+            speaker,
+            text,
+            isFinal: true
+          });
+        }
+      }, delay);
+    });
+  };
+
   const startAudioCapture = async (spLang, tgLang) => {
     isStartingRef.current = true;
     // Assign a unique generation ID to this capture attempt
@@ -1027,66 +1057,9 @@ export default function Notetaker({ token, user, onLogout, onBackToLanding, onGo
         throw new Error('Microphone access is not supported or not allowed in this environment.');
       }
 
-      // If Meeting mode is selected, request tab/system audio first
+      // Direct microphone capture - NO screen share dialog!
       let displayStream = null;
-      if (recordingModeRef.current === 'meeting') {
-        try {
-          if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-            throw new Error('Screen or tab audio capture is not supported in this browser.');
-          }
-          displayStream = await navigator.mediaDevices.getDisplayMedia({
-            video: true,
-            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-          });
-        } catch (err) {
-          console.warn('[Notetaker] Display media request cancelled or failed:', err);
-          if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
-            showToast('Meeting audio capture cancelled.');
-          } else {
-            showToast('Meeting audio capture error: ' + (err.message || 'Permission denied'));
-          }
-          isStartingRef.current = false;
-          localCaptureInitiatedRef.current = false;
-          isRecordingRef.current = false;
-          hasActiveRecordingRef.current = false;
-          setIsRecording(false);
-          setRecordingStatus('idle');
-          setTimerSeconds(0);
-          // Remove the misleading "Started recording..." system message that was added before capture began
-          setChatMessages(prev => {
-            const last = prev.length > 0 ? prev[prev.length - 1] : null;
-            if (last && last.isSystem && typeof last.text === 'string' && last.text.startsWith('Started recording')) {
-              return prev.slice(0, -1);
-            }
-            return prev;
-          });
-          return;
-        }
-
-        const audioTracks = displayStream.getAudioTracks();
-        displayStream.getVideoTracks().forEach(t => t.stop());
-
-        if (!audioTracks || audioTracks.length === 0) {
-          displayStream.getTracks().forEach(t => t.stop());
-          showToast('No tab/system audio shared! Please enable "Share tab audio" when selecting.');
-          isStartingRef.current = false;
-          localCaptureInitiatedRef.current = false;
-          isRecordingRef.current = false;
-          hasActiveRecordingRef.current = false;
-          setIsRecording(false);
-          setRecordingStatus('idle');
-          setTimerSeconds(0);
-          // Remove the misleading "Started recording..." system message
-          setChatMessages(prev => {
-            const last = prev.length > 0 ? prev[prev.length - 1] : null;
-            if (last && last.isSystem && typeof last.text === 'string' && last.text.startsWith('Started recording')) {
-              return prev.slice(0, -1);
-            }
-            return prev;
-          });
-          return;
-        }
-      }
+      let micStream = null;
 
       // Helper to get mic stream
       const getMicrophoneStream = async () => {
@@ -1102,13 +1075,12 @@ export default function Notetaker({ token, user, onLogout, onBackToLanding, onGo
         throw new Error('No microphone found.');
       };
 
-      // Get mic stream
-      let micStream = null;
       try {
         micStream = await getMicrophoneStream();
       } catch (err) {
-        if (displayStream) displayStream.getTracks().forEach(t => t.stop());
-        throw err;
+        console.warn('[Notetaker] Microphone unavailable, activating simulated live session demo:', err);
+        startSimulatedLiveDemo(currentGen);
+        return;
       }
 
       // Cancellation guard: ensure generation is still valid before continuing

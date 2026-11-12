@@ -33,9 +33,9 @@
 
 .dark-theme .sidebar-drawer-panel,
 body.dark-theme .sidebar-drawer-panel {
-  background: #080f1a;
-  border-right: 1px solid #1a2942;
-  color: #f8fafc;
+  background: #0a0c10 !important;
+  border-right: 1px solid #1a1e26 !important;
+  color: #f8fafc !important;
   box-shadow: 10px 0 50px rgba(0, 0, 0, 0.85);
 }
 

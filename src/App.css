@@ -7145,8 +7145,12 @@ body:not(.dark-theme) .notetaker-modal-btn-cancel:hover {
 /* ==========================================================================
    Dark Theme Overrides (Color Grading Matching SignalEdge Dashboard)
    ========================================================================== */
-body.dark-theme {
-  background: radial-gradient(circle at 10% 10%, #0b304c 0%, #030712 65%) no-repeat fixed !important;
+body.dark-theme,
+html.dark-theme,
+#root.dark-theme {
+  background: #000000 !important;
+  background-color: #000000 !important;
+  background-image: none !important;
 }
 
 /* Landing Page Dark Mode Overrides */

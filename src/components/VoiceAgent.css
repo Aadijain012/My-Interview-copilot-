@@ -4062,6 +4062,60 @@ body.dark-theme .voice-agent-root .voice-setup-mute-btn {
   color: #dc2626 !important;
 }
 
+/* ==========================================================================
+   VOICE DRAWER DARK THEME OVERRIDES
+   ========================================================================== */
+.voice-agent-root.dark-theme .voice-drawer-panel,
+body.dark-theme .voice-drawer-panel,
+html[data-theme='dark'] .voice-drawer-panel,
+html.dark-theme .voice-drawer-panel {
+  background-color: #0a0c10 !important;
+  border-right: 1px solid #1a1e26 !important;
+  color: #f8fafc !important;
+  box-shadow: 4px 0 30px rgba(0, 0, 0, 0.8) !important;
+}
+
+.voice-agent-root.dark-theme .voice-drawer-header,
+body.dark-theme .voice-drawer-header,
+html[data-theme='dark'] .voice-drawer-header {
+  background: #11141b !important;
+  border-bottom: 1px solid #1a1e26 !important;
+  color: #f8fafc !important;
+}
+
+.voice-agent-root.dark-theme .voice-drawer-nav-item,
+body.dark-theme .voice-drawer-nav-item,
+html[data-theme='dark'] .voice-drawer-nav-item {
+  color: #94a3b8 !important;
+}
+
+.voice-agent-root.dark-theme .voice-drawer-nav-item:hover,
+body.dark-theme .voice-drawer-nav-item:hover,
+html[data-theme='dark'] .voice-drawer-nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  color: #ffffff !important;
+}
+
+.voice-agent-root.dark-theme .voice-drawer-nav-item.active,
+body.dark-theme .voice-drawer-nav-item.active,
+html[data-theme='dark'] .voice-drawer-nav-item.active {
+  background-color: rgba(249, 115, 22, 0.15) !important;
+  color: #fb923c !important;
+}
+
+.voice-agent-root.dark-theme .voice-drawer-footer,
+body.dark-theme .voice-drawer-footer,
+html[data-theme='dark'] .voice-drawer-footer {
+  border-top: 1px solid #1a1e26 !important;
+  background-color: #0a0c10 !important;
+}
+
+.voice-agent-root.dark-theme .voice-drawer-logout:hover,
+body.dark-theme .voice-drawer-logout:hover {
+  background-color: rgba(239, 68, 68, 0.12) !important;
+  color: #ef4444 !important;
+}
+
 
 /* --------------------------------------------------------------------------
    RESPONSIVE DESIGN (Tablets & Mobile)

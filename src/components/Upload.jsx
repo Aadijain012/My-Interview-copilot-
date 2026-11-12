@@ -241,8 +241,9 @@ export default function Upload({
   const pollingIntervalRef = useRef(null);
 
   // ── 3-State Flow & Interactive Workspace States ──
-  const [uploadFlowStep, setUploadFlowStep] = useState('initial'); // 'initial' | 'stepper' | 'workspace'
+  const [uploadFlowStep, setUploadFlowStep] = useState('initial'); // 'initial' | 'preferences' | 'processing' | 'workspace'
   const [readerChoice, setReaderChoice] = useState('original'); // 'original' | 'translate'
+  const [selectedSourceLang, setSelectedSourceLang] = useState('en');
   const [activeQuickTool, setActiveQuickTool] = useState(null); // 'key_points' | 'summarize' | 'explain' | 'actions' | 'mindmap'
   const [quickToolState, setQuickToolState] = useState('ready'); // 'accepted' | 'creating' | 'ready'
   const [askChatFeed, setAskChatFeed] = useState([]);

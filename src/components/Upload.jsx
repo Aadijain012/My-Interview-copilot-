@@ -285,12 +285,23 @@ export default function Upload({
   };
 
   const handleLaunchMockWorkspace = () => {
-    setActiveSession(DEFAULT_MOCK_SESSION);
-    setSelectedFileName(DEFAULT_MOCK_SESSION.fileName);
-    setUploadFlowStep('workspace');
-    setActiveQuickTool('key_points');
-    setQuickToolState('ready');
+    setSelectedFileName('Interview · 10 Nov - Audio.ogg');
+    setUploadFlowStep('preferences');
   };
+
+  // Auto-advance from secure upload/processing step to full workspace
+  useEffect(() => {
+    if (uploadFlowStep === 'processing') {
+      const timer = setTimeout(() => {
+        setActiveSession(DEFAULT_MOCK_SESSION);
+        setSelectedFileName(prev => prev || DEFAULT_MOCK_SESSION.fileName);
+        setActiveQuickTool('key_points');
+        setQuickToolState('ready');
+        setUploadFlowStep('workspace');
+      }, 1400);
+      return () => clearTimeout(timer);
+    }
+  }, [uploadFlowStep]);
 
   // Simulated audio playback progress in workspace
   useEffect(() => {
@@ -651,7 +662,7 @@ export default function Upload({
     }
     setSelectedFile(file);
     setSelectedFileName(file.name);
-    handleStartUpload(file);
+    setUploadFlowStep('preferences');
   };
 
   const handleTaskCardClick = (taskName) => {
@@ -697,7 +708,7 @@ export default function Upload({
       setSelectedFile(file);
       setSelectedFileName(file.name);
       e.dataTransfer.clearData();
-      handleStartUpload(file);
+      setUploadFlowStep('preferences');
     }
   };
 
@@ -2438,75 +2449,175 @@ export default function Upload({
               </div>
             </div>
           </div>
-        ) : uploadFlowStep === 'stepper' ? (
-          /* =================== STATE 2: STEPPER IN-PROGRESS VIEW =================== */
-          <div className="upload-progress-stepper-view">
-            <div className="upload-progress-stepper-card">
-              <div className="upload-stepper-header-row">
-                <div className="upload-stepper-item done">
-                  <span className="stepper-circle"><i className="fa-solid fa-check"></i></span>
-                  <span className="stepper-label">1. Prepare</span>
-                </div>
-                <div className="upload-stepper-divider active"></div>
-                <div className="upload-stepper-item active">
-                  <span className="stepper-circle"><i className="fa-solid fa-circle-notch fa-spin"></i></span>
-                  <span className="stepper-label">2. Upload</span>
-                </div>
-                <div className="upload-stepper-divider"></div>
-                <div className="upload-stepper-item">
-                  <span className="stepper-circle">3</span>
-                  <span className="stepper-label">3. Process audio</span>
-                </div>
-              </div>
+        ) : uploadFlowStep === 'preferences' ? (
+          /* =================== STATE 2A: READING PREFERENCES (EXACT MATCH frame_0285s) =================== */
+          <div className="upload-prefs-wrapper">
+            <div className="upload-prefs-header">
+              <h2 className="upload-prefs-title">Reading preferences</h2>
+              <p className="upload-prefs-sub">Select how you want to read and transcribe this recording.</p>
+            </div>
 
-              <h2 className="upload-stepper-headline">Saving your upload securely...</h2>
-              <p className="upload-stepper-subline">
-                {selectedFileName || 'Interview · 10 Nov - Audio.ogg'} · Encrypted and streaming to private analysis pipeline.
-              </p>
-
-              <div className="upload-reader-options-box">
-                <span className="reader-box-title">How do you want to read it?</span>
-                <div className="reader-choices-grid">
-                  <div
-                    className={`reader-choice-card ${readerChoice === 'original' ? 'selected' : ''}`}
-                    onClick={() => setReaderChoice('original')}
-                  >
-                    <div className="choice-header">
-                      <i className="fa-solid fa-file-lines"></i>
-                      <span>Keep original</span>
-                    </div>
-                    <p className="choice-desc">Read and transcribe in original spoken language.</p>
+            <div className="upload-prefs-card-main">
+              {/* File Meta Box */}
+              <div className="upload-prefs-file-box">
+                <div className="upload-prefs-file-left">
+                  <div className="upload-prefs-file-icon">
+                    <i className="fa-solid fa-file-audio"></i>
                   </div>
-
-                  <div
-                    className={`reader-choice-card ${readerChoice === 'translate' ? 'selected' : ''}`}
-                    onClick={() => setReaderChoice('translate')}
-                  >
-                    <div className="choice-header">
-                      <i className="fa-solid fa-language"></i>
-                      <span>Translate</span>
+                  <div className="upload-prefs-file-info">
+                    <div className="upload-prefs-file-title">{selectedFileName || 'Interview · 10 Nov - Audio.ogg'}</div>
+                    <div className="upload-prefs-file-badges">
+                      <span className="upload-prefs-ext-tag">OGG 142 KB</span>
+                      <span>·</span>
+                      <span>Ready to process</span>
                     </div>
-                    <p className="choice-desc">Translate transcript to your chosen language.</p>
                   </div>
                 </div>
+                <div className="upload-prefs-file-actions">
+                  <button
+                    type="button"
+                    className="upload-prefs-sec-btn"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Choose another file
+                  </button>
+                  <button
+                    type="button"
+                    className="upload-prefs-cancel-btn"
+                    onClick={() => {
+                      setUploadFlowStep('initial');
+                      setActiveSession(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
 
-              <div className="upload-stepper-progress-track">
-                <div className="upload-stepper-progress-bar"></div>
-              </div>
-
-              <div className="upload-stepper-action-row">
-                <button
-                  type="button"
-                  className="upload-stepper-primary-btn"
-                  onClick={() => {
-                    setUploadFlowStep('workspace');
-                    setActiveSession(DEFAULT_MOCK_SESSION);
-                  }}
+              {/* How do you want to read it? */}
+              <h3 className="upload-prefs-section-title">How do you want to read it?</h3>
+              <div className="upload-prefs-options-grid">
+                <div
+                  className={`upload-prefs-opt-card ${readerChoice === 'original' ? 'selected' : ''}`}
+                  onClick={() => setReaderChoice('original')}
                 >
-                  <i className="fa-solid fa-circle-notch fa-spin"></i> Processing · Open Workspace Now
-                </button>
+                  <div className="upload-prefs-opt-header">
+                    <span className="upload-prefs-opt-name">Keep original</span>
+                    {readerChoice === 'original' && <i className="fa-solid fa-check upload-prefs-opt-check"></i>}
+                  </div>
+                  <p className="upload-prefs-opt-desc">Read and transcribe in original spoken language.</p>
+                </div>
+
+                <div
+                  className={`upload-prefs-opt-card ${readerChoice === 'translate' ? 'selected' : ''}`}
+                  onClick={() => setReaderChoice('translate')}
+                >
+                  <div className="upload-prefs-opt-header">
+                    <span className="upload-prefs-opt-name">Translate</span>
+                    {readerChoice === 'translate' && <i className="fa-solid fa-check upload-prefs-opt-check"></i>}
+                  </div>
+                  <p className="upload-prefs-opt-desc">Translate transcript to your chosen preferred language.</p>
+                </div>
               </div>
+
+              {/* Spoken language */}
+              <div className="upload-prefs-field-group">
+                <label className="upload-prefs-field-label">Spoken language</label>
+                <select
+                  className="upload-prefs-select"
+                  value={selectedSourceLang}
+                  onChange={(e) => setSelectedSourceLang(e.target.value)}
+                >
+                  <option value="en">English</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                  <option value="de">German</option>
+                  <option value="it">Italian</option>
+                  <option value="hi">Hindi</option>
+                  <option value="ja">Japanese</option>
+                  <option value="zh">Chinese</option>
+                </select>
+                <p className="upload-prefs-field-hint">The primary spoken language in this recording.</p>
+              </div>
+
+              {/* Rates Box */}
+              <div className="upload-prefs-rates-box">
+                <div><strong>Transcription:</strong> 30 credits per file.</div>
+                <div>Processing time is proportional to file length.</div>
+              </div>
+
+              {/* Process File CTA */}
+              <button
+                type="button"
+                className="upload-prefs-submit-btn"
+                onClick={() => setUploadFlowStep('processing')}
+              >
+                Process file <i className="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        ) : (uploadFlowStep === 'processing' || uploadFlowStep === 'stepper') ? (
+          /* =================== STATE 2B: SECURE PROCESSING STEPPER (EXACT MATCH frame_0300s) =================== */
+          <div className="upload-prefs-wrapper">
+            <div className="upload-prefs-header">
+              <h2 className="upload-prefs-title">Reading preferences</h2>
+              <p className="upload-prefs-sub">Select how you want to read and transcribe this recording.</p>
+            </div>
+
+            <div className="upload-prefs-card-main">
+              {/* File Meta Box */}
+              <div className="upload-prefs-file-box">
+                <div className="upload-prefs-file-left">
+                  <div className="upload-prefs-file-icon">
+                    <i className="fa-solid fa-file-audio"></i>
+                  </div>
+                  <div className="upload-prefs-file-info">
+                    <div className="upload-prefs-file-title">{selectedFileName || 'Interview · 10 Nov - Audio.ogg'}</div>
+                    <div className="upload-prefs-file-badges">
+                      <span className="upload-prefs-ext-tag">OGG 142 KB</span>
+                      <span>·</span>
+                      <span>Ready to process</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="upload-prefs-file-actions">
+                  <button
+                    type="button"
+                    className="upload-prefs-cancel-btn"
+                    onClick={() => {
+                      setUploadFlowStep('initial');
+                      setActiveSession(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+
+              {/* Saving upload securely stepper */}
+              <div className="upload-prefs-saving-box">
+                <div className="upload-prefs-saving-top">
+                  <span><i className="fa-solid fa-circle-check"></i> Saving your upload securely...</span>
+                  <span style={{ fontSize: '12px', color: '#94a3b8' }}>File transferred · Confirming storage</span>
+                </div>
+                <div className="upload-prefs-progress-track">
+                  <div className="upload-prefs-progress-bar"></div>
+                </div>
+                <div className="upload-prefs-steps-row">
+                  <span className="step-item"><i className="fa-solid fa-check"></i> 1. Prepare</span>
+                  <span className="step-item"><i className="fa-solid fa-check"></i> 2. Upload</span>
+                  <span className="step-item active"><i className="fa-solid fa-circle-notch fa-spin"></i> 3. Process audio</span>
+                </div>
+              </div>
+
+              {/* Uploading button */}
+              <button
+                type="button"
+                className="upload-prefs-submit-btn"
+                disabled
+              >
+                <i className="fa-solid fa-circle-notch fa-spin"></i> Uploading...
+              </button>
             </div>
           </div>
         ) : (

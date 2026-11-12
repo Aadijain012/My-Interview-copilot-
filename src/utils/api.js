@@ -23,11 +23,10 @@ export const userSession = typeof window === 'undefined' ? null : createSessionR
 });
 
 export function websocketProtocols(token) {
-  if (!token) return [];
-  // RFC 6455 Sec 4.3 strictly forbids separators: ( ) < > @ , ; : \ " / [ ] ? = { } SP HT and non-ASCII.
-  // Standard base64 contains +, /, =. Clean token thoroughly so browser will never throw DOMException.
-  const cleanToken = String(token).trim().replace(/[^a-zA-Z0-9_\-\.]/g, '').replace(/=/g, '');
-  return cleanToken ? [`bearer.${cleanToken}`] : [];
+  // RFC 6455 Sec 4.3 strictly forbids separators and non-token characters.
+  // Passing JWT strings as Sec-WebSocket-Protocol subprotocols throws DOMException in Chromium/WebKit.
+  // Standard WebSocket connections authenticate via query params or payload.
+  return [];
 }
 
 let lastNotificationTime = 0;

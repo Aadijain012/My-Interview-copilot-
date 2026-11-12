@@ -1085,8 +1085,10 @@ export default function VoiceAgent({
       try {
         let ws = null;
         try {
-          const protocols = websocketProtocols(authToken);
-          ws = new WebSocket(`${WS_BASE}/api/voice-agent/converse`, protocols);
+          const wsUrl = authToken
+            ? `${WS_BASE}/api/voice-agent/converse?token=${encodeURIComponent(authToken)}`
+            : `${WS_BASE}/api/voice-agent/converse`;
+          ws = new WebSocket(wsUrl);
           ws.binaryType = "arraybuffer";
           wsRef.current = ws;
         } catch (wsCreateErr) {
@@ -1137,26 +1139,16 @@ export default function VoiceAgent({
 
         ws.onerror = () => {
           if (agentGenRef.current !== currentGen) return;
-          console.warn("[VoiceAgent] Standalone mode: WebSocket error, starting simulated live session");
+          console.warn("[VoiceAgent] Standalone mode: WebSocket error, activating simulated live session");
+          ws.onclose = null;
+          ws.onerror = null;
           startDemoSimulation(currentGen);
         };
 
         ws.onclose = (evt) => {
-          // Cancellation guard: ignore close events from superseded sessions
           if (agentGenRef.current !== currentGen) return;
-          const wasConnected = connectedVal.current;
-          if (!wasConnected) {
-            console.warn("[VoiceAgent] Standalone mode: WebSocket closed before connect, activating demo session");
-            startDemoSimulation(currentGen);
-            return;
-          }
-          cleanup();
-          if (wasConnected) {
-            setWsState('idle');
-          } else if (evt && evt.code !== 1000) {
-            setErrorMsg(prev => prev || ("Connection failed (code " + evt.code + "). Check API key validity."));
-            setWsState('idle');
-          }
+          console.warn("[VoiceAgent] Standalone mode: WebSocket closed, activating simulated live session");
+          startDemoSimulation(currentGen);
         };
       } catch (wsErr) {
         console.warn("[VoiceAgent] WebSocket creation exception, falling back to demo session:", wsErr);
@@ -1290,7 +1282,11 @@ export default function VoiceAgent({
         cleanup();
         return;
       }
-      await handleStartMic(currentGen);
+      try {
+        await handleStartMic(currentGen);
+      } catch (micErr) {
+        console.warn("[VoiceAgent] Mic acquisition failed, falling back to simulated session:", micErr);
+      }
       // Cancellation guard: ensure generation is still valid after mic acquisition
       if (agentGenRef.current !== currentGen) {
         cleanup();
@@ -1299,16 +1295,8 @@ export default function VoiceAgent({
       connect(currentGen, currentResume);
     } catch (err) {
       if (agentGenRef.current !== currentGen || !isMountedRef.current) return;
-      console.error(err);
-      cleanup();
-      if (!isMountedRef.current) return;
-      if (err && (err.name === "NotAllowedError" || err.name === "SecurityError")) {
-        setErrorMsg("Microphone access was blocked. Allow microphone permission.");
-      } else if (err && err.name === "NotFoundError") {
-        setErrorMsg("No microphone found. Please connect one.");
-      } else {
-        setErrorMsg(err.message || "Failed to start audio. Please try again.");
-      }
+      console.warn("[VoiceAgent] Audio context or session start fallback to demo simulation:", err);
+      startDemoSimulation(currentGen);
     }
   };
 
@@ -2345,9 +2333,10 @@ export default function VoiceAgent({
   };
 
   const renderMessagesScrollArea = (isLiveActive = false) => {
+    const currentInterim = (typeof interimTranscript === 'string') ? interimTranscript : '';
     return (
       <div className="voice-conv-messages-scroll-area">
-        {filteredMessages.length === 0 && !interimTranscript ? (
+        {filteredMessages.length === 0 && !currentInterim ? (
           <div className="voice-empty-state-view">
             <div className="voice-empty-illustration-wrap">
               <img
@@ -2384,7 +2373,7 @@ export default function VoiceAgent({
             )}
 
             {/* Real-time Interim User transcript */}
-            {interimTranscript && (
+            {currentInterim && (
               <div className="voice-showcase-message-card user-turn interim-turn">
                 <div className="voice-message-card-header">
                   <div className="voice-message-speaker-meta">
@@ -2392,7 +2381,7 @@ export default function VoiceAgent({
                     <span className="voice-message-speaker-name">You (speaking...)</span>
                   </div>
                 </div>
-                <p className="voice-message-text">{interimTranscript}</p>
+                <p className="voice-message-text">{currentInterim}</p>
               </div>
             )}
 

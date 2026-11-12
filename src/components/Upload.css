@@ -4624,3 +4624,351 @@ body.dark-theme .upload-showcase-chip:hover {
   background: #0e1015 !important;
   border-color: #1e222b !important;
 }
+
+
+/* ==========================================================================
+   READING PREFERENCES & PROCESSING VIEW (EXACT MATCH TO VIDEO frame_0285s / 0300s)
+   ========================================================================== */
+.upload-prefs-wrapper {
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 30px 20px 60px;
+  box-sizing: border-box;
+  animation: fadeInPrefs 0.25s ease-out;
+}
+
+@keyframes fadeInPrefs {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.upload-prefs-header {
+  margin-bottom: 24px;
+}
+
+.upload-prefs-title {
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px 0;
+  color: var(--upload-text-main);
+}
+
+.upload-prefs-sub {
+  font-size: 13.5px;
+  color: var(--upload-text-muted);
+  margin: 0;
+}
+
+.upload-prefs-card-main {
+  background: var(--upload-card-bg);
+  border: 1px solid var(--upload-border);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.upload-page-root.dark-theme .upload-prefs-card-main {
+  background: #0a0c10 !important;
+  border-color: #1a1e26 !important;
+}
+
+/* File Meta Top Row */
+.upload-prefs-file-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--upload-border);
+  border-radius: 12px;
+}
+
+.upload-prefs-file-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.upload-prefs-file-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(124, 58, 237, 0.15);
+  color: #a855f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.upload-prefs-file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.upload-prefs-file-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--upload-text-main);
+}
+
+.upload-prefs-file-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--upload-text-muted);
+}
+
+.upload-prefs-ext-tag {
+  background: rgba(124, 58, 237, 0.2);
+  color: #c084fc;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10.5px;
+}
+
+.upload-prefs-file-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.upload-prefs-sec-btn {
+  background: transparent;
+  border: 1px solid var(--upload-border);
+  color: var(--upload-text-main);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.upload-prefs-cancel-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.upload-prefs-cancel-btn:hover {
+  color: #ef4444;
+}
+
+/* Stepper Progress Card in frame_0300s */
+.upload-prefs-saving-box {
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.upload-prefs-saving-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.upload-prefs-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.upload-prefs-progress-bar {
+  width: 65%;
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #3b82f6);
+  border-radius: 999px;
+  animation: pulseProgress 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes pulseProgress {
+  from { width: 45%; }
+  to { width: 92%; }
+}
+
+.upload-prefs-steps-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--upload-text-muted);
+}
+
+.upload-prefs-steps-row .step-item.active {
+  color: #a855f7;
+  font-weight: 600;
+}
+
+/* "How do you want to read it?" section */
+.upload-prefs-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--upload-text-main);
+  margin: 0;
+}
+
+.upload-prefs-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.upload-prefs-opt-card {
+  border: 1.5px solid var(--upload-border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  cursor: pointer;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.upload-prefs-opt-card:hover {
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.upload-prefs-opt-card.selected {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.06);
+}
+
+.upload-prefs-opt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.upload-prefs-opt-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--upload-text-main);
+}
+
+.upload-prefs-opt-check {
+  color: #a855f7;
+  font-size: 16px;
+}
+
+.upload-prefs-opt-desc {
+  font-size: 12.5px;
+  color: var(--upload-text-muted);
+  margin: 0;
+}
+
+/* Language Dropdown */
+.upload-prefs-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.upload-prefs-field-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--upload-text-muted);
+}
+
+.upload-prefs-select {
+  background: #06080c;
+  border: 1px solid var(--upload-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: var(--upload-text-main);
+  outline: none;
+  cursor: pointer;
+}
+
+.upload-prefs-field-hint {
+  font-size: 11.5px;
+  color: var(--upload-text-muted);
+  margin: 0;
+}
+
+/* Credits & Rates Box */
+.upload-prefs-rates-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--upload-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--upload-text-muted);
+}
+
+.upload-prefs-rates-box strong {
+  color: var(--upload-text-main);
+}
+
+/* Big Action Button */
+.upload-prefs-submit-btn {
+  width: 100%;
+  background: #7c3aed;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.upload-prefs-submit-btn:hover {
+  background: #6d28d9;
+}
+
+.upload-prefs-submit-btn.uploading-state {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--upload-border);
+  color: var(--upload-text-muted);
+  cursor: not-allowed;
+}
+
+.upload-prefs-footer-hint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--upload-text-muted);
+  margin: -10px 0 0 0;
+}
+
+.upload-prefs-collapsible-link {
+  background: transparent;
+  border: none;
+  color: var(--upload-text-muted);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 0;
+}

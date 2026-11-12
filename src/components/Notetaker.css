@@ -414,8 +414,8 @@ body.dark-theme .notetaker-pill-label,
 
 body.dark-theme .notetaker-select-pill-box,
 .notetaker-root.dark-theme .notetaker-select-pill-box {
-  background: #0f172a;
-  border-color: rgba(255, 255, 255, 0.12);
+  background: #06080c !important;
+  border-color: #1a1e26 !important;
 }
 
 body.dark-theme .notetaker-select-pill-box:hover,
@@ -468,8 +468,8 @@ body.dark-theme .notetaker-pill-select,
 
 body.dark-theme .notetaker-pill-select option,
 .notetaker-root.dark-theme .notetaker-pill-select option {
-  background: #0f172a;
-  color: #f1f5f9;
+  background: #0a0c10 !important;
+  color: #f1f5f9 !important;
 }
 
 .notetaker-pill-chevron {
@@ -498,9 +498,9 @@ body.dark-theme .notetaker-pill-select option,
 
 body.dark-theme .notetaker-workspace-card,
 .notetaker-root.dark-theme .notetaker-workspace-card {
-  background: #0a0f1d !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+  background: #0a0c10 !important;
+  border: 1px solid #1a1e26 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8) !important;
 }
 
 .notetaker-workspace-tabs-bar {

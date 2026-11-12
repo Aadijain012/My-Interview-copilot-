@@ -7147,10 +7147,43 @@ body:not(.dark-theme) .notetaker-modal-btn-cancel:hover {
    ========================================================================== */
 body.dark-theme,
 html.dark-theme,
-#root.dark-theme {
+#root.dark-theme,
+body.dark-theme #root,
+.dark-theme .notetaker-root,
+.dark-theme .voice-agent-root,
+.dark-theme .upload-page-root,
+.dark-theme .interview-panel-root {
   background: #000000 !important;
   background-color: #000000 !important;
   background-image: none !important;
+}
+
+/* Enforce sleek dark backgrounds on all slide-out drawers in dark mode */
+.dark-theme .voice-drawer-panel,
+body.dark-theme .voice-drawer-panel,
+.dark-theme .notetaker-drawer-panel,
+body.dark-theme .notetaker-drawer-panel,
+.dark-theme .upload-drawer-panel,
+body.dark-theme .upload-drawer-panel,
+.dark-theme .sidebar-drawer-panel,
+body.dark-theme .sidebar-drawer-panel {
+  background: #0a0c10 !important;
+  background-color: #0a0c10 !important;
+  border-right: 1px solid #1a1e26 !important;
+  color: #f8fafc !important;
+  box-shadow: 4px 0 35px rgba(0, 0, 0, 0.85) !important;
+}
+
+.dark-theme .voice-drawer-header,
+body.dark-theme .voice-drawer-header,
+.dark-theme .notetaker-drawer-header,
+body.dark-theme .notetaker-drawer-header,
+.dark-theme .upload-drawer-header,
+body.dark-theme .upload-drawer-header {
+  background: #11141b !important;
+  background-color: #11141b !important;
+  border-bottom: 1px solid #1a1e26 !important;
+  color: #f8fafc !important;
 }
 
 /* Landing Page Dark Mode Overrides */
@@ -7824,7 +7857,9 @@ body.dark-theme .answer-footer-row {
 
 /* Dark Theme Overrides for Interview Panel Setup View & Ready Screen & Modal */
 body.dark-theme .interview-panel-root .setup-overlay {
-  background: radial-gradient(circle at 10% 10%, #0b304c 0%, #030712 65%) no-repeat fixed !important;
+  background: #000000 !important;
+  background-color: #000000 !important;
+  background-image: none !important;
 }
 
 body.dark-theme .setup-subheader-row,

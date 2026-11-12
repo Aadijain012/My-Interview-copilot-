@@ -1083,10 +1083,17 @@ export default function VoiceAgent({
       // ── Browser Mode: Use standard WebSocket proxy ──
       const authToken = token || localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token') || '';
       try {
-        const protocols = websocketProtocols(authToken);
-        const ws = new WebSocket(`${WS_BASE}/api/voice-agent/converse`, protocols);
-        ws.binaryType = "arraybuffer";
-        wsRef.current = ws;
+        let ws = null;
+        try {
+          const protocols = websocketProtocols(authToken);
+          ws = new WebSocket(`${WS_BASE}/api/voice-agent/converse`, protocols);
+          ws.binaryType = "arraybuffer";
+          wsRef.current = ws;
+        } catch (wsCreateErr) {
+          console.warn("[VoiceAgent] Browser WebSocket direct construct failed, activating demo session:", wsCreateErr);
+          startDemoSimulation(currentGen);
+          return;
+        }
 
         ws.onopen = () => {
           if (agentGenRef.current !== currentGen) {
@@ -1316,7 +1323,42 @@ export default function VoiceAgent({
       return;
     }
 
-    // Direct start for seamless frontend demo experience (bypassing credit blockage)
+    // Auto-topup demo credits for seamless frontend testing
+    let curCredits = getUserCredits();
+    if (curCredits < 10) {
+      try {
+        localStorage.setItem('kairos_user_credits_v1', '50');
+      } catch (_) {}
+      curCredits = 50;
+    }
+    const requiredCost = getVoiceCreditCost();
+    if (curCredits < requiredCost) {
+      setCreditPromptModal({
+        isOpen: true,
+        type: 'voice',
+        title: 'Insufficient Credits',
+        message: `You need at least ${requiredCost} credits to start a Voice Agent mock interview. Your current balance is ${curCredits}.`,
+        fileDetails: { name: 'Voice Agent Mock Interview', type: 'Mock Interview' }
+      });
+      return;
+    }
+
+    // Check Voice Agent plan usage limit
+    const voiceStatus = getVoiceStatus();
+    if (!voiceStatus.hasIncluded) {
+      setCreditPromptModal({
+        isOpen: true,
+        type: 'voice',
+        title: 'Included Usage Exhausted',
+        message: "You've used all the included minutes in your current plan.",
+        fileDetails: null,
+        pendingAction: () => {
+          doStartInterviewDirect(isContinuing);
+        }
+      });
+      return;
+    }
+
     doStartInterviewDirect(isContinuing);
   };
 

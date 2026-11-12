@@ -378,7 +378,7 @@ body:not(.dark-theme) .voice-agent-root .voice-chat-workspace-card {
 body.dark-theme .voice-agent-root,
 html.dark-theme .voice-agent-root,
 html[data-theme='dark'] .voice-agent-root {
-  background-color: #080c14 !important;
+  background-color: #000000 !important;
   color: #f8fafc !important;
 }
 
@@ -386,7 +386,7 @@ html[data-theme='dark'] .voice-agent-root {
 .voice-agent-root.dark-theme .voice-top-navbar,
 body.dark-theme .voice-agent-root .voice-top-navbar,
 html[data-theme='dark'] .voice-agent-root .voice-top-navbar {
-  background-color: #0f172a !important;
+  background-color: #000000 !important;
   color: #f8fafc !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
@@ -2058,8 +2058,8 @@ body.dark-theme .voice-agent-root .voice-message-text {
 .voice-agent-root.dark-theme .voice-conversation-panel,
 body.dark-theme .voice-agent-root .voice-conversation-panel,
 html[data-theme='dark'] .voice-agent-root .voice-conversation-panel {
-  background: #0b171c !important;
-  border-color: rgba(45, 212, 191, 0.22) !important;
+  background: #0a0c10 !important;
+  border-color: #1a1e26 !important;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45) !important;
 }
 
@@ -2156,8 +2156,8 @@ body.dark-theme .voice-agent-root .voice-conv-search-helper {
 .voice-agent-root.dark-theme .voice-setup-panel,
 body.dark-theme .voice-agent-root .voice-setup-panel,
 html[data-theme='dark'] .voice-agent-root .voice-setup-panel {
-  background: #0b171c !important;
-  border-color: rgba(45, 212, 191, 0.22) !important;
+  background: #0a0c10 !important;
+  border-color: #1a1e26 !important;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45) !important;
 }
 
@@ -5251,15 +5251,15 @@ body.dark-theme .voice-agent-root .voice-history-close-action-btn:hover {
    ========================================================================== */
 .voice-agent-root.dark-theme .voice-setup-panel-centered,
 body.dark-theme .voice-agent-root .voice-setup-panel-centered {
-  background: #111c38 !important;
-  border-color: #1e293b !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35) !important;
+  background: #0a0c10 !important;
+  border-color: #1a1e26 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
 }
 
 .voice-agent-root.dark-theme .voice-job-desc-textarea,
 body.dark-theme .voice-agent-root .voice-job-desc-textarea {
-  background: #0b1329 !important;
-  border-color: #1e293b !important;
+  background: #06080c !important;
+  border-color: #1a1e26 !important;
   color: #f8fafc !important;
 }
 

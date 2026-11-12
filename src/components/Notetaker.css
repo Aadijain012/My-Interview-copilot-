@@ -5,15 +5,15 @@
 
 :root {
   --nt-font-serif: 'Lora', 'Merriweather', Georgia, 'Times New Roman', serif;
-  --nt-topbar-bg: rgba(7, 19, 14, 0.85);
-  --nt-page-bg: #040906;
-  --nt-card-bg: #07130e;
-  --nt-card-border: rgba(16, 185, 129, 0.2);
-  --nt-field-bg: #0c2017;
-  --nt-field-border: rgba(16, 185, 129, 0.25);
-  --nt-text-main: #f1f5f9;
-  --nt-text-muted: #86a394;
-  --nt-text-label: #a7c5b6;
+  --nt-topbar-bg: #000000;
+  --nt-page-bg: #000000;
+  --nt-card-bg: #0a0c10;
+  --nt-card-border: #1a1e26;
+  --nt-field-bg: #06080c;
+  --nt-field-border: #222733;
+  --nt-text-main: #f8fafc;
+  --nt-text-muted: #94a3b8;
+  --nt-text-label: #cbd5e1;
   --nt-cyan: #10b981;
   --nt-cyan-hover: #34d399;
   --nt-cyan-dark: rgba(16, 185, 129, 0.18);
@@ -183,9 +183,9 @@ body.light-theme .notetaker-root {
 
 body.dark-theme .notetaker-hero-card,
 .notetaker-root.dark-theme .notetaker-hero-card {
-  background: linear-gradient(135deg, #160d2b 0%, #231340 45%, #0f071d 100%) !important;
-  border: 1.5px solid rgba(139, 92, 246, 0.35) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 92, 246, 0.12) !important;
+  background: #0a0c10 !important;
+  border: 1px solid #1a1e26 !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6) !important;
 }
 
 .notetaker-banner-main {

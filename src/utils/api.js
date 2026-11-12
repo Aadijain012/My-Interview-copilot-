@@ -24,9 +24,9 @@ export const userSession = typeof window === 'undefined' ? null : createSessionR
 
 export function websocketProtocols(token) {
   if (!token) return [];
-  // RFC 6455 / RFC 2616: subprotocol tokens cannot contain '=' padding, spaces, or separators.
-  // Sanitize to valid base64url characters to avoid "Failed to construct 'WebSocket'" DOMException.
-  const cleanToken = String(token).trim().replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  // RFC 6455 Sec 4.3 strictly forbids separators: ( ) < > @ , ; : \ " / [ ] ? = { } SP HT and non-ASCII.
+  // Standard base64 contains +, /, =. Clean token thoroughly so browser will never throw DOMException.
+  const cleanToken = String(token).trim().replace(/[^a-zA-Z0-9_\-\.]/g, '').replace(/=/g, '');
   return cleanToken ? [`bearer.${cleanToken}`] : [];
 }
 

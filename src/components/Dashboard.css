@@ -18,12 +18,12 @@
 
 body.dark-theme,
 .dashboard-root.dark-theme {
-  --dash-topbar-bg: transparent;
-  --dash-bg: radial-gradient(ellipse at 50% -10%, #0c2017 0%, #07130e 45%, #040906 100%);
+  --dash-topbar-bg: #000000;
+  --dash-bg: #000000;
   --dash-title-color: #f8fafc;
   --dash-subtitle-color: #94a3b8;
-  --dash-border: rgba(16, 185, 129, 0.22);
-  --dash-card-bg: rgba(11, 24, 18, 0.65);
+  --dash-border: #1a1e26;
+  --dash-card-bg: #0a0c10;
 }
 
 .dashboard-root {

@@ -2396,7 +2396,7 @@ export default function Upload({
 
                     <div className="upload-hero-mascot-wrap">
                       <img
-                        src="/assets/upload_mascot_cards.png"
+                        src="/assets/upload_mascot_clean.png?v=3"
                         alt="AI Mascot"
                         className="upload-hero-mascot-img"
                       />
@@ -2529,22 +2529,22 @@ export default function Upload({
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
 
-              {/* Footer Trust Links Row */}
-              <div className="upload-footer-trust-row">
-                <div className="upload-trust-item">
-                  <i className="fa-regular fa-user"></i>
-                  <span>Private account library</span>
-                </div>
-                <div className="upload-trust-item">
-                  <span className="upload-trust-glyph">文A</span>
-                  <span>68 translation languages</span>
-                </div>
-                <div className="upload-trust-item">
-                  <i className="fa-regular fa-comment-dots"></i>
-                  <span>Ask AI about your file</span>
+                  {/* Footer Trust Links Row (Directly under dropzone card on right) */}
+                  <div className="upload-footer-trust-row">
+                    <div className="upload-trust-item">
+                      <i className="fa-regular fa-user"></i>
+                      <span>Private account library</span>
+                    </div>
+                    <div className="upload-trust-item">
+                      <span className="upload-trust-glyph">文A</span>
+                      <span>68 translation languages</span>
+                    </div>
+                    <div className="upload-trust-item">
+                      <i className="fa-regular fa-comment-dots"></i>
+                      <span>Ask AI about your file</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 

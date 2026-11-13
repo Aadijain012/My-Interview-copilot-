@@ -2396,7 +2396,7 @@ export default function Upload({
 
                     <div className="upload-hero-mascot-wrap">
                       <img
-                        src="/assets/robot_clean_cutout.png"
+                        src="/assets/upload_mascot_cards.png"
                         alt="AI Mascot"
                         className="upload-hero-mascot-img"
                       />
@@ -2529,23 +2529,6 @@ export default function Upload({
                       </div>
                     )}
                   </div>
-
-                  {/* Circular Proceed Arrow Button on Right */}
-                  <button
-                    type="button"
-                    className="upload-next-circle-btn"
-                    onClick={() => {
-                      if (selectedFile) {
-                        setUploadFlowStep('preferences');
-                      } else {
-                        handleLaunchMockWorkspace();
-                      }
-                    }}
-                    title="Proceed to reading preferences / interactive workspace"
-                    aria-label="Next step"
-                  >
-                    <i className="fa-solid fa-arrow-right"></i>
-                  </button>
                 </div>
               </div>
 

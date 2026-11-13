@@ -5506,9 +5506,9 @@ body.dark-theme .upload-showcase-chip:hover {
 
 
 /* ==========================================================================
-   UPLOAD PAGE REDESIGN V2 - MATCHING USER SCREENSHOT media_1794574048062_21272d0c.png
-   Spacious full-width layout, exact standing robot with floating cards,
-   collapsible Help with uploads, collapsible Supported limits, and pure pitch black background
+   UPLOAD PAGE REDESIGN V2 - EXACT MATCH TO IMAGE 1 (media_1794583202053_152d68bb.jpg)
+   Single Viewport Fit (NO vertical scroll needed at 100% zoom).
+   Exact standing mascot with floating cards, no side arrow, compact balanced proportions.
    ========================================================================== */
 
 /* Dark Theme Solid Pitch Black Background */
@@ -5537,40 +5537,57 @@ body.dark-theme .upload-showcase-chip:hover {
   background-color: #fafbff !important;
 }
 
-/* Main Centered Container - Expanded Width to match reference */
+/* Hero Wrapper: Fits full remaining viewport height without scrolling */
+.upload-landing-hero-wrapper {
+  width: 100%;
+  height: calc(100vh - 52px);
+  max-height: calc(100vh - 52px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 8px 0;
+  position: relative;
+}
+
+@media (max-height: 640px) {
+  .upload-landing-hero-wrapper {
+    overflow-y: auto;
+    height: auto;
+    min-height: calc(100vh - 52px);
+  }
+}
+
+/* Main Centered Container - Pixel-Perfect Proportions matching Image 1 */
 .upload-container-centered.upload-redesign-v2 {
   width: 100%;
-  max-width: 1540px;
+  max-width: 1220px;
   margin: 0 auto;
-  padding: 24px 44px 50px;
+  padding: 8px 24px 14px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 8px;
   position: relative;
   z-index: 2;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif !important;
 }
 
-@media (max-width: 1200px) {
-  .upload-container-centered.upload-redesign-v2 {
-    padding: 20px 24px 40px;
-  }
-}
-
 /* Top Row: Left Hero (32%) + Right Dropzone (68%) */
 .upload-redesign-top-row {
   display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(0, 1.95fr);
-  gap: 44px;
-  align-items: flex-start;
+  grid-template-columns: minmax(290px, 1fr) minmax(0, 1.95fr);
+  gap: 28px;
+  align-items: flex-end;
   width: 100%;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 900px) {
   .upload-redesign-top-row {
     grid-template-columns: 1fr;
-    gap: 28px;
+    gap: 18px;
   }
 }
 
@@ -5581,17 +5598,17 @@ body.dark-theme .upload-showcase-chip:hover {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 14px;
-  padding-top: 10px;
+  gap: 8px;
+  padding-bottom: 2px;
 }
 
 .upload-redesign-left-hero .upload-eyebrow-pill {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 5px 14px;
+  gap: 6px;
+  padding: 3px 10px;
   border-radius: 999px;
-  font-size: 11.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -5610,11 +5627,11 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-redesign-left-hero .upload-hero-title {
-  font-size: 46px;
+  font-size: 32px;
   font-weight: 800;
   line-height: 1.1;
   margin: 0;
-  letter-spacing: -0.6px;
+  letter-spacing: -0.5px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif !important;
 }
 
@@ -5629,6 +5646,7 @@ body.dark-theme .upload-showcase-chip:hover {
 .upload-hero-subword {
   display: block;
   font-weight: 800;
+  font-size: 32px;
 }
 
 .upload-page-root.dark-theme .upload-hero-subword {
@@ -5640,9 +5658,9 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-redesign-left-hero .upload-hero-subtitle {
-  font-size: 16px;
-  line-height: 1.6;
-  margin: 4px 0 10px 0;
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 2px 0 4px 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif !important;
 }
 
@@ -5660,25 +5678,25 @@ body.dark-theme .upload-showcase-chip:hover {
   align-items: flex-end;
   justify-content: space-between;
   width: 100%;
-  margin-top: 14px;
-  gap: 16px;
+  margin-top: 4px;
+  gap: 12px;
 }
 
 .upload-help-toggle-group {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   cursor: pointer;
   user-select: none;
-  padding-bottom: 12px;
+  padding-bottom: 4px;
 }
 
 /* Toggle Switch Pill */
 .upload-toggle-switch {
   position: relative;
   display: inline-block;
-  width: 44px;
-  height: 24px;
+  width: 36px;
+  height: 20px;
   cursor: pointer;
   margin: 0;
 }
@@ -5697,7 +5715,7 @@ body.dark-theme .upload-showcase-chip:hover {
   right: 0;
   bottom: 0;
   border-radius: 999px;
-  transition: all 0.22s ease;
+  transition: all 0.2s ease;
 }
 
 .upload-page-root.dark-theme .upload-toggle-slider {
@@ -5711,14 +5729,14 @@ body.dark-theme .upload-showcase-chip:hover {
 .upload-toggle-slider::before {
   content: "";
   position: absolute;
-  height: 18px;
-  width: 18px;
+  height: 14px;
+  width: 14px;
   left: 3px;
   bottom: 3px;
   background-color: #ffffff;
   border-radius: 50%;
-  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
 .upload-toggle-switch input:checked + .upload-toggle-slider {
@@ -5726,11 +5744,11 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-toggle-switch input:checked + .upload-toggle-slider::before {
-  transform: translateX(20px);
+  transform: translateX(16px);
 }
 
 .upload-toggle-label {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -5747,21 +5765,15 @@ body.dark-theme .upload-showcase-chip:hover {
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  max-width: 190px;
+  max-width: 130px;
 }
 
 .upload-hero-mascot-img {
   width: 100%;
-  max-width: 185px;
+  max-width: 120px;
   height: auto;
   object-fit: contain;
-  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.55));
-  animation: floatMascot 4s ease-in-out infinite alternate;
-}
-
-@keyframes floatMascot {
-  from { transform: translateY(0px); }
-  to { transform: translateY(-7px); }
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
 }
 
 /* ==========================================================================
@@ -5775,11 +5787,11 @@ body.dark-theme .upload-showcase-chip:hover {
 
 .upload-unified-dropzone-card {
   width: 100%;
-  border-radius: 20px;
-  padding: 26px 30px 24px;
+  border-radius: 16px;
+  padding: 14px 18px 12px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
   box-sizing: border-box;
   transition: all 0.2s ease;
 }
@@ -5787,24 +5799,24 @@ body.dark-theme .upload-showcase-chip:hover {
 .upload-page-root.dark-theme .upload-unified-dropzone-card {
   background: #080d12;
   border: 1.5px dashed #1e3340;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.55);
 }
 
 .upload-page-root.light-theme .upload-unified-dropzone-card {
   background: #ffffff;
   border: 1.5px dashed #cbd5e1;
-  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
 }
 
 /* Top 4 Format Category Pills */
 .upload-format-categories-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: 10px;
   width: 100%;
 }
 
-@media (max-width: 680px) {
+@media (max-width: 600px) {
   .upload-format-categories-row {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -5815,11 +5827,11 @@ body.dark-theme .upload-showcase-chip:hover {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 6px;
-  padding: 16px 12px;
-  border-radius: 14px;
+  gap: 3px;
+  padding: 9px 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: all 0.16s ease;
   user-select: none;
 }
 
@@ -5837,7 +5849,7 @@ body.dark-theme .upload-showcase-chip:hover {
 .upload-page-root.dark-theme .upload-format-cat-item.active {
   background: #112a35;
   border-color: #0d9488;
-  box-shadow: 0 0 16px rgba(13, 148, 136, 0.35);
+  box-shadow: 0 0 12px rgba(13, 148, 136, 0.3);
 }
 
 .upload-page-root.light-theme .upload-format-cat-item {
@@ -5857,7 +5869,7 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-cat-icon {
-  font-size: 22px;
+  font-size: 16px;
 }
 
 .upload-page-root.dark-theme .upload-cat-icon {
@@ -5871,11 +5883,11 @@ body.dark-theme .upload-showcase-chip:hover {
 .upload-cat-texts {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 1px;
 }
 
 .upload-cat-title {
-  font-size: 14.5px;
+  font-size: 12.5px;
   font-weight: 700;
 }
 
@@ -5888,7 +5900,7 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-cat-exts {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
 }
 
@@ -5906,11 +5918,11 @@ body.dark-theme .upload-showcase-chip:hover {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 28px 20px 14px;
+  padding: 10px 14px 4px;
   text-align: center;
   cursor: pointer;
-  border-radius: 14px;
-  transition: background 0.18s ease;
+  border-radius: 10px;
+  transition: background 0.16s ease;
 }
 
 .upload-dropzone-center-body:hover,
@@ -5919,9 +5931,9 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-dz-main-title {
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 700;
-  margin: 0 0 10px 0;
+  margin: 0 0 4px 0;
   letter-spacing: -0.3px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif !important;
 }
@@ -5935,8 +5947,8 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-dz-divider-text {
-  font-size: 13px;
-  margin-bottom: 14px;
+  font-size: 11px;
+  margin-bottom: 8px;
   font-weight: 500;
 }
 
@@ -5953,26 +5965,25 @@ body.dark-theme .upload-showcase-chip:hover {
   color: #ffffff;
   border: none;
   border-radius: 999px;
-  padding: 13px 34px;
-  font-size: 15.5px;
+  padding: 8px 24px;
+  font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  transition: all 0.18s ease;
-  box-shadow: 0 4px 18px rgba(13, 148, 136, 0.4);
+  gap: 7px;
+  transition: all 0.16s ease;
+  box-shadow: 0 3px 12px rgba(13, 148, 136, 0.35);
 }
 
 .upload-dz-choose-btn:hover {
   background: #0f766e;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.5);
+  transform: translateY(-1px);
 }
 
 .upload-dz-limits-sub {
-  font-size: 13px;
-  margin-top: 16px;
+  font-size: 11px;
+  margin-top: 8px;
   font-weight: 500;
 }
 
@@ -5988,15 +5999,15 @@ body.dark-theme .upload-showcase-chip:hover {
 .upload-dz-toggle-limits-btn {
   background: transparent;
   border: none;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  margin-top: 12px;
-  padding: 6px 12px;
-  border-radius: 8px;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 6px;
   transition: all 0.15s ease;
 }
 
@@ -6018,11 +6029,11 @@ body.dark-theme .upload-showcase-chip:hover {
 
 /* Collapsible Limits Panel */
 .upload-supported-limits-panel {
-  border-radius: 14px;
-  padding: 18px 24px;
-  font-size: 13.5px;
-  line-height: 1.65;
-  animation: fadeInLimits 0.2s ease-out;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  animation: fadeInLimits 0.18s ease-out;
   text-align: left;
 }
 
@@ -6044,17 +6055,17 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-limits-intro {
-  margin: 0 0 10px 0;
-  font-size: 13px;
+  margin: 0 0 4px 0;
+  font-size: 11px;
   font-weight: 500;
 }
 
 .upload-limits-list {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
 }
 
 .upload-page-root.dark-theme .upload-limits-list strong {
@@ -6072,9 +6083,9 @@ body.dark-theme .upload-showcase-chip:hover {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 32px;
-  padding-right: 12px;
-  font-size: 13px;
+  gap: 22px;
+  padding-right: 6px;
+  font-size: 11.5px;
   font-weight: 500;
   margin-top: 2px;
 }
@@ -6084,7 +6095,7 @@ body.dark-theme .upload-showcase-chip:hover {
     justify-content: center;
     padding-right: 0;
     flex-wrap: wrap;
-    gap: 18px;
+    gap: 14px;
   }
 }
 
@@ -6099,7 +6110,7 @@ body.dark-theme .upload-showcase-chip:hover {
 .upload-trust-item {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   cursor: default;
   transition: color 0.15s ease;
 }
@@ -6123,30 +6134,30 @@ body.dark-theme .upload-showcase-chip:hover {
 .upload-help-cards-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-top: 14px;
-  animation: fadeInHelpCards 0.25s ease-out;
+  gap: 12px;
+  margin-top: 4px;
+  animation: fadeInHelpCards 0.2s ease-out;
 }
 
 @keyframes fadeInHelpCards {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 800px) {
   .upload-help-cards-grid {
     grid-template-columns: 1fr;
   }
 }
 
 .upload-help-feature-card {
-  border-radius: 16px;
-  padding: 20px 22px;
+  border-radius: 12px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   position: relative;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
 }
 
 .upload-page-root.dark-theme .upload-help-feature-card {
@@ -6157,19 +6168,17 @@ body.dark-theme .upload-showcase-chip:hover {
 .upload-page-root.dark-theme .upload-help-feature-card:hover {
   border-color: #2dd4bf;
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .upload-page-root.light-theme .upload-help-feature-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
 }
 
 .upload-page-root.light-theme .upload-help-feature-card:hover {
   border-color: #0d9488;
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(13, 148, 136, 0.1);
 }
 
 .upload-hfc-header {
@@ -6179,14 +6188,14 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-hfc-icon-glyph {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1;
 }
@@ -6204,17 +6213,17 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-hfc-glyph-sub {
-  font-size: 9px;
+  font-size: 8px;
   opacity: 0.75;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .upload-hfc-close-btn {
   background: transparent;
   border: none;
-  font-size: 14px;
+  font-size: 12px;
   cursor: pointer;
-  padding: 4px;
+  padding: 2px;
   border-radius: 4px;
   transition: color 0.15s ease;
 }
@@ -6236,9 +6245,9 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-hfc-title {
-  font-size: 16.5px;
+  font-size: 13.5px;
   font-weight: 700;
-  margin: 6px 0 2px 0;
+  margin: 3px 0 1px 0;
   letter-spacing: -0.2px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif !important;
 }
@@ -6252,8 +6261,8 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-hfc-desc {
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 11px;
+  line-height: 1.4;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif !important;
 }

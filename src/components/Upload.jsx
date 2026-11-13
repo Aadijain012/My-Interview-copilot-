@@ -104,6 +104,25 @@ function isAudioOrVideoFile(file) {
   return false;
 }
 
+const DOCUMENT_EXTENSIONS = [
+  '.pdf', '.docx', '.doc', '.pptx', '.xlsx', '.odt', '.txt', '.csv', '.tsv', '.json', '.html', '.htm'
+];
+
+const IMAGE_EXTENSIONS = [
+  '.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tiff'
+];
+
+function isSupportedMediaFile(file) {
+  if (!file) return false;
+  const name = String(file.name || '').toLowerCase();
+  const type = String(file.type || '').toLowerCase();
+  if (isAudioOrVideoFile(file)) return true;
+  if (DOCUMENT_EXTENSIONS.some(ext => name.endsWith(ext))) return true;
+  if (IMAGE_EXTENSIONS.some(ext => name.endsWith(ext))) return true;
+  if (type.startsWith('image/') || type.includes('pdf') || type.includes('document') || type.includes('text')) return true;
+  return false;
+}
+
 const ipcRenderer = window.require ? window.require('electron').ipcRenderer : null;
 
 const LANGUAGES_LIST = [
@@ -251,6 +270,40 @@ export default function Upload({
   const [audioPlayState, setAudioPlayState] = useState(false);
   const [audioSeekSec, setAudioSeekSec] = useState(0);
   const [wsInputText, setWsInputText] = useState('');
+
+  // ── New Redesign V2 States (Matching media_1794574048062_21272d0c.png) ──
+  const [showHelpWithUploads, setShowHelpWithUploads] = useState(true);
+  const [showSupportedTypes, setShowSupportedTypes] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [closedHelpCards, setClosedHelpCards] = useState({});
+
+  const handleToggleHelpWithUploads = () => {
+    setShowHelpWithUploads(prev => {
+      const next = !prev;
+      if (next) setClosedHelpCards({});
+      return next;
+    });
+  };
+
+  const handleDismissHelpCard = (cardId, e) => {
+    e?.stopPropagation();
+    setClosedHelpCards(prev => ({ ...prev, [cardId]: true }));
+  };
+
+  const handleCategoryClick = (catKey) => {
+    setSelectedCategory(catKey);
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleChooseFileClick = (e) => {
+    e?.stopPropagation();
+    setSelectedCategory(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
   const triggerQuickTool = (tool) => {
     setActiveQuickTool(tool);
@@ -647,13 +700,8 @@ export default function Upload({
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (isResumeDocument(file)) {
-      showToast(RESUME_REDIRECT_MESSAGE);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-    if (!isAudioOrVideoFile(file)) {
-      showToast(UNSUPPORTED_MEDIA_ERROR_MESSAGE);
+    if (!isSupportedMediaFile(file)) {
+      showToast('Please upload a supported document, image, audio, or video file.');
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
@@ -692,13 +740,8 @@ export default function Upload({
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
-      if (isResumeDocument(file)) {
-        showToast(RESUME_REDIRECT_MESSAGE);
-        e.dataTransfer.clearData();
-        return;
-      }
-      if (!isAudioOrVideoFile(file)) {
-        showToast(UNSUPPORTED_MEDIA_ERROR_MESSAGE);
+      if (!isSupportedMediaFile(file)) {
+        showToast('Please upload a supported document, image, audio, or video file.');
         e.dataTransfer.clearData();
         return;
       }
@@ -2120,7 +2163,7 @@ export default function Upload({
           ref={fileInputRef}
           onChange={handleFileUpload}
           style={{ display: 'none' }}
-          accept="audio/*,video/*,.mp3,.wav,.m4a,.aac,.ogg,.oga,.weba,.flac,.wma,.aiff,.mp4,.mov,.avi,.mkv,.webm,.flv,.wmv,.m4v,.3gp,.ts"
+          accept="audio/*,video/*,image/*,.pdf,.doc,.docx,.pptx,.xlsx,.odt,.txt,.csv,.tsv,.json,.html,.htm,.png,.jpg,.jpeg,.webp,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mp4,.mov,.avi,.mkv,.webm"
         />
 
         {uploadFlowStep === 'workspace' || (activeSession && uploadFlowStep !== 'initial' && uploadFlowStep !== 'stepper' && uploadFlowStep !== 'preferences' && uploadFlowStep !== 'processing') ? (
@@ -2314,337 +2357,288 @@ export default function Upload({
             <div className="upload-bg-glow-2"></div>
             <div className="upload-bg-glow-3"></div>
 
-            <div className="upload-container-centered">
-              {/* 2-Column Main Workspace Grid (Dropzone Left + Configuration Right) */}
-              <div className="upload-workspace-grid">
-                {/* Left Column: Header Title Section + Outer Card with Inner Dashed Dropzone */}
-                <div className="upload-left-column">
-                  {/* Header Title Section from reference design */}
-                  <div className="upload-header-section">
-                    <div className="upload-eyebrow-pill">
-                      <i className="fa-solid fa-cloud-arrow-up"></i>
-                      <span>UPLOAD &amp; ANALYZE</span>
-                    </div>
-                    <h1 className="upload-hero-title">
-                      Drop, upload, and ask AI anything.
-                    </h1>
-                    <p className="upload-hero-subtitle">
-                      Transform any media file into insights instantly.
-                    </p>
+            <div className="upload-container-centered upload-redesign-v2">
+              {/* Top Row: Left Hero + Right Dropzone with Arrow */}
+              <div className="upload-redesign-top-row">
+                {/* Left Hero Column */}
+                <div className="upload-redesign-left-hero">
+                  <div className="upload-eyebrow-pill">
+                    <i className="fa-solid fa-cloud-arrow-up"></i>
+                    <span>UPLOAD &amp; ANALYZE</span>
                   </div>
 
-                  {/* Outer Card with Inner Dashed Dropzone */}
-                  <div className="upload-dropzone-outer-card">
-                  {!selectedFile && !isUploading ? (
-                    <div
-                      className={`upload-dropzone-inner-dashed ${isDragging ? 'dragging' : ''}`}
-                      onClick={() => fileInputRef.current?.click()}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <div className="upload-dropzone-cloud-glow">
-                        <i className="fa-solid fa-cloud-arrow-up"></i>
-                      </div>
+                  <h1 className="upload-hero-title">
+                    Upload. Translate.<br />
+                    <span className="upload-hero-subword">Understand.</span>
+                  </h1>
 
-                      <h2 className="upload-dropzone-title">Drag and Drop your media files here</h2>
-                      <p className="upload-dropzone-browse-sub">
-                        or <span className="upload-browse-link" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>browse files</span> on your device
-                      </p>
+                  <p className="upload-hero-subtitle">
+                    Bring a document, image, audio, or video.<br />
+                    Turn its text into useful results.
+                  </p>
 
-                      <div className="upload-dropzone-formats-pill">
-                        MP3, WAV, M4A, MP4, WEBM or MOV – up to 10 GB
-                      </div>
-
-                      <div className="upload-dropzone-actions-group">
-                        <button
-                          type="button"
-                          className="upload-choose-file-btn upload-browse-cta-btn"
-                          onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                        >
-                          <i className="fa-solid fa-folder-open"></i> Browse files
-                        </button>
-                        <button
-                          type="button"
-                          className="upload-preview-demo-cta-btn"
-                          onClick={(e) => { e.stopPropagation(); handleLaunchMockWorkspace(); }}
-                        >
-                          <i className="fa-solid fa-wand-magic-sparkles"></i> Preview Demo
-                        </button>
-                      </div>
-
-                      <div className="upload-dropzone-bottom-disclaimer">
-                        Files will be encrypted and processed automatically on secure servers.
-                      </div>
-                    </div>
-                  ) : (
-                    /* Selected File / Uploading Progress Card inside the inner container */
-                    <div className="upload-dropzone-inner-dashed upload-active-file-card">
-                      <div className="upload-dropzone-cloud-glow active-glow">
-                        <i className={isVideoFile(selectedFile || transcribingFile) ? "fa-solid fa-video" : "fa-solid fa-volume-high"}></i>
-                      </div>
-
-                      <h2 className="upload-dropzone-title" style={{ fontSize: '20px', wordBreak: 'break-word' }}>
-                        {selectedFileName || selectedFile?.name || transcribingFile?.name}
-                      </h2>
-                      <p className="upload-dropzone-browse-sub">
-                        {formatFileSize(selectedFile?.size || transcribingFile?.size)}
-                        {isUploading && (
-                          <span> · {isVideoFile(selectedFile || transcribingFile) && videoStage === 'converting' ? 'Extracting audio via FFmpeg...' : 'Uploading file...'}</span>
-                        )}
-                      </p>
-
-                      {isUploading && (
-                        <div className="upload-card-progress-wrapper" style={{ width: '100%', maxWidth: '440px', margin: '14px auto' }}>
-                          <div className="upload-progress-bar-track">
-                            <div
-                              className="upload-progress-bar-fill"
-                              style={{ width: `${isVideoFile(selectedFile || transcribingFile) && videoStage === 'converting' ? (convertingProgress > 0 ? convertingProgress : Math.min(95, 15 + convertingElapsed * 4)) : (videoUploadProgress || uploadProgress)}%` }}
-                            />
-                          </div>
-                          <div className="upload-progress-info" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
-                            <span>
-                              {isVideoFile(selectedFile || transcribingFile) && videoStage === 'converting'
-                                ? `Extracting audio (${convertingElapsed}s)...`
-                                : `Uploading... ${videoUploadProgress || uploadProgress}%`}
-                            </span>
-                            <span>{isVideoFile(selectedFile || transcribingFile) && videoStage === 'converting' ? `${convertingProgress}%` : `${videoUploadProgress || uploadProgress}%`}</span>
-                          </div>
-                        </div>
-                      )}
-
-                      <div style={{ display: 'flex', gap: '10px', marginTop: '16px', justifyContent: 'center' }}>
-                        {isUploading ? (
-                          <button type="button" onClick={cancelUpload} className="upload-cancel-btn">
-                            <i className="fa-solid fa-xmark"></i> Cancel Upload
-                          </button>
-                        ) : (
-                          <>
-                            <button type="button" onClick={() => fileInputRef.current?.click()} className="upload-secondary-btn">
-                              Choose another
-                            </button>
-                            <button type="button" onClick={() => handleStartUpload(selectedFile)} className="upload-choose-file-btn">
-                              <i className="fa-solid fa-cloud-arrow-up"></i> Upload Now
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                </div>
-
-                {/* Right Column: AI Task Center Panel */}
-                <div className="upload-config-panel upload-task-center-card">
-                  <div className="upload-config-header">
-                    <h3 className="upload-config-heading">AI Analysis Configuration</h3>
-                    <span className="upload-task-section-label">Lang Section</span>
-                  </div>
-
-                  {/* Language FROM -> TO Card */}
-                  <div className="upload-task-lang-row">
-                    {/* FROM Capsule */}
-                    <div
-                      className="upload-task-lang-capsule from-capsule"
-                      onClick={() => {
-                        try {
-                          if (fromLangSelectRef.current?.showPicker) {
-                            fromLangSelectRef.current.showPicker();
-                          } else {
-                            fromLangSelectRef.current?.focus();
-                          }
-                        } catch (_) {
-                          fromLangSelectRef.current?.focus();
-                        }
-                      }}
-                    >
-                      <div className="upload-task-lang-inner">
-                        <span className="upload-task-lang-tag">FROM:</span>
-                        <div className="upload-task-select-wrapper" onClick={(e) => e.stopPropagation()}>
-                          <select
-                            ref={fromLangSelectRef}
-                            value={transcribeLang}
-                            onChange={(e) => {
-                              setTranscribeLang(e.target.value);
-                            }}
-                            className="upload-task-clean-select"
-                            aria-label="From Language"
-                          >
-                            <option value="auto">Auto-detect language</option>
-                            {TRANSCRIPTION_LANGUAGES.filter(l => l.code !== 'auto').map(lang => (
-                              <option key={lang.code} value={lang.code}>{lang.label.split(' (')[0]}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Swap Arrow Icon */}
-                    <div
-                      className="upload-task-lang-swap-icon"
-                      title="Language swap"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (selectedTargetLang) {
-                          const prevFrom = transcribeLang;
-                          const prevTo = selectedTargetLang;
-                          setTranscribeLang(prevTo.code);
-                          const newTo = LANGUAGES_LIST.find(l => l.code === prevFrom);
-                          setSelectedTargetLang(newTo || null);
-                        }
-                      }}
-                    >
-                      <i className="fa-solid fa-arrow-right"></i>
-                    </div>
-
-                    {/* TO Capsule */}
-                    <div
-                      className="upload-task-lang-capsule to-capsule"
-                      onClick={() => {
-                        try {
-                          if (toLangSelectRef.current?.showPicker) {
-                            toLangSelectRef.current.showPicker();
-                          } else {
-                            toLangSelectRef.current?.focus();
-                          }
-                        } catch (_) {
-                          toLangSelectRef.current?.focus();
-                        }
-                      }}
-                    >
-                      <div className="upload-task-lang-inner">
-                        <span className="upload-task-lang-tag">TO:</span>
-                        <div className="upload-task-select-wrapper" onClick={(e) => e.stopPropagation()}>
-                          <select
-                            ref={toLangSelectRef}
-                            value={selectedTargetLang?.code || 'original'}
-                            onChange={(e) => {
-                              if (e.target.value === 'original') {
-                                setSelectedTargetLang(null);
-                              } else {
-                                const found = LANGUAGES_LIST.find(l => l.code === e.target.value);
-                                if (found) setSelectedTargetLang(found);
-                              }
-                            }}
-                            className="upload-task-clean-select"
-                            aria-label="To Language"
-                          >
-                            <option value="original">English / Original only</option>
-                            {LANGUAGES_LIST.map(lang => (
-                              <option key={lang.code} value={lang.code}>{lang.english}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 2x2 Grid of 4 Uniform Square Boxes (Matching media_1794560116899_91001274) */}
-                  <div className="upload-task-grid-4box">
-                    {/* Box 1: Ask a Question */}
-                    <div
-                      className={`upload-analysis-box ${activeShowcaseChip === 'Ask a question' ? 'active-selected' : ''}`}
-                      onClick={() => handleTaskCardClick('Ask a question')}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <div className="upload-box-icon icon-chat">
-                        <div className="upload-task-chat-graphic">
-                          <div className="chat-bubble-filled">
-                            <span className="dot"></span>
-                            <span className="dot"></span>
-                            <span className="dot"></span>
-                          </div>
-                          <div className="chat-bubble-shadow"></div>
-                        </div>
-                      </div>
-                      <span className="upload-box-title">Ask a Question</span>
-                      <span className="upload-box-sub">Interactive AI chat</span>
-                    </div>
-
-                    {/* Box 2: Full Transcript */}
-                    <div
-                      className={`upload-analysis-box ${activeShowcaseChip === 'Transcribe' ? 'active-selected' : ''}`}
-                      onClick={() => handleTaskCardClick('Transcribe')}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <div className="upload-box-icon icon-transcript">
-                        <i className="fa-regular fa-comments"></i>
-                      </div>
-                      <span className="upload-box-title">Full Transcript</span>
-                      <span className="upload-box-sub">Verbatim speech text</span>
-                    </div>
-
-                    {/* Box 3: Translate Document */}
-                    <div
-                      className={`upload-analysis-box ${activeShowcaseChip === 'Translate' || selectedTargetLang ? 'active-selected' : ''}`}
-                      onClick={() => handleTaskCardClick('Translate')}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <div className="upload-box-icon icon-translate">
-                        <span className="upload-box-glyph">文A</span>
-                      </div>
-                      <span className="upload-box-title">Translate Document</span>
-                      <span className="upload-box-sub">
-                        {selectedTargetLang ? selectedTargetLang.english : 'Multi-language'}
+                  {/* Toggle for "Help with uploads" + Mascot */}
+                  <div className="upload-hero-bottom-controls">
+                    <div className="upload-help-toggle-group">
+                      <label className="upload-toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={showHelpWithUploads}
+                          onChange={handleToggleHelpWithUploads}
+                          aria-label="Toggle Help with uploads"
+                        />
+                        <span className="upload-toggle-slider"></span>
+                      </label>
+                      <span className="upload-toggle-label" onClick={handleToggleHelpWithUploads}>
+                        Help with uploads
                       </span>
                     </div>
 
-                    {/* Box 4: Executive Summary */}
-                    <div
-                      className={`upload-analysis-box ${activeShowcaseChip === 'Summarize' ? 'active-selected' : ''}`}
-                      onClick={() => handleTaskCardClick('Summarize')}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <div className="upload-box-icon icon-summary">
-                        <div className="upload-task-summary-graphic">
-                          <div className="summary-bars">
-                            <div className="summary-bar bar-long"></div>
-                            <div className="summary-bar bar-med"></div>
-                            <div className="summary-bar bar-short"></div>
-                          </div>
-                        </div>
-                      </div>
-                      <span className="upload-box-title">Executive Summary</span>
-                      <span className="upload-box-sub">Paragraph lists layout</span>
+                    <div className="upload-hero-mascot-wrap">
+                      <img
+                        src="/assets/robot_clean_cutout.png"
+                        alt="AI Mascot"
+                        className="upload-hero-mascot-img"
+                      />
                     </div>
                   </div>
                 </div>
+
+                {/* Right Dropzone Column */}
+                <div className="upload-redesign-right-dropzone-col">
+                  <div className="upload-unified-dropzone-card">
+                    {/* Top 4 Format Category Pills */}
+                    <div className="upload-format-categories-row">
+                      <div
+                        className={`upload-format-cat-item ${selectedCategory === 'document' ? 'active' : ''}`}
+                        onClick={() => handleCategoryClick('document')}
+                        title="Upload Document"
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <div className="upload-cat-icon">
+                          <i className="fa-regular fa-file-lines"></i>
+                        </div>
+                        <div className="upload-cat-texts">
+                          <span className="upload-cat-title">Document</span>
+                          <span className="upload-cat-exts">PDF, DOC, TXT</span>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`upload-format-cat-item ${selectedCategory === 'image' ? 'active' : ''}`}
+                        onClick={() => handleCategoryClick('image')}
+                        title="Upload Image"
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <div className="upload-cat-icon">
+                          <i className="fa-regular fa-image"></i>
+                        </div>
+                        <div className="upload-cat-texts">
+                          <span className="upload-cat-title">Image</span>
+                          <span className="upload-cat-exts">PNG, JPG, WEBP</span>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`upload-format-cat-item ${selectedCategory === 'audio' ? 'active' : ''}`}
+                        onClick={() => handleCategoryClick('audio')}
+                        title="Upload Audio"
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <div className="upload-cat-icon">
+                          <i className="fa-solid fa-music"></i>
+                        </div>
+                        <div className="upload-cat-texts">
+                          <span className="upload-cat-title">Audio</span>
+                          <span className="upload-cat-exts">MP3, WAV, M4A</span>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`upload-format-cat-item ${selectedCategory === 'video' ? 'active' : ''}`}
+                        onClick={() => handleCategoryClick('video')}
+                        title="Upload Video"
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <div className="upload-cat-icon">
+                          <i className="fa-solid fa-film"></i>
+                        </div>
+                        <div className="upload-cat-texts">
+                          <span className="upload-cat-title">Video</span>
+                          <span className="upload-cat-exts">MP4, MOV, WEBM</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Drag & Drop Center Area */}
+                    <div
+                      className={`upload-dropzone-center-body ${isDragging ? 'dragging' : ''}`}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <h2 className="upload-dz-main-title">Drag and drop your file here</h2>
+                      <div className="upload-dz-divider-text">or</div>
+                      <button
+                        type="button"
+                        className="upload-dz-choose-btn"
+                        onClick={handleChooseFileClick}
+                      >
+                        <i className="fa-solid fa-arrow-up-from-bracket"></i> Choose file
+                      </button>
+                      <div className="upload-dz-limits-sub">
+                        Audio/Video: up to 10.7 GB &nbsp;|&nbsp; Documents: up to 100 MB
+                      </div>
+
+                      {/* Collapsible Trigger for Supported Types */}
+                      <button
+                        type="button"
+                        className="upload-dz-toggle-limits-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowSupportedTypes(prev => !prev);
+                        }}
+                      >
+                        <i className={`fa-solid ${showSupportedTypes ? 'fa-caret-up' : 'fa-caret-down'}`}></i>
+                        <span>Supported file types &amp; limits</span>
+                      </button>
+                    </div>
+
+                    {/* Collapsible Supported Types Panel */}
+                    {showSupportedTypes && (
+                      <div className="upload-supported-limits-panel" onClick={(e) => e.stopPropagation()}>
+                        <p className="upload-limits-intro">
+                          Choose one for a time. You can review documents and language actions before uploading:
+                        </p>
+                        <ul className="upload-limits-list">
+                          <li>
+                            <strong>Documents:</strong> PDF, DOCX, PPTX, XLSX, ODT, TXT, CSV, TSV, JSON, HTML. Up to 120 MB.
+                          </li>
+                          <li>
+                            <strong>Images:</strong> PNG, JPG, WEBP, up to 20 MB and 10 pages. Printed text can be read from the image.
+                          </li>
+                          <li>
+                            <strong>Audio and video:</strong> Up to 10.0 GB and 8 hours. Video is processed from its audio and generates a searchable audio track.
+                          </li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Circular Proceed Arrow Button on Right */}
+                  <button
+                    type="button"
+                    className="upload-next-circle-btn"
+                    onClick={() => {
+                      if (selectedFile) {
+                        setUploadFlowStep('preferences');
+                      } else {
+                        handleLaunchMockWorkspace();
+                      }
+                    }}
+                    title="Proceed to reading preferences / interactive workspace"
+                    aria-label="Next step"
+                  >
+                    <i className="fa-solid fa-arrow-right"></i>
+                  </button>
+                </div>
               </div>
 
-              {/* Bottom Security & Privacy Full Pill Banner */}
-              <div className="upload-security-banner">
-                <div className="upload-security-left">
-                  <div className="upload-security-shield">
-                    <i className="fa-solid fa-shield-halved"></i>
-                  </div>
-                  <span className="upload-security-text">
-                    Your files are processed securely and automatically. If you leave, reopen the saved audio to continue.
-                  </span>
+              {/* Footer Trust Links Row */}
+              <div className="upload-footer-trust-row">
+                <div className="upload-trust-item">
+                  <i className="fa-regular fa-user"></i>
+                  <span>Private account library</span>
                 </div>
-
-                <div className="upload-security-divider"></div>
-
-                <div className="upload-security-right">
-                  <div className="upload-trust-item">
-                    <i className="fa-solid fa-lock"></i>
-                    <span>Private files</span>
-                  </div>
-                  <div className="upload-trust-item">
-                    <span className="upload-trust-glyph">文A</span>
-                    <span>Translation</span>
-                  </div>
-                  <div className="upload-trust-item">
-                    <i className="fa-regular fa-comment-dots"></i>
-                    <span>Ask AI about your file</span>
-                  </div>
+                <div className="upload-trust-item">
+                  <span className="upload-trust-glyph">文A</span>
+                  <span>68 translation languages</span>
+                </div>
+                <div className="upload-trust-item">
+                  <i className="fa-regular fa-comment-dots"></i>
+                  <span>Ask AI about your file</span>
                 </div>
               </div>
+
+              {/* Bottom 3 Feature Cards (Shown when "Help with uploads" is ON) */}
+              {showHelpWithUploads && (
+                <div className="upload-help-cards-grid">
+                  {!closedHelpCards['translate'] && (
+                    <div className="upload-help-feature-card">
+                      <div className="upload-hfc-header">
+                        <div className="upload-hfc-icon-glyph">
+                          <span>文A</span>
+                          <span className="upload-hfc-glyph-sub">AL</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="upload-hfc-close-btn"
+                          onClick={(e) => handleDismissHelpCard('translate', e)}
+                          title="Close"
+                          aria-label="Dismiss card"
+                        >
+                          <i className="fa-solid fa-xmark"></i>
+                        </button>
+                      </div>
+                      <h4 className="upload-hfc-title">Translate text</h4>
+                      <p className="upload-hfc-desc">
+                        Read documents and text audio transcripts in a supported language.
+                      </p>
+                    </div>
+                  )}
+
+                  {!closedHelpCards['ai_assist'] && (
+                    <div className="upload-help-feature-card">
+                      <div className="upload-hfc-header">
+                        <div className="upload-hfc-icon-glyph">
+                          <i className="fa-solid fa-pen-nib"></i>
+                        </div>
+                        <button
+                          type="button"
+                          className="upload-hfc-close-btn"
+                          onClick={(e) => handleDismissHelpCard('ai_assist', e)}
+                          title="Close"
+                          aria-label="Dismiss card"
+                        >
+                          <i className="fa-solid fa-xmark"></i>
+                        </button>
+                      </div>
+                      <h4 className="upload-hfc-title">Ask AI Assist</h4>
+                      <p className="upload-hfc-desc">
+                        Talk about, summarize, analyze, or create learning tooling visuals from your file.
+                      </p>
+                    </div>
+                  )}
+
+                  {!closedHelpCards['download'] && (
+                    <div className="upload-help-feature-card">
+                      <div className="upload-hfc-header">
+                        <div className="upload-hfc-icon-glyph">
+                          <i className="fa-solid fa-download"></i>
+                        </div>
+                        <button
+                          type="button"
+                          className="upload-hfc-close-btn"
+                          onClick={(e) => handleDismissHelpCard('download', e)}
+                          title="Close"
+                          aria-label="Dismiss card"
+                        >
+                          <i className="fa-solid fa-xmark"></i>
+                        </button>
+                      </div>
+                      <h4 className="upload-hfc-title">Download or email me</h4>
+                      <p className="upload-hfc-desc">
+                        Download PDF, Word, and results, or text. Email listed results to yourself.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Floating Assistant Widget (Bottom Right) */}

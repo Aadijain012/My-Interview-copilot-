@@ -2440,9 +2440,8 @@ export default function Upload({
                 {/* Right Column: AI Task Center Panel */}
                 <div className="upload-config-panel upload-task-center-card">
                   <div className="upload-config-header">
-                    <h3 className="upload-config-heading">AI Task Center</h3>
-                    <span className="upload-config-subheading">Set Languages &amp; Task</span>
-                    <span className="upload-task-section-label">Lang selection</span>
+                    <h3 className="upload-config-heading">AI Analysis Configuration</h3>
+                    <span className="upload-task-section-label">Lang Section</span>
                   </div>
 
                   {/* Language FROM -> TO Card */}
@@ -2498,7 +2497,7 @@ export default function Upload({
                         }
                       }}
                     >
-                      <i className="fa-solid fa-arrows-rotate"></i>
+                      <i className="fa-solid fa-arrow-right"></i>
                     </div>
 
                     {/* TO Capsule */}
@@ -2533,7 +2532,7 @@ export default function Upload({
                             className="upload-task-clean-select"
                             aria-label="To Language"
                           >
-                            <option value="original">Original only / English</option>
+                            <option value="original">English / Original only</option>
                             {LANGUAGES_LIST.map(lang => (
                               <option key={lang.code} value={lang.code}>{lang.english}</option>
                             ))}
@@ -2543,25 +2542,19 @@ export default function Upload({
                     </div>
                   </div>
 
-                  {/* Vertical Stack of 5 Feature Cards */}
-                  <div className="upload-task-items-list">
-                    {/* Card 1: Ask a Question */}
+                  {/* 2x2 Grid of 4 Uniform Square Boxes (Matching media_1794560116899_91001274) */}
+                  <div className="upload-task-grid-4box">
+                    {/* Box 1: Ask a Question */}
                     <div
-                      className={`upload-task-card ${activeShowcaseChip === 'Ask a question' ? 'active-selected' : ''}`}
+                      className={`upload-analysis-box ${activeShowcaseChip === 'Ask a question' ? 'active-selected' : ''}`}
                       onClick={() => handleTaskCardClick('Ask a question')}
                       role="button"
                       tabIndex={0}
                     >
-                      <div className="upload-task-card-left">
-                        <div className="upload-task-card-icon icon-blue">
-                          <i className="fa-solid fa-comments"></i>
-                        </div>
-                        <div className="upload-task-card-text">
-                          <span className="upload-task-card-title">Ask a Question</span>
-                          <span className="upload-task-card-sub">Chat with AI about content</span>
-                        </div>
+                      <div className="upload-box-check-badge">
+                        <i className="fa-solid fa-check"></i>
                       </div>
-                      <div className="upload-task-card-right">
+                      <div className="upload-box-icon icon-chat">
                         <div className="upload-task-chat-graphic">
                           <div className="chat-bubble-filled">
                             <span className="dot"></span>
@@ -2569,103 +2562,69 @@ export default function Upload({
                             <span className="dot"></span>
                           </div>
                           <div className="chat-bubble-shadow"></div>
-                          {activeShowcaseChip === 'Ask a question' && (
-                            <div className="chat-bubble-check">
-                              <i className="fa-solid fa-circle-check"></i>
-                            </div>
-                          )}
                         </div>
                       </div>
+                      <span className="upload-box-title">Ask a Question</span>
+                      <span className="upload-box-sub">Interactive AI chat</span>
                     </div>
 
-                    {/* Card 2: Full Transcript */}
+                    {/* Box 2: Full Transcript */}
                     <div
-                      className={`upload-task-card ${activeShowcaseChip === 'Transcribe' ? 'active-selected' : ''}`}
+                      className={`upload-analysis-box ${activeShowcaseChip === 'Transcribe' ? 'active-selected' : ''}`}
                       onClick={() => handleTaskCardClick('Transcribe')}
                       role="button"
                       tabIndex={0}
                     >
-                      <div className="upload-task-card-left">
-                        <div className="upload-task-card-icon icon-muted">
-                          <i className="fa-regular fa-comments"></i>
-                        </div>
-                        <div className="upload-task-card-text">
-                          <span className="upload-task-card-title">Full Transcript</span>
-                        </div>
+                      <div className="upload-box-check-badge">
+                        <i className="fa-solid fa-check"></i>
                       </div>
-                      <div className="upload-task-card-right">
-                        <div className="upload-task-single-chat-icon">
-                          <i className="fa-regular fa-comments"></i>
-                        </div>
+                      <div className="upload-box-icon icon-transcript">
+                        <i className="fa-regular fa-comments"></i>
                       </div>
+                      <span className="upload-box-title">Full Transcript</span>
+                      <span className="upload-box-sub">Verbatim speech text</span>
                     </div>
 
-                    {/* Card 3: Translate Media */}
+                    {/* Box 3: Translate Document */}
                     <div
-                      className={`upload-task-card ${activeShowcaseChip === 'Translate' || selectedTargetLang ? 'active-selected' : ''}`}
+                      className={`upload-analysis-box ${activeShowcaseChip === 'Translate' || selectedTargetLang ? 'active-selected' : ''}`}
                       onClick={() => handleTaskCardClick('Translate')}
                       role="button"
                       tabIndex={0}
                     >
-                      <div className="upload-task-card-left">
-                        <div className="upload-task-card-icon icon-glyph">
-                          <span className="upload-glyph-bold">文A</span>
-                        </div>
-                        <div className="upload-task-card-text">
-                          <span className="upload-task-card-title">Translate Media</span>
-                          <span className="upload-task-card-sub">Translation</span>
-                        </div>
+                      <div className="upload-box-check-badge">
+                        <i className="fa-solid fa-check"></i>
                       </div>
-                      <div className="upload-task-card-right">
-                        <div className="upload-task-dropdown-pill" onClick={(e) => e.stopPropagation()}>
-                          <select
-                            value={selectedTargetLang?.code || ''}
-                            onChange={(e) => {
-                              const found = LANGUAGES_LIST.find(l => l.code === e.target.value);
-                              setSelectedTargetLang(found || null);
-                              setActiveShowcaseChip('Translate');
-                            }}
-                            className="upload-task-pill-select"
-                            aria-label="Select Language"
-                          >
-                            <option value="">Select Language ▾</option>
-                            {LANGUAGES_LIST.map(lang => (
-                              <option key={lang.code} value={lang.code}>{lang.english}</option>
-                            ))}
-                          </select>
-                        </div>
+                      <div className="upload-box-icon icon-translate">
+                        <span className="upload-box-glyph">文A</span>
                       </div>
+                      <span className="upload-box-title">Translate Document</span>
+                      <span className="upload-box-sub">
+                        {selectedTargetLang ? selectedTargetLang.english : 'Multi-language'}
+                      </span>
                     </div>
 
-                    {/* Card 4: Executive Summary */}
+                    {/* Box 4: Executive Summary */}
                     <div
-                      className={`upload-task-card ${activeShowcaseChip === 'Summarize' ? 'active-selected' : ''}`}
+                      className={`upload-analysis-box ${activeShowcaseChip === 'Summarize' ? 'active-selected' : ''}`}
                       onClick={() => handleTaskCardClick('Summarize')}
                       role="button"
                       tabIndex={0}
                     >
-                      <div className="upload-task-card-left">
-                        <div className="upload-task-card-icon">
-                          <i className="fa-solid fa-list-ul"></i>
-                        </div>
-                        <div className="upload-task-card-text">
-                          <span className="upload-task-card-title">Executive Summary</span>
-                        </div>
+                      <div className="upload-box-check-badge">
+                        <i className="fa-solid fa-check"></i>
                       </div>
-                      <div className="upload-task-card-right">
+                      <div className="upload-box-icon icon-summary">
                         <div className="upload-task-summary-graphic">
                           <div className="summary-bars">
                             <div className="summary-bar bar-long"></div>
                             <div className="summary-bar bar-med"></div>
                             <div className="summary-bar bar-short"></div>
                           </div>
-                          {activeShowcaseChip === 'Summarize' && (
-                            <div className="summary-check-icon">
-                              <i className="fa-solid fa-circle-check"></i>
-                            </div>
-                          )}
                         </div>
                       </div>
+                      <span className="upload-box-title">Executive Summary</span>
+                      <span className="upload-box-sub">Paragraph lists layout</span>
                     </div>
                   </div>
                 </div>

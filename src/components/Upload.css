@@ -296,13 +296,13 @@ body.dark-theme,
 }
 
 .upload-hero-title {
-  font-size: 24px;
-  font-weight: 800;
+  font-size: 36px;
+  font-weight: 700;
   color: var(--upload-text-main);
-  margin: 0 0 2px 0;
+  margin: 0 0 6px 0;
   line-height: 1.15;
-  letter-spacing: -0.4px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+  letter-spacing: -0.5px;
+  font-family: 'Lora', 'Merriweather', Georgia, 'Times New Roman', serif;
 }
 
 .upload-hero-title-accent {
@@ -5196,4 +5196,191 @@ body.dark-theme .upload-showcase-chip:hover {
   gap: 6px;
   cursor: pointer;
   padding: 0;
+}
+
+
+/* ==========================================================================
+   4-Box Uniform Grid for AI Analysis Configuration (Matching media_1794560116899_91001274)
+   ========================================================================== */
+
+.upload-config-panel {
+  background: var(--upload-card-bg);
+  border: 1px solid var(--upload-border);
+  border-radius: 20px !important;
+  padding: 20px 20px 22px 20px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: 440px;
+  height: 100%;
+}
+
+.upload-page-root.dark-theme .upload-config-panel {
+  background: #0a0c10 !important;
+  border-color: #1a1e28 !important;
+  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.6) !important;
+}
+
+.upload-config-heading {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: var(--upload-text-main);
+  margin: 0;
+  font-family: 'Lora', 'Merriweather', Georgia, 'Times New Roman', serif !important;
+  letter-spacing: -0.3px;
+}
+
+.upload-task-section-label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--upload-text-muted);
+  margin-top: 4px;
+  display: block;
+}
+
+.upload-task-grid-4box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+  flex: 1;
+  margin-top: 12px;
+}
+
+.upload-analysis-box {
+  background: var(--upload-card-bg);
+  border: 1.5px solid var(--upload-border);
+  border-radius: 16px;
+  padding: 16px 12px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  user-select: none;
+  min-height: 115px;
+}
+
+.upload-analysis-box:hover {
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.1);
+}
+
+.upload-analysis-box.active-selected {
+  border: 2px solid #3b82f6;
+  background: #f8faff;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.16);
+}
+
+.upload-page-root.dark-theme .upload-analysis-box {
+  background: #0d0f17;
+  border-color: #1e2230;
+}
+
+.upload-page-root.dark-theme .upload-analysis-box:hover {
+  border-color: #8b5cf6;
+  background: #121520;
+}
+
+.upload-page-root.dark-theme .upload-analysis-box.active-selected {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.15);
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.25);
+}
+
+.upload-box-check-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: transparent;
+  transition: all 0.15s ease;
+}
+
+.upload-analysis-box.active-selected .upload-box-check-badge {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.upload-page-root.dark-theme .upload-box-check-badge {
+  border-color: #334155;
+}
+
+.upload-page-root.dark-theme .upload-analysis-box.active-selected .upload-box-check-badge {
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+  color: #ffffff;
+}
+
+.upload-box-icon {
+  font-size: 26px;
+  color: #3b82f6;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+}
+
+.upload-page-root.dark-theme .upload-box-icon {
+  color: #a78bfa;
+}
+
+.upload-box-icon.icon-transcript {
+  color: #64748b;
+}
+
+.upload-page-root.dark-theme .upload-box-icon.icon-transcript {
+  color: #94a3b8;
+}
+
+.upload-box-icon.icon-translate {
+  color: #0284c7;
+}
+
+.upload-page-root.dark-theme .upload-box-icon.icon-translate {
+  color: #38bdf8;
+}
+
+.upload-box-icon.icon-summary {
+  color: #059669;
+}
+
+.upload-page-root.dark-theme .upload-box-icon.icon-summary {
+  color: #34d399;
+}
+
+.upload-box-glyph {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.upload-box-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--upload-text-main);
+  margin: 0;
+  letter-spacing: -0.1px;
+}
+
+.upload-box-sub {
+  font-size: 11px;
+  color: var(--upload-text-muted);
+  margin-top: 3px;
+  line-height: 1.25;
 }

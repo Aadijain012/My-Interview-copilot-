@@ -4961,9 +4961,14 @@ body.dark-theme .upload-showcase-chip:hover {
   align-items: center;
   justify-content: space-between;
   padding: 14px 18px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--upload-border);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
+}
+
+.upload-page-root.dark-theme .upload-prefs-file-box {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: var(--upload-border) !important;
 }
 
 .upload-prefs-file-left {
@@ -5020,13 +5025,30 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-prefs-sec-btn {
-  background: transparent;
-  border: 1px solid var(--upload-border);
-  color: var(--upload-text-main);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
   border-radius: 8px;
   padding: 6px 14px;
   font-size: 12.5px;
   cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.upload-prefs-sec-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.upload-page-root.dark-theme .upload-prefs-sec-btn {
+  background: transparent !important;
+  border-color: var(--upload-border) !important;
+  color: var(--upload-text-main) !important;
+}
+
+.upload-page-root.dark-theme .upload-prefs-sec-btn:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: #a855f7 !important;
 }
 
 .upload-prefs-cancel-btn {
@@ -5111,11 +5133,11 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-prefs-opt-card {
-  border: 1.5px solid var(--upload-border);
+  border: 1.5px solid #e2e8f0;
   border-radius: 12px;
   padding: 18px 20px;
   cursor: pointer;
-  background: transparent;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -5124,12 +5146,26 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-prefs-opt-card:hover {
-  border-color: rgba(168, 85, 247, 0.4);
+  border-color: #8b5cf6;
 }
 
 .upload-prefs-opt-card.selected {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.06);
+}
+
+.upload-page-root.dark-theme .upload-prefs-opt-card {
+  border-color: var(--upload-border);
+  background: transparent;
+}
+
+.upload-page-root.dark-theme .upload-prefs-opt-card:hover {
+  border-color: rgba(168, 85, 247, 0.5);
+}
+
+.upload-page-root.dark-theme .upload-prefs-opt-card.selected {
   border-color: #8b5cf6;
-  background: rgba(139, 92, 246, 0.06);
+  background: rgba(139, 92, 246, 0.08);
 }
 
 .upload-prefs-opt-header {
@@ -5155,7 +5191,7 @@ body.dark-theme .upload-showcase-chip:hover {
   margin: 0;
 }
 
-/* Language Dropdown */
+/* Language Dropdown - Fixed High Contrast in Light & Dark Mode */
 .upload-prefs-field-group {
   display: flex;
   flex-direction: column;
@@ -5169,14 +5205,40 @@ body.dark-theme .upload-showcase-chip:hover {
 }
 
 .upload-prefs-select {
-  background: #06080c;
-  border: 1px solid var(--upload-border);
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
   border-radius: 8px;
   padding: 10px 14px;
   font-size: 13.5px;
-  color: var(--upload-text-main);
+  color: #0f172a !important;
   outline: none;
   cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.upload-prefs-select:focus {
+  border-color: #7c3aed !important;
+}
+
+.upload-prefs-select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  padding: 6px 10px;
+}
+
+.upload-page-root.dark-theme .upload-prefs-select {
+  background: #06080c !important;
+  border: 1px solid #272d3d !important;
+  color: #f8fafc !important;
+}
+
+.upload-page-root.dark-theme .upload-prefs-select:focus {
+  border-color: #a855f7 !important;
+}
+
+.upload-page-root.dark-theme .upload-prefs-select option {
+  background-color: #0a0c10 !important;
+  color: #f8fafc !important;
 }
 
 .upload-prefs-field-hint {
@@ -5187,8 +5249,8 @@ body.dark-theme .upload-showcase-chip:hover {
 
 /* Credits & Rates Box */
 .upload-prefs-rates-box {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--upload-border);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 12px 16px;
   display: flex;
@@ -5200,6 +5262,11 @@ body.dark-theme .upload-showcase-chip:hover {
 
 .upload-prefs-rates-box strong {
   color: var(--upload-text-main);
+}
+
+.upload-page-root.dark-theme .upload-prefs-rates-box {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-color: var(--upload-border) !important;
 }
 
 /* Big Action Button */

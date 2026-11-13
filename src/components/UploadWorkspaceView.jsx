@@ -119,7 +119,7 @@ export default function UploadWorkspaceView({
   };
 
   return (
-    <div className="upload-workspace-view-root">
+    <div className={`upload-workspace-view-root ${darkMode ? 'dark-theme' : 'light-theme'}`}>
       {/* =================== TOP BAR =================== */}
       <div className="uws-topbar">
         <div className="uws-topbar-left">

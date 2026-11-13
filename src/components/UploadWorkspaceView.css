@@ -1,11 +1,90 @@
-/* UploadWorkspaceView.css - Dedicated Pixel-Perfect Workspace View matching video flow */
+/* UploadWorkspaceView.css - Dedicated Pixel-Perfect Workspace View with Light & Dark Theme Support */
 
+/* ==========================================================================
+   THEME VARIABLES
+   ========================================================================== */
+.upload-workspace-view-root,
+.upload-workspace-view-root.light-theme {
+  --uws-bg: #fafbff;
+  --uws-card-bg: #ffffff;
+  --uws-card-border: #e2e8f0;
+  --uws-card-shadow: 0 4px 24px rgba(15, 23, 42, 0.05);
+  --uws-topbar-border: #e2e8f0;
+  --uws-text-main: #0f172a;
+  --uws-text-muted: #64748b;
+  --uws-subtext: #475569;
+  --uws-btn-bg: #ffffff;
+  --uws-btn-border: #cbd5e1;
+  --uws-btn-text: #1e293b;
+  --uws-btn-hover-bg: #f1f5f9;
+  --uws-btn-hover-border: #94a3b8;
+  --uws-btn-hover-text: #0f172a;
+  --uws-badge-bg: #f1f5f9;
+  --uws-badge-text: #475569;
+  --uws-box-bg: #f8fafc;
+  --uws-box-border: #e2e8f0;
+  --uws-audio-bg: #f8fafc;
+  --uws-audio-border: #e2e8f0;
+  --uws-input-bg: #ffffff;
+  --uws-input-border: #cbd5e1;
+  --uws-input-text: #0f172a;
+  --uws-input-placeholder: #94a3b8;
+  --uws-accent-purple: #7c3aed;
+  --uws-accent-pill-bg: rgba(124, 58, 237, 0.08);
+  --uws-accent-pill-border: rgba(124, 58, 237, 0.22);
+  --uws-accent-pill-text: #7c3aed;
+  --uws-play-btn-bg: #0f172a;
+  --uws-play-btn-color: #ffffff;
+  --uws-scrubber-bg: #e2e8f0;
+  --uws-scrubber-thumb: #7c3aed;
+}
+
+.upload-workspace-view-root.dark-theme,
+body.dark-theme .upload-workspace-view-root,
+.upload-page-root.dark-theme .upload-workspace-view-root {
+  --uws-bg: #000000;
+  --uws-card-bg: #0d0f17;
+  --uws-card-border: #1e2230;
+  --uws-card-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --uws-topbar-border: #1a1e28;
+  --uws-text-main: #f8fafc;
+  --uws-text-muted: #94a3b8;
+  --uws-subtext: #71717a;
+  --uws-btn-bg: #12141c;
+  --uws-btn-border: #272b38;
+  --uws-btn-text: #cbd5e1;
+  --uws-btn-hover-bg: #1b1e2a;
+  --uws-btn-hover-border: #a855f7;
+  --uws-btn-hover-text: #ffffff;
+  --uws-badge-bg: #1e2230;
+  --uws-badge-text: #cbd5e1;
+  --uws-box-bg: #080a10;
+  --uws-box-border: #232736;
+  --uws-audio-bg: #080a10;
+  --uws-audio-border: #1e2230;
+  --uws-input-bg: #07090e;
+  --uws-input-border: #382963;
+  --uws-input-text: #ffffff;
+  --uws-input-placeholder: #64748b;
+  --uws-accent-purple: #a855f7;
+  --uws-accent-pill-bg: rgba(168, 85, 247, 0.14);
+  --uws-accent-pill-border: rgba(168, 85, 247, 0.3);
+  --uws-accent-pill-text: #c084fc;
+  --uws-play-btn-bg: #ffffff;
+  --uws-play-btn-color: #000000;
+  --uws-scrubber-bg: #272b38;
+  --uws-scrubber-thumb: #ffffff;
+}
+
+/* ==========================================================================
+   ROOT CONTAINER
+   ========================================================================== */
 .upload-workspace-view-root {
   width: 100%;
   min-height: calc(100vh - 54px);
-  background-color: #000000 !important;
+  background-color: var(--uws-bg) !important;
   background-image: none !important;
-  color: #f8fafc;
+  color: var(--uws-text-main);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   display: flex;
   flex-direction: column;
@@ -13,6 +92,21 @@
   padding: 16px 36px 36px 36px;
   overflow-x: hidden;
   position: relative;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.upload-workspace-view-root.dark-theme,
+body.dark-theme .upload-workspace-view-root,
+.upload-page-root.dark-theme .upload-workspace-view-root {
+  background-color: #000000 !important;
+  background-image: none !important;
+}
+
+.upload-workspace-view-root.light-theme,
+body.light-theme .upload-workspace-view-root,
+.upload-page-root.light-theme .upload-workspace-view-root {
+  background-color: #fafbff !important;
+  background-image: none !important;
 }
 
 @media (max-width: 768px) {
@@ -29,7 +123,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 0 16px 0;
-  border-bottom: 1px solid #1a1e28;
+  border-bottom: 1px solid var(--uws-topbar-border);
   gap: 16px;
   flex-wrap: wrap;
 }
@@ -45,9 +139,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #12141c;
-  border: 1px solid #272b38;
-  color: #cbd5e1;
+  background: var(--uws-btn-bg);
+  border: 1px solid var(--uws-btn-border);
+  color: var(--uws-btn-text);
   padding: 7px 15px;
   border-radius: 9px;
   font-size: 13px;
@@ -58,9 +152,9 @@
 }
 
 .uws-back-btn:hover {
-  background: #1b1e2a;
-  border-color: #a855f7;
-  color: #ffffff;
+  background: var(--uws-btn-hover-bg);
+  border-color: var(--uws-btn-hover-border);
+  color: var(--uws-btn-hover-text);
   transform: translateX(-2px);
 }
 
@@ -68,12 +162,12 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: rgba(168, 85, 247, 0.12);
-  border: 1px solid rgba(168, 85, 247, 0.25);
+  background: var(--uws-accent-pill-bg);
+  border: 1px solid var(--uws-accent-pill-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #c084fc;
+  color: var(--uws-accent-pill-text);
   font-size: 15px;
   flex-shrink: 0;
 }
@@ -88,7 +182,7 @@
 .uws-file-title {
   font-size: 17px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--uws-text-main);
   margin: 0;
   letter-spacing: -0.2px;
 }
@@ -98,7 +192,7 @@
   align-items: center;
   gap: 8px;
   font-size: 12.5px;
-  color: #94a3b8;
+  color: var(--uws-text-muted);
 }
 
 .uws-ready-pill {
@@ -109,17 +203,17 @@
   border-radius: 999px;
   font-size: 11.5px;
   font-weight: 600;
-  background: rgba(168, 85, 247, 0.14);
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  color: #c084fc;
+  background: var(--uws-accent-pill-bg);
+  border: 1px solid var(--uws-accent-pill-border);
+  color: var(--uws-accent-pill-text);
 }
 
 .uws-ready-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #a855f7;
-  box-shadow: 0 0 6px #a855f7;
+  background: var(--uws-accent-purple);
+  box-shadow: 0 0 6px var(--uws-accent-purple);
 }
 
 .uws-topbar-right {
@@ -132,9 +226,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #12141c;
-  border: 1px solid #272b38;
-  color: #cbd5e1;
+  background: var(--uws-btn-bg);
+  border: 1px solid var(--uws-btn-border);
+  color: var(--uws-btn-text);
   padding: 7px 14px;
   border-radius: 9px;
   font-size: 12.5px;
@@ -144,25 +238,26 @@
 }
 
 .uws-badge-btn:hover {
-  border-color: #a855f7;
-  color: #ffffff;
+  background: var(--uws-btn-hover-bg);
+  border-color: var(--uws-btn-hover-border);
+  color: var(--uws-btn-hover-text);
 }
 
 .uws-count-badge {
-  background: #1e2230;
+  background: var(--uws-badge-bg);
   padding: 1px 7px;
   border-radius: 999px;
   font-size: 11px;
-  color: #cbd5e1;
+  color: var(--uws-badge-text);
 }
 
 .uws-action-btn {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: #12141c;
-  border: 1px solid #272b38;
-  color: #cbd5e1;
+  background: var(--uws-btn-bg);
+  border: 1px solid var(--uws-btn-border);
+  color: var(--uws-btn-text);
   padding: 7px 15px;
   border-radius: 9px;
   font-size: 12.5px;
@@ -172,26 +267,28 @@
 }
 
 .uws-action-btn:hover {
-  border-color: #a855f7;
-  color: #ffffff;
+  background: var(--uws-btn-hover-bg);
+  border-color: var(--uws-btn-hover-border);
+  color: var(--uws-btn-hover-text);
 }
 
 .uws-action-btn.primary {
-  background: #12141c;
-  color: #ffffff;
-  border-color: #272b38;
+  background: var(--uws-btn-bg);
+  color: var(--uws-btn-text);
+  border-color: var(--uws-btn-border);
 }
 
 .uws-action-btn.primary:hover {
-  background: #1c1f2c;
-  border-color: #a855f7;
+  background: var(--uws-btn-hover-bg);
+  border-color: var(--uws-btn-hover-border);
+  color: var(--uws-btn-hover-text);
 }
 
 /* Accordion link below topbar */
 .uws-sub-accordion-btn {
   background: transparent;
   border: none;
-  color: #71717a;
+  color: var(--uws-subtext);
   font-size: 12.5px;
   display: inline-flex;
   align-items: center;
@@ -203,12 +300,12 @@
 }
 
 .uws-sub-accordion-btn:hover {
-  color: #a1a1aa;
+  color: var(--uws-text-main);
 }
 
 .uws-file-details-panel {
-  background: #0d0f16;
-  border: 1px solid #1f2330;
+  background: var(--uws-box-bg);
+  border: 1px solid var(--uws-box-border);
   border-radius: 10px;
   padding: 14px 18px;
   margin-bottom: 16px;
@@ -216,12 +313,12 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
   font-size: 12.5px;
-  color: #94a3b8;
+  color: var(--uws-text-muted);
   animation: uwsFadeIn 0.2s ease-out;
 }
 
 .uws-file-details-panel strong {
-  color: #f1f5f9;
+  color: var(--uws-text-main);
 }
 
 /* ==========================================================================
@@ -245,15 +342,16 @@
 
 /* Card Styling for Both Columns */
 .uws-card {
-  background: #0d0f17;
-  border: 1px solid #1e2230;
+  background: var(--uws-card-bg);
+  border: 1px solid var(--uws-card-border);
   border-radius: 16px;
   padding: 22px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--uws-card-shadow);
   position: relative;
   box-sizing: border-box;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 /* ==========================================================================
@@ -269,7 +367,7 @@
 .uws-panel-h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--uws-text-main);
   margin: 0;
   letter-spacing: -0.3px;
 }
@@ -277,7 +375,7 @@
 .uws-header-copy-btn {
   background: transparent;
   border: none;
-  color: #a1a1aa;
+  color: var(--uws-text-muted);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -288,7 +386,7 @@
 }
 
 .uws-header-copy-btn:hover {
-  color: #ffffff;
+  color: var(--uws-text-main);
 }
 
 /* Language Selection Row */
@@ -298,7 +396,7 @@
 
 .uws-lang-label {
   font-size: 12.5px;
-  color: #94a3b8;
+  color: var(--uws-text-muted);
   margin-bottom: 6px;
 }
 
@@ -306,18 +404,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #07090e;
-  border: 1px solid #232736;
+  background: var(--uws-box-bg);
+  border: 1px solid var(--uws-box-border);
   border-radius: 9px;
   padding: 10px 14px;
-  color: #ffffff;
+  color: var(--uws-text-main);
   font-size: 13.5px;
   cursor: pointer;
   transition: border-color 0.15s ease;
 }
 
 .uws-lang-dropdown-box:hover {
-  border-color: #383e54;
+  border-color: var(--uws-accent-purple);
 }
 
 .uws-lang-dropdown-left {
@@ -329,20 +427,20 @@
 
 .uws-lang-check-pill {
   font-size: 12px;
-  color: #a855f7;
+  color: var(--uws-accent-purple);
   font-weight: 600;
 }
 
 .uws-lang-subtext {
   font-size: 12px;
-  color: #71717a;
+  color: var(--uws-subtext);
   margin-top: 6px;
 }
 
 /* Audio Player Bar */
 .uws-audio-player {
-  background: #080a10;
-  border: 1px solid #1e2230;
+  background: var(--uws-audio-bg);
+  border: 1px solid var(--uws-audio-border);
   border-radius: 12px;
   padding: 12px 16px;
   display: flex;
@@ -356,7 +454,7 @@
   align-items: center;
   gap: 6px;
   font-size: 12.5px;
-  color: #94a3b8;
+  color: var(--uws-text-muted);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -365,9 +463,9 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--uws-play-btn-bg);
   border: none;
-  color: #000000;
+  color: var(--uws-play-btn-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -379,12 +477,12 @@
 
 .uws-play-pause-btn:hover {
   transform: scale(1.06);
-  background: #f1f5f9;
+  opacity: 0.9;
 }
 
 .uws-time-display {
   font-size: 12.5px;
-  color: #cbd5e1;
+  color: var(--uws-text-muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -401,7 +499,7 @@
   -webkit-appearance: none;
   height: 4px;
   border-radius: 2px;
-  background: #272b38;
+  background: var(--uws-scrubber-bg);
   outline: none;
   cursor: pointer;
 }
@@ -411,15 +509,15 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--uws-scrubber-thumb);
   cursor: pointer;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
 }
 
 .uws-player-icon-btn {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--uws-text-muted);
   cursor: pointer;
   font-size: 13px;
   padding: 4px;
@@ -427,7 +525,7 @@
 }
 
 .uws-player-icon-btn:hover {
-  color: #ffffff;
+  color: var(--uws-text-main);
 }
 
 /* Transcript Utterances List */
@@ -452,7 +550,7 @@
   align-items: center;
   gap: 10px;
   font-size: 12.5px;
-  color: #a855f7;
+  color: var(--uws-accent-purple);
   font-weight: 600;
 }
 
@@ -460,12 +558,12 @@
   margin: 0;
   font-size: 14.5px;
   line-height: 1.6;
-  color: #ffffff;
+  color: var(--uws-text-main);
 }
 
 /* Left Card Footer */
 .uws-card-footer {
-  border-top: 1px solid #1e2230;
+  border-top: 1px solid var(--uws-card-border);
   padding-top: 14px;
   margin-top: 14px;
   display: flex;
@@ -475,13 +573,13 @@
 }
 
 .uws-preserved-text {
-  color: #71717a;
+  color: var(--uws-subtext);
 }
 
 .uws-settings-link {
   background: transparent;
   border: none;
-  color: #a855f7;
+  color: var(--uws-accent-purple);
   cursor: pointer;
   font-size: 12px;
   display: inline-flex;
@@ -498,7 +596,7 @@
 .uws-help-btn {
   background: transparent;
   border: none;
-  color: #71717a;
+  color: var(--uws-subtext);
   font-size: 12px;
   cursor: pointer;
   margin-top: 10px;
@@ -509,7 +607,7 @@
 }
 
 .uws-help-btn:hover {
-  color: #a1a1aa;
+  color: var(--uws-text-main);
 }
 
 /* ==========================================================================
@@ -532,9 +630,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #181924;
-  border: 1px solid #272a38;
-  color: #cbd5e1;
+  background: var(--uws-box-bg);
+  border: 1px solid var(--uws-box-border);
+  color: var(--uws-text-muted);
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 11.5px;
@@ -547,13 +645,13 @@
   justify-content: space-between;
   margin-bottom: 20px;
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--uws-text-muted);
 }
 
 .uws-new-q-link {
   background: transparent;
   border: none;
-  color: #a855f7;
+  color: var(--uws-accent-purple);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -580,14 +678,14 @@
 .uws-hero-title {
   font-size: 21px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--uws-text-main);
   margin: 0 0 8px 0;
   letter-spacing: -0.3px;
 }
 
 .uws-hero-subtitle {
   font-size: 13.5px;
-  color: #94a3b8;
+  color: var(--uws-text-muted);
   margin: 0 0 28px 0;
 }
 
@@ -605,9 +703,9 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: #151620;
-  border: 1px solid #282c3c;
-  color: #f1f5f9;
+  background: var(--uws-box-bg);
+  border: 1px solid var(--uws-box-border);
+  color: var(--uws-text-main);
   padding: 9px 18px;
   border-radius: 999px;
   font-size: 13px;
@@ -617,9 +715,9 @@
 }
 
 .uws-tool-chip:hover {
-  background: #1f2232;
-  border-color: #8b5cf6;
-  color: #ffffff;
+  background: var(--uws-btn-hover-bg);
+  border-color: var(--uws-accent-purple);
+  color: var(--uws-accent-purple);
   transform: translateY(-1px);
 }
 
@@ -646,14 +744,14 @@
 .uws-tool-name-h4 {
   font-size: 16px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--uws-text-main);
   margin: 0;
 }
 
 .uws-change-tool-btn {
-  background: #151620;
-  border: 1px solid #282c3c;
-  color: #cbd5e1;
+  background: var(--uws-btn-bg);
+  border: 1px solid var(--uws-btn-border);
+  color: var(--uws-btn-text);
   padding: 6px 14px;
   border-radius: 8px;
   font-size: 12.5px;
@@ -664,14 +762,14 @@
 }
 
 .uws-change-tool-btn:hover {
-  background: #1e2130;
-  color: #ffffff;
+  background: var(--uws-btn-hover-bg);
+  color: var(--uws-btn-hover-text);
 }
 
 .uws-doc-icon-svg {
   width: 64px;
   height: 64px;
-  stroke: #a855f7;
+  stroke: var(--uws-accent-purple);
   stroke-width: 1.5;
   margin-bottom: 16px;
 }
@@ -679,7 +777,7 @@
 .uws-process-h4 {
   font-size: 16px;
   font-weight: 600;
-  color: #f8fafc;
+  color: var(--uws-text-main);
   margin: 0 0 16px 0;
 }
 
@@ -688,7 +786,7 @@
   align-items: center;
   gap: 16px;
   font-size: 13px;
-  color: #71717a;
+  color: var(--uws-subtext);
   margin-bottom: 14px;
 }
 
@@ -699,7 +797,7 @@
 }
 
 .uws-stepper-step.active {
-  color: #c084fc;
+  color: var(--uws-accent-purple);
   font-weight: 600;
 }
 
@@ -707,17 +805,17 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #71717a;
+  background: var(--uws-subtext);
 }
 
 .uws-stepper-step.active .uws-step-dot {
-  background: #a855f7;
-  box-shadow: 0 0 8px #a855f7;
+  background: var(--uws-accent-purple);
+  box-shadow: 0 0 8px var(--uws-accent-purple);
 }
 
 .uws-process-leave-note {
   font-size: 12.5px;
-  color: #71717a;
+  color: var(--uws-subtext);
   margin: 0;
 }
 
@@ -726,11 +824,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px solid #1e2230;
+  border-top: 1px solid var(--uws-card-border);
   padding-top: 14px;
   margin-top: 24px;
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--uws-text-muted);
 }
 
 .uws-spinner-pulse {
@@ -738,7 +836,7 @@
   width: 12px;
   height: 12px;
   border: 2px solid rgba(168, 85, 247, 0.3);
-  border-top-color: #a855f7;
+  border-top-color: var(--uws-accent-purple);
   border-radius: 50%;
   animation: uwsSpin 0.9s linear infinite;
   margin-right: 8px;
@@ -759,17 +857,17 @@
 }
 
 .uws-result-card {
-  background: #080a10;
-  border: 1px solid #232736;
+  background: var(--uws-box-bg);
+  border: 1px solid var(--uws-box-border);
   border-radius: 12px;
   padding: 16px 18px;
   font-size: 14px;
   line-height: 1.6;
-  color: #f1f5f9;
+  color: var(--uws-text-main);
 }
 
 .uws-result-card strong {
-  color: #ffffff;
+  color: var(--uws-text-main);
   font-weight: 700;
 }
 
@@ -779,24 +877,24 @@
   align-items: flex-start;
   gap: 12px;
   padding: 10px 14px;
-  background: #080a10;
-  border: 1px solid #232736;
+  background: var(--uws-box-bg);
+  border: 1px solid var(--uws-box-border);
   border-radius: 10px;
   font-size: 13.5px;
-  color: #f1f5f9;
+  color: var(--uws-text-main);
   cursor: pointer;
 }
 
 .uws-action-item input {
   margin-top: 3px;
-  accent-color: #a855f7;
+  accent-color: var(--uws-accent-purple);
   cursor: pointer;
 }
 
 /* Mindmap visualization */
 .uws-mindmap-container {
-  background: #080a10;
-  border: 1px solid #232736;
+  background: var(--uws-box-bg);
+  border: 1px solid var(--uws-box-border);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -823,8 +921,8 @@
 }
 
 .uws-mm-branch-card {
-  background: #11141e;
-  border: 1px solid #272d3e;
+  background: var(--uws-card-bg);
+  border: 1px solid var(--uws-card-border);
   border-radius: 10px;
   padding: 12px 14px;
   display: flex;
@@ -834,13 +932,13 @@
 
 .uws-mm-branch-title {
   font-weight: 700;
-  color: #c084fc;
+  color: var(--uws-accent-purple);
   font-size: 13px;
 }
 
 .uws-mm-leaf {
   font-size: 12.5px;
-  color: #cbd5e1;
+  color: var(--uws-text-muted);
 }
 
 /* Chat History Feed */
@@ -868,7 +966,7 @@
 
 .uws-chat-role {
   font-size: 11.5px;
-  color: #71717a;
+  color: var(--uws-subtext);
 }
 
 .uws-chat-bubble {
@@ -886,9 +984,9 @@
 }
 
 .uws-chat-bubble-row.ai .uws-chat-bubble {
-  background: #12141e;
-  border: 1px solid #232736;
-  color: #f1f5f9;
+  background: var(--uws-box-bg);
+  border: 1px solid var(--uws-box-border);
+  color: var(--uws-text-main);
   border-bottom-left-radius: 2px;
 }
 
@@ -896,15 +994,15 @@
    VOICE ASSISTANT SECTION (matches frame_0345s.jpg)
    ========================================================================== */
 .uws-voice-chat-box {
-  background: #080a10;
-  border: 1px solid #382963;
+  background: var(--uws-box-bg);
+  border: 1px solid var(--uws-box-border);
   border-radius: 14px;
   padding: 18px 20px;
   margin-bottom: 12px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow: 0 0 24px rgba(168, 85, 247, 0.15);
+  box-shadow: 0 0 24px rgba(168, 85, 247, 0.1);
   animation: uwsFadeIn 0.2s ease-out;
 }
 
@@ -918,12 +1016,12 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid rgba(168, 85, 247, 0.4);
+  background: var(--uws-accent-pill-bg);
+  border: 1px solid var(--uws-accent-pill-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #c084fc;
+  color: var(--uws-accent-pill-text);
   font-size: 17px;
 }
 
@@ -936,13 +1034,13 @@
 .uws-vc-title {
   font-size: 15px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--uws-text-main);
   margin: 0;
 }
 
 .uws-vc-subtitle {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--uws-text-muted);
   margin: 0;
 }
 
@@ -954,9 +1052,9 @@
 }
 
 .uws-vc-lang-select {
-  background: #11141e;
-  border: 1px solid #232736;
-  color: #cbd5e1;
+  background: var(--uws-btn-bg);
+  border: 1px solid var(--uws-btn-border);
+  color: var(--uws-btn-text);
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 12.5px;
@@ -964,9 +1062,9 @@
 }
 
 .uws-vc-end-btn {
-  background: #181924;
-  border: 1px solid #382963;
-  color: #e2e8f0;
+  background: var(--uws-btn-bg);
+  border: 1px solid var(--uws-btn-border);
+  color: var(--uws-btn-text);
   padding: 6px 14px;
   border-radius: 8px;
   font-size: 12.5px;
@@ -992,7 +1090,7 @@
 .uws-sw-bar {
   width: 3px;
   height: 100%;
-  background: #a855f7;
+  background: var(--uws-accent-purple);
   border-radius: 999px;
   animation: uwsWave 1.2s ease-in-out infinite;
 }
@@ -1011,7 +1109,7 @@
 
 .uws-vc-credit-note {
   font-size: 11.5px;
-  color: #71717a;
+  color: var(--uws-subtext);
   margin: 0;
 }
 
@@ -1032,9 +1130,9 @@
 }
 
 .uws-tag-chip {
-  background: #151620;
-  border: 1px solid #282c3c;
-  color: #94a3b8;
+  background: var(--uws-box-bg);
+  border: 1px solid var(--uws-box-border);
+  color: var(--uws-text-muted);
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 11.5px;
@@ -1044,25 +1142,25 @@
 }
 
 .uws-tag-chip:hover {
-  background: #1e2232;
-  color: #c084fc;
-  border-color: #8b5cf6;
+  background: var(--uws-btn-hover-bg);
+  color: var(--uws-accent-purple);
+  border-color: var(--uws-accent-purple);
 }
 
 .uws-input-form-box {
   display: flex;
   align-items: center;
-  background: #07090e;
-  border: 1px solid #382963;
+  background: var(--uws-input-bg);
+  border: 1px solid var(--uws-input-border);
   border-radius: 12px;
   padding: 6px 8px 6px 14px;
-  box-shadow: 0 0 14px rgba(168, 85, 247, 0.12);
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.08);
   transition: border-color 0.15s ease;
 }
 
 .uws-input-form-box:focus-within {
-  border-color: #a855f7;
-  box-shadow: 0 0 18px rgba(168, 85, 247, 0.25);
+  border-color: var(--uws-accent-purple);
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.22);
 }
 
 .uws-prompt-input {
@@ -1070,13 +1168,13 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #ffffff;
+  color: var(--uws-input-text);
   font-size: 14px;
   padding: 6px 0;
 }
 
 .uws-prompt-input::placeholder {
-  color: #64748b;
+  color: var(--uws-input-placeholder);
 }
 
 .uws-send-btn {
@@ -1104,13 +1202,13 @@
   align-items: center;
   justify-content: space-between;
   font-size: 12px;
-  color: #71717a;
+  color: var(--uws-subtext);
 }
 
 .uws-talk-ai-btn {
   background: transparent;
   border: none;
-  color: #cbd5e1;
+  color: var(--uws-text-muted);
   font-size: 12.5px;
   font-weight: 500;
   cursor: pointer;
@@ -1121,7 +1219,7 @@
 }
 
 .uws-talk-ai-btn:hover {
-  color: #c084fc;
+  color: var(--uws-accent-purple);
 }
 
 /* ==========================================================================
@@ -1134,7 +1232,7 @@
   gap: 7px;
   margin-top: 24px;
   font-size: 12px;
-  color: #52525b;
+  color: var(--uws-subtext);
   text-align: center;
 }
 

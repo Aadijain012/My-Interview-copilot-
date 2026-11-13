@@ -2358,21 +2358,20 @@ export default function Upload({
                         MP3, WAV, M4A, MP4, WEBM or MOV – up to 10 GB
                       </div>
 
-                      <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '12px' }}>
+                      <div className="upload-dropzone-actions-group">
                         <button
                           type="button"
                           className="upload-choose-file-btn upload-browse-cta-btn"
                           onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
                         >
-                          Browse files
+                          <i className="fa-solid fa-folder-open"></i> Browse files
                         </button>
                         <button
                           type="button"
-                          className="upload-choose-file-btn"
-                          style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981' }}
+                          className="upload-preview-demo-cta-btn"
                           onClick={(e) => { e.stopPropagation(); handleLaunchMockWorkspace(); }}
                         >
-                          <i className="fa-solid fa-bolt"></i> Preview Demo
+                          <i className="fa-solid fa-wand-magic-sparkles"></i> Preview Demo
                         </button>
                       </div>
 
@@ -2551,9 +2550,6 @@ export default function Upload({
                       role="button"
                       tabIndex={0}
                     >
-                      <div className="upload-box-check-badge">
-                        <i className="fa-solid fa-check"></i>
-                      </div>
                       <div className="upload-box-icon icon-chat">
                         <div className="upload-task-chat-graphic">
                           <div className="chat-bubble-filled">
@@ -2575,9 +2571,6 @@ export default function Upload({
                       role="button"
                       tabIndex={0}
                     >
-                      <div className="upload-box-check-badge">
-                        <i className="fa-solid fa-check"></i>
-                      </div>
                       <div className="upload-box-icon icon-transcript">
                         <i className="fa-regular fa-comments"></i>
                       </div>
@@ -2592,9 +2585,6 @@ export default function Upload({
                       role="button"
                       tabIndex={0}
                     >
-                      <div className="upload-box-check-badge">
-                        <i className="fa-solid fa-check"></i>
-                      </div>
                       <div className="upload-box-icon icon-translate">
                         <span className="upload-box-glyph">文A</span>
                       </div>
@@ -2611,9 +2601,6 @@ export default function Upload({
                       role="button"
                       tabIndex={0}
                     >
-                      <div className="upload-box-check-badge">
-                        <i className="fa-solid fa-check"></i>
-                      </div>
                       <div className="upload-box-icon icon-summary">
                         <div className="upload-task-summary-graphic">
                           <div className="summary-bars">

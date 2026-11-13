@@ -1,0 +1,1148 @@
+/* UploadWorkspaceView.css - Dedicated Pixel-Perfect Workspace View matching video flow */
+
+.upload-workspace-view-root {
+  width: 100%;
+  min-height: calc(100vh - 54px);
+  background-color: #000000 !important;
+  background-image: none !important;
+  color: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 16px 36px 36px 36px;
+  overflow-x: hidden;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .upload-workspace-view-root {
+    padding: 12px 14px 24px 14px;
+  }
+}
+
+/* ==========================================================================
+   WORKSPACE TOP HEADER BAR
+   ========================================================================== */
+.uws-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0 16px 0;
+  border-bottom: 1px solid #1a1e28;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.uws-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.uws-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #12141c;
+  border: 1px solid #272b38;
+  color: #cbd5e1;
+  padding: 7px 15px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  white-space: nowrap;
+}
+
+.uws-back-btn:hover {
+  background: #1b1e2a;
+  border-color: #a855f7;
+  color: #ffffff;
+  transform: translateX(-2px);
+}
+
+.uws-file-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c084fc;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.uws-file-meta-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.uws-file-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.uws-file-submeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #94a3b8;
+}
+
+.uws-ready-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: rgba(168, 85, 247, 0.14);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: #c084fc;
+}
+
+.uws-ready-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a855f7;
+  box-shadow: 0 0 6px #a855f7;
+}
+
+.uws-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.uws-badge-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #12141c;
+  border: 1px solid #272b38;
+  color: #cbd5e1;
+  padding: 7px 14px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.uws-badge-btn:hover {
+  border-color: #a855f7;
+  color: #ffffff;
+}
+
+.uws-count-badge {
+  background: #1e2230;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: #cbd5e1;
+}
+
+.uws-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #12141c;
+  border: 1px solid #272b38;
+  color: #cbd5e1;
+  padding: 7px 15px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.uws-action-btn:hover {
+  border-color: #a855f7;
+  color: #ffffff;
+}
+
+.uws-action-btn.primary {
+  background: #12141c;
+  color: #ffffff;
+  border-color: #272b38;
+}
+
+.uws-action-btn.primary:hover {
+  background: #1c1f2c;
+  border-color: #a855f7;
+}
+
+/* Accordion link below topbar */
+.uws-sub-accordion-btn {
+  background: transparent;
+  border: none;
+  color: #71717a;
+  font-size: 12.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: color 0.15s ease;
+}
+
+.uws-sub-accordion-btn:hover {
+  color: #a1a1aa;
+}
+
+.uws-file-details-panel {
+  background: #0d0f16;
+  border: 1px solid #1f2330;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  font-size: 12.5px;
+  color: #94a3b8;
+  animation: uwsFadeIn 0.2s ease-out;
+}
+
+.uws-file-details-panel strong {
+  color: #f1f5f9;
+}
+
+/* ==========================================================================
+   2-COLUMN WORKSPACE GRID
+   ========================================================================== */
+.uws-workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  flex: 1;
+  align-items: stretch;
+  min-height: 640px;
+}
+
+@media (max-width: 1080px) {
+  .uws-workspace-grid {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+}
+
+/* Card Styling for Both Columns */
+.uws-card {
+  background: #0d0f17;
+  border: 1px solid #1e2230;
+  border-radius: 16px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   LEFT COLUMN: TRANSCRIPT PANEL
+   ========================================================================== */
+.uws-card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.uws-panel-h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.uws-header-copy-btn {
+  background: transparent;
+  border: none;
+  color: #a1a1aa;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s ease;
+}
+
+.uws-header-copy-btn:hover {
+  color: #ffffff;
+}
+
+/* Language Selection Row */
+.uws-lang-row {
+  margin-bottom: 16px;
+}
+
+.uws-lang-label {
+  font-size: 12.5px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.uws-lang-dropdown-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #07090e;
+  border: 1px solid #232736;
+  border-radius: 9px;
+  padding: 10px 14px;
+  color: #ffffff;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.uws-lang-dropdown-box:hover {
+  border-color: #383e54;
+}
+
+.uws-lang-dropdown-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.uws-lang-check-pill {
+  font-size: 12px;
+  color: #a855f7;
+  font-weight: 600;
+}
+
+.uws-lang-subtext {
+  font-size: 12px;
+  color: #71717a;
+  margin-top: 6px;
+}
+
+/* Audio Player Bar */
+.uws-audio-player {
+  background: #080a10;
+  border: 1px solid #1e2230;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.uws-saved-audio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #94a3b8;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.uws-play-pause-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: none;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.uws-play-pause-btn:hover {
+  transform: scale(1.06);
+  background: #f1f5f9;
+}
+
+.uws-time-display {
+  font-size: 12.5px;
+  color: #cbd5e1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.uws-scrubber-track {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.uws-scrubber-input {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: #272b38;
+  outline: none;
+  cursor: pointer;
+}
+
+.uws-scrubber-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+}
+
+.uws-player-icon-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px;
+  transition: color 0.15s ease;
+}
+
+.uws-player-icon-btn:hover {
+  color: #ffffff;
+}
+
+/* Transcript Utterances List */
+.uws-utterances-scroller {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 440px;
+  padding-right: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.uws-utterance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.uws-speaker-time-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: #a855f7;
+  font-weight: 600;
+}
+
+.uws-utt-p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #ffffff;
+}
+
+/* Left Card Footer */
+.uws-card-footer {
+  border-top: 1px solid #1e2230;
+  padding-top: 14px;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.uws-preserved-text {
+  color: #71717a;
+}
+
+.uws-settings-link {
+  background: transparent;
+  border: none;
+  color: #a855f7;
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.uws-settings-link:hover {
+  text-decoration: underline;
+}
+
+/* Help link below left card */
+.uws-help-btn {
+  background: transparent;
+  border: none;
+  color: #71717a;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 10px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.uws-help-btn:hover {
+  color: #a1a1aa;
+}
+
+/* ==========================================================================
+   RIGHT COLUMN: ASK ANYTHING PANEL
+   ========================================================================== */
+.uws-ask-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.uws-ask-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.uws-based-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #181924;
+  border: 1px solid #272a38;
+  color: #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.uws-ask-subhead-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.uws-new-q-link {
+  background: transparent;
+  border: none;
+  color: #a855f7;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.uws-new-q-link:hover {
+  text-decoration: underline;
+}
+
+/* Center Stage inside Ask Panel */
+.uws-ask-body-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 24px 12px;
+}
+
+.uws-hero-title {
+  font-size: 21px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.3px;
+}
+
+.uws-hero-subtitle {
+  font-size: 13.5px;
+  color: #94a3b8;
+  margin: 0 0 28px 0;
+}
+
+/* Quick Tools Grid / Chips */
+.uws-tools-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.uws-tool-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #151620;
+  border: 1px solid #282c3c;
+  color: #f1f5f9;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.uws-tool-chip:hover {
+  background: #1f2232;
+  border-color: #8b5cf6;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Tool Processing State Box (matches frame_0360s.jpg) */
+.uws-tool-process-box {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
+  animation: uwsFadeIn 0.25s ease-out;
+}
+
+.uws-tool-subtop-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.uws-tool-name-h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.uws-change-tool-btn {
+  background: #151620;
+  border: 1px solid #282c3c;
+  color: #cbd5e1;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.uws-change-tool-btn:hover {
+  background: #1e2130;
+  color: #ffffff;
+}
+
+.uws-doc-icon-svg {
+  width: 64px;
+  height: 64px;
+  stroke: #a855f7;
+  stroke-width: 1.5;
+  margin-bottom: 16px;
+}
+
+.uws-process-h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0 0 16px 0;
+}
+
+.uws-stepper-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: #71717a;
+  margin-bottom: 14px;
+}
+
+.uws-stepper-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.uws-stepper-step.active {
+  color: #c084fc;
+  font-weight: 600;
+}
+
+.uws-step-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #71717a;
+}
+
+.uws-stepper-step.active .uws-step-dot {
+  background: #a855f7;
+  box-shadow: 0 0 8px #a855f7;
+}
+
+.uws-process-leave-note {
+  font-size: 12.5px;
+  color: #71717a;
+  margin: 0;
+}
+
+.uws-queued-bottom-status {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #1e2230;
+  padding-top: 14px;
+  margin-top: 24px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.uws-spinner-pulse {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(168, 85, 247, 0.3);
+  border-top-color: #a855f7;
+  border-radius: 50%;
+  animation: uwsSpin 0.9s linear infinite;
+  margin-right: 8px;
+}
+
+/* Tool Result View (Ready State) */
+.uws-tool-result-scroll {
+  width: 100%;
+  flex: 1;
+  overflow-y: auto;
+  max-height: 420px;
+  padding-right: 6px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: uwsFadeIn 0.25s ease-out;
+}
+
+.uws-result-card {
+  background: #080a10;
+  border: 1px solid #232736;
+  border-radius: 12px;
+  padding: 16px 18px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #f1f5f9;
+}
+
+.uws-result-card strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Action items list */
+.uws-action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #080a10;
+  border: 1px solid #232736;
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: #f1f5f9;
+  cursor: pointer;
+}
+
+.uws-action-item input {
+  margin-top: 3px;
+  accent-color: #a855f7;
+  cursor: pointer;
+}
+
+/* Mindmap visualization */
+.uws-mindmap-container {
+  background: #080a10;
+  border: 1px solid #232736;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.uws-mm-root {
+  display: inline-flex;
+  align-items: center;
+  background: #7c3aed;
+  color: #ffffff;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 13.5px;
+  align-self: flex-start;
+}
+
+.uws-mm-branches {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.uws-mm-branch-card {
+  background: #11141e;
+  border: 1px solid #272d3e;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.uws-mm-branch-title {
+  font-weight: 700;
+  color: #c084fc;
+  font-size: 13px;
+}
+
+.uws-mm-leaf {
+  font-size: 12.5px;
+  color: #cbd5e1;
+}
+
+/* Chat History Feed */
+.uws-chat-feed {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.uws-chat-bubble-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.uws-chat-bubble-row.user {
+  align-items: flex-end;
+}
+
+.uws-chat-bubble-row.ai {
+  align-items: flex-start;
+}
+
+.uws-chat-role {
+  font-size: 11.5px;
+  color: #71717a;
+}
+
+.uws-chat-bubble {
+  max-width: 85%;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.uws-chat-bubble-row.user .uws-chat-bubble {
+  background: #7c3aed;
+  color: #ffffff;
+  border-bottom-right-radius: 2px;
+}
+
+.uws-chat-bubble-row.ai .uws-chat-bubble {
+  background: #12141e;
+  border: 1px solid #232736;
+  color: #f1f5f9;
+  border-bottom-left-radius: 2px;
+}
+
+/* ==========================================================================
+   VOICE ASSISTANT SECTION (matches frame_0345s.jpg)
+   ========================================================================== */
+.uws-voice-chat-box {
+  background: #080a10;
+  border: 1px solid #382963;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 0 24px rgba(168, 85, 247, 0.15);
+  animation: uwsFadeIn 0.2s ease-out;
+}
+
+.uws-vc-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.uws-vc-mic-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c084fc;
+  font-size: 17px;
+}
+
+.uws-vc-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.uws-vc-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.uws-vc-subtitle {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.uws-vc-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.uws-vc-lang-select {
+  background: #11141e;
+  border: 1px solid #232736;
+  color: #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  outline: none;
+}
+
+.uws-vc-end-btn {
+  background: #181924;
+  border: 1px solid #382963;
+  color: #e2e8f0;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.uws-vc-end-btn:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+/* Sound wave animation */
+.uws-soundwave-bars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+}
+
+.uws-sw-bar {
+  width: 3px;
+  height: 100%;
+  background: #a855f7;
+  border-radius: 999px;
+  animation: uwsWave 1.2s ease-in-out infinite;
+}
+
+.uws-sw-bar:nth-child(2) { animation-delay: 0.15s; }
+.uws-sw-bar:nth-child(3) { animation-delay: 0.3s; }
+.uws-sw-bar:nth-child(4) { animation-delay: 0.45s; }
+.uws-sw-bar:nth-child(5) { animation-delay: 0.6s; }
+.uws-sw-bar:nth-child(6) { animation-delay: 0.75s; }
+.uws-sw-bar:nth-child(7) { animation-delay: 0.9s; }
+
+@keyframes uwsWave {
+  0%, 100% { height: 6px; }
+  50% { height: 22px; }
+}
+
+.uws-vc-credit-note {
+  font-size: 11.5px;
+  color: #71717a;
+  margin: 0;
+}
+
+/* ==========================================================================
+   BOTTOM PROMPT / CHAT BAR (matches frame_0330s.jpg)
+   ========================================================================== */
+.uws-bottom-bar {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.uws-shortcut-tags-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.uws-tag-chip {
+  background: #151620;
+  border: 1px solid #282c3c;
+  color: #94a3b8;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-family: monospace;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.uws-tag-chip:hover {
+  background: #1e2232;
+  color: #c084fc;
+  border-color: #8b5cf6;
+}
+
+.uws-input-form-box {
+  display: flex;
+  align-items: center;
+  background: #07090e;
+  border: 1px solid #382963;
+  border-radius: 12px;
+  padding: 6px 8px 6px 14px;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.12);
+  transition: border-color 0.15s ease;
+}
+
+.uws-input-form-box:focus-within {
+  border-color: #a855f7;
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.25);
+}
+
+.uws-prompt-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 14px;
+  padding: 6px 0;
+}
+
+.uws-prompt-input::placeholder {
+  color: #64748b;
+}
+
+.uws-send-btn {
+  background: #7c3aed;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.uws-send-btn:hover {
+  background: #6d28d9;
+  transform: translateY(-1px);
+}
+
+.uws-prompt-subcontrols {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #71717a;
+}
+
+.uws-talk-ai-btn {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s ease;
+}
+
+.uws-talk-ai-btn:hover {
+  color: #c084fc;
+}
+
+/* ==========================================================================
+   GLOBAL BOTTOM PRIVACY NOTE
+   ========================================================================== */
+.uws-bottom-privacy-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 24px;
+  font-size: 12px;
+  color: #52525b;
+  text-align: center;
+}
+
+@keyframes uwsFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes uwsSpin {
+  100% { transform: rotate(360deg); }
+}

@@ -5,46 +5,50 @@
 
 :root {
   --nt-font-serif: 'Lora', 'Merriweather', Georgia, 'Times New Roman', serif;
-  --nt-topbar-bg: #000000;
-  --nt-page-bg: #000000;
-  --nt-card-bg: #0a0c10;
-  --nt-card-border: #1a1e26;
-  --nt-field-bg: #06080c;
-  --nt-field-border: #222733;
+  --nt-topbar-bg: #15222e;
+  --nt-page-bg: #1a2936;
+  --nt-topcard-bg: #dbe6ef;
+  --nt-topcard-border: #c8d8e5;
+  --nt-topcard-text: #0f172a;
+  --nt-topcard-sub: #475569;
+  --nt-leftcard-bg: #213243;
+  --nt-leftcard-border: #2e4359;
+  --nt-rightcard-bg: #faf6ed;
+  --nt-rightcard-border: #e7dfd0;
+  --nt-field-bg: rgba(15, 23, 42, 0.45);
+  --nt-field-border: #33475c;
   --nt-text-main: #f8fafc;
   --nt-text-muted: #94a3b8;
-  --nt-text-label: #cbd5e1;
-  --nt-cyan: #10b981;
-  --nt-cyan-hover: #34d399;
-  --nt-cyan-dark: rgba(16, 185, 129, 0.18);
-  --nt-emerald: #10b981;
-  --nt-emerald-glow: rgba(16, 185, 129, 0.35);
+  --nt-text-label: #8da0b5;
+  --nt-amber-btn: #c86a32;
+  --nt-amber-btn-hover: #b45309;
 }
 
-/* Light Theme Variables - Warm Cream & Deep Navy Aesthetic */
+/* Theme Configuration (Deep Slate Navy, Ice Blue & Amber Palette from Image 2) */
+.notetaker-root,
 .notetaker-root.light-theme,
-body.light-theme .notetaker-root {
-  --nt-topbar-bg: #f5f1ea;
-  --nt-page-bg: #f5f1ea;
-  --nt-card-bg: #faf7f0;
-  --nt-card-border: #e7e2d7;
-  --nt-field-bg: #faf7f0;
-  --nt-field-border: #ded8cb;
-  --nt-text-main: #18283f;
-  --nt-text-muted: #64748b;
-  --nt-text-label: #64748b;
-  --nt-cyan: #18283f;
-  --nt-cyan-hover: #223755;
-  --nt-cyan-dark: #e8e2d5;
-  --nt-emerald: #18283f;
-  --nt-emerald-glow: rgba(24, 40, 63, 0.2);
+body.light-theme .notetaker-root,
+.notetaker-root.dark-theme,
+body.dark-theme .notetaker-root {
+  --nt-topbar-bg: #15222e;
+  --nt-page-bg: #1a2936;
+  --nt-topcard-bg: #dbe6ef;
+  --nt-topcard-border: #c8d8e5;
+  --nt-topcard-text: #0f172a;
+  --nt-topcard-sub: #475569;
+  --nt-leftcard-bg: #213243;
+  --nt-leftcard-border: #2e4359;
+  --nt-rightcard-bg: #faf6ed;
+  --nt-rightcard-border: #e7dfd0;
+  --nt-text-main: #f8fafc;
+  --nt-text-muted: #94a3b8;
 }
 
 .notetaker-root {
   width: 100% !important;
   min-height: 100vh !important;
-  background-color: var(--nt-page-bg) !important;
-  color: var(--nt-text-main) !important;
+  background-color: #1a2936 !important;
+  color: #f8fafc !important;
   display: flex !important;
   flex-direction: column !important;
   font-family: var(--nt-font-serif) !important;
@@ -56,10 +60,12 @@ body.light-theme .notetaker-root {
 
 .notetaker-root.dark-theme,
 body.dark-theme .notetaker-root,
-html.dark-theme .notetaker-root {
-  background: #000000 !important;
-  background-color: #000000 !important;
-  background-image: none !important;
+html.dark-theme .notetaker-root,
+.notetaker-root.light-theme,
+body.light-theme .notetaker-root,
+html.light-theme .notetaker-root {
+  background: #1a2936 !important;
+  background-color: #1a2936 !important;
   color: #f8fafc !important;
 }
 
@@ -186,20 +192,22 @@ body.dark-theme .notetaker-top-navbar,
    SMART NOTETAKER HERO CARD (BANNER + COLLAPSIBLE SETUP PILLS ROW)
    ========================================================================== */
 .notetaker-hero-card {
-  background: #faf7f0;
-  border: 1.5px solid #e7e2d7;
-  border-radius: 20px;
+  background: #dbe6ef !important;
+  border: 1px solid #c8d8e5 !important;
+  border-radius: 18px;
   overflow: hidden;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 12px rgba(24, 40, 63, 0.03);
+  margin-bottom: 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   transition: all 0.25s ease;
 }
 
 body.dark-theme .notetaker-hero-card,
-.notetaker-root.dark-theme .notetaker-hero-card {
-  background: #0a0c10 !important;
-  border: 1px solid #1a1e26 !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6) !important;
+.notetaker-root.dark-theme .notetaker-hero-card,
+body.light-theme .notetaker-hero-card,
+.notetaker-root.light-theme .notetaker-hero-card {
+  background: #dbe6ef !important;
+  border: 1px solid #c8d8e5 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .notetaker-banner-main {
@@ -207,8 +215,8 @@ body.dark-theme .notetaker-hero-card,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
-  min-height: 80px;
+  padding: 14px 22px;
+  min-height: 72px;
   box-sizing: border-box;
 }
 
@@ -224,20 +232,20 @@ body.dark-theme .notetaker-hero-card,
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: #18283f;
-  color: #ffffff;
-  font-size: 19px;
-  box-shadow: 0 4px 14px rgba(24, 40, 63, 0.2);
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: #1b2936 !important;
+  color: #ffffff !important;
+  font-size: 18px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
   flex-shrink: 0;
 }
 
 body.dark-theme .notetaker-banner-icon-badge,
 .notetaker-root.dark-theme .notetaker-banner-icon-badge {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.35);
+  background: #1b2936 !important;
+  color: #ffffff !important;
 }
 
 .notetaker-banner-text {
@@ -246,31 +254,31 @@ body.dark-theme .notetaker-banner-icon-badge,
 }
 
 .notetaker-banner-title {
-  margin: 0 0 3px 0;
-  font-size: 18.5px;
+  margin: 0 0 2px 0;
+  font-size: 18px;
   font-weight: 700;
-  color: #18283f;
+  color: #0f172a !important;
   letter-spacing: -0.2px;
   font-family: var(--nt-font-serif);
 }
 
 body.dark-theme .notetaker-banner-title,
 .notetaker-root.dark-theme .notetaker-banner-title {
-  color: #f8fafc !important;
+  color: #0f172a !important;
 }
 
 .notetaker-banner-subtitle {
   margin: 0;
   font-size: 12.5px;
-  color: #64748b;
-  line-height: 1.45;
+  color: #475569 !important;
+  line-height: 1.4;
   font-weight: 400;
   font-family: var(--nt-font-serif);
 }
 
 body.dark-theme .notetaker-banner-subtitle,
 .notetaker-root.dark-theme .notetaker-banner-subtitle {
-  color: #94a3b8 !important;
+  color: #475569 !important;
 }
 
 .notetaker-banner-center-actions {
@@ -294,22 +302,22 @@ body.dark-theme .notetaker-banner-subtitle,
 .notetaker-setup-toggle-label {
   font-size: 13px;
   font-weight: 600;
-  color: #18283f;
+  color: #0f172a !important;
   font-family: var(--nt-font-serif);
 }
 
 body.dark-theme .notetaker-setup-toggle-label,
 .notetaker-root.dark-theme .notetaker-setup-toggle-label {
-  color: #cbd5e1;
+  color: #0f172a !important;
 }
 
 .notetaker-switch-toggle {
   position: relative;
-  width: 42px;
-  height: 24px;
+  width: 40px;
+  height: 22px;
   border-radius: 999px;
-  background: #d4cfc5;
-  transition: background-color 0.25s ease;
+  background: #94a3b8;
+  transition: background-color 0.22s ease;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -318,25 +326,25 @@ body.dark-theme .notetaker-setup-toggle-label,
 }
 
 .notetaker-switch-toggle.on {
-  background: #18283f;
+  background: #1b2936 !important;
 }
 
 body.dark-theme .notetaker-switch-toggle {
-  background: #272d3b;
+  background: #64748b;
 }
 
 body.dark-theme .notetaker-switch-toggle.on {
-  background: #7c3aed;
+  background: #1b2936 !important;
 }
 
 .notetaker-switch-knob {
   display: block;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   transform: translateX(0);
 }
 
@@ -373,142 +381,11 @@ body.dark-theme .notetaker-switch-toggle.on {
 }
 
 /* ==========================================================================
-   SETUP PILLS ROW (SPEAKING IN, TRANSLATE TO, RECORDING MODE)
-   ========================================================================== */
-.notetaker-setup-pills-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
-  padding: 14px 24px 18px 24px;
-  border-top: 1px solid #e7e2d7;
-  box-sizing: border-box;
-}
-
-body.dark-theme .notetaker-setup-pills-row,
-.notetaker-root.dark-theme .notetaker-setup-pills-row {
-  border-top-color: rgba(255, 255, 255, 0.08);
-}
-
-.notetaker-setup-pill-col {
-  display: flex;
-  flex-direction: column;
-}
-
-.notetaker-pill-label {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.7px;
-  text-transform: uppercase;
-  color: #64748b;
-  margin-bottom: 6px;
-  font-family: var(--nt-font-serif);
-}
-
-body.dark-theme .notetaker-pill-label,
-.notetaker-root.dark-theme .notetaker-pill-label {
-  color: #94a3b8;
-}
-
-.notetaker-select-pill-box {
-  position: relative;
-  display: flex;
-  align-items: center;
-  height: 42px;
-  border-radius: 12px;
-  background: #faf7f0;
-  border: 1.5px solid #ded8cb;
-  padding: 0 14px;
-  box-sizing: border-box;
-  transition: all 0.16s ease;
-}
-
-.notetaker-select-pill-box:hover {
-  border-color: #18283f;
-}
-
-body.dark-theme .notetaker-select-pill-box,
-.notetaker-root.dark-theme .notetaker-select-pill-box {
-  background: #06080c !important;
-  border-color: #1a1e26 !important;
-}
-
-body.dark-theme .notetaker-select-pill-box:hover,
-.notetaker-root.dark-theme .notetaker-select-pill-box:hover {
-  border-color: rgba(139, 92, 246, 0.4);
-}
-
-.notetaker-pill-leading-icon {
-  font-size: 15px;
-  color: #18283f;
-  margin-right: 10px;
-  flex-shrink: 0;
-}
-
-body.dark-theme .notetaker-pill-leading-icon,
-.notetaker-root.dark-theme .notetaker-pill-leading-icon {
-  color: #7c3aed;
-}
-
-.notetaker-pill-leading-icon.clickable {
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.notetaker-pill-leading-icon.clickable:hover {
-  transform: rotate(180deg);
-  color: #18283f;
-}
-
-body.dark-theme .notetaker-pill-leading-icon.clickable:hover,
-.notetaker-root.dark-theme .notetaker-pill-leading-icon.clickable:hover {
-  color: #c4b5fd;
-}
-
-.notetaker-pill-select {
-  flex: 1;
-  border: none;
-  background: transparent;
-  outline: none;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #18283f;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  font-family: var(--nt-font-serif);
-  padding: 0;
-  margin: 0;
-}
-
-body.dark-theme .notetaker-pill-select,
-.notetaker-root.dark-theme .notetaker-pill-select {
-  color: #f1f5f9;
-}
-
-.notetaker-pill-select option {
-  background: #ffffff;
-  color: #0f172a;
-}
-
-body.dark-theme .notetaker-pill-select option,
-.notetaker-root.dark-theme .notetaker-pill-select option {
-  background: #0a0c10 !important;
-  color: #f1f5f9 !important;
-}
-
-.notetaker-pill-chevron {
-  font-size: 10px;
-  color: #94a3b8;
-  pointer-events: none;
-  margin-left: 6px;
-}
-
-/* ==========================================================================
-   MAIN TWO-COLUMN SPLIT (LEFT: VOICE RECORDER CARD · RIGHT: WORKSPACE CARD)
+   MAIN TWO-COLUMN SPLIT (LEFT: VOICE RECORDER & SETUP · RIGHT: WORKSPACE)
    ========================================================================== */
 .notetaker-main-split {
   display: grid;
-  grid-template-columns: 410px 1fr;
+  grid-template-columns: 390px 1fr;
   gap: 20px;
   align-items: stretch;
   flex: 1;
@@ -523,16 +400,17 @@ body.dark-theme .notetaker-pill-select option,
 }
 
 /* ==========================================================================
-   LEFT CARD: VOICE RECORDER PANEL
+   LEFT CARD: VOICE RECORDER & SETUP STACK (Image 1 Layout + Image 2 Colors)
    ========================================================================== */
 .notetaker-recorder-card {
-  background: #18283f;
+  background: #213243 !important;
+  border: 1px solid #2e4359 !important;
   border-radius: 22px;
-  padding: 44px 28px 38px 28px;
-  box-shadow: 0 8px 30px rgba(24, 40, 63, 0.18);
+  padding: 24px 22px 24px 22px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   text-align: center;
   color: #ffffff;
@@ -543,192 +421,273 @@ body.dark-theme .notetaker-pill-select option,
 }
 
 body.dark-theme .notetaker-recorder-card,
-.notetaker-root.dark-theme .notetaker-recorder-card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.7);
+.notetaker-root.dark-theme .notetaker-recorder-card,
+body.light-theme .notetaker-recorder-card,
+.notetaker-root.light-theme .notetaker-recorder-card {
+  background: #213243 !important;
+  border: 1px solid #2e4359 !important;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.3);
 }
 
 .notetaker-recorder-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
-  max-width: 330px;
+  height: 100%;
+  min-height: 470px;
 }
 
-/* Concentric Ripple Cluster */
-.notetaker-mic-ripple-cluster {
+/* Setup Dropdowns Stack inside Left Card */
+.notetaker-card-setup-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 16px;
+  animation: notetakerFadeIn 0.2s ease;
+}
+
+.notetaker-card-setup-stack .notetaker-setup-pill-col {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+}
+
+.notetaker-card-setup-stack .notetaker-pill-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #8da0b5 !important;
+  margin-bottom: 5px;
+  font-family: var(--nt-font-serif);
+}
+
+.notetaker-card-setup-stack .notetaker-select-pill-box {
   position: relative;
-  width: 150px;
-  height: 150px;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.55) !important;
+  border: 1px solid #33475c !important;
+  padding: 0 14px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.notetaker-card-setup-stack .notetaker-select-pill-box:hover {
+  border-color: #4f6b89 !important;
+}
+
+.notetaker-card-setup-stack .notetaker-pill-leading-icon {
+  font-size: 14px;
+  color: #8da0b5 !important;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.notetaker-card-setup-stack .notetaker-pill-leading-icon.clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.notetaker-card-setup-stack .notetaker-pill-leading-icon.clickable:hover {
+  transform: rotate(180deg);
+  color: #f59e0b !important;
+}
+
+.notetaker-card-setup-stack .notetaker-pill-select {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #f8fafc !important;
+  cursor: pointer;
+  font-family: var(--nt-font-serif);
+  padding: 0;
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.notetaker-card-setup-stack .notetaker-pill-select option {
+  background: #1b2936 !important;
+  color: #f8fafc !important;
+}
+
+.notetaker-card-setup-stack .notetaker-pill-chevron {
+  font-size: 10px;
+  color: #8da0b5 !important;
+  pointer-events: none;
+  margin-left: 6px;
+}
+
+/* Center Flowing Wave Curves & Circular Mic Badge (from Image 1 Layout + Image 2 Colors) */
+.notetaker-flowing-mic-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: auto 0;
+  padding: 16px 0;
+}
+
+.notetaker-flowing-curves-container {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  height: 74px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 22px;
 }
 
-.ripple-ring {
+.notetaker-flowing-wave-svg {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  transition: all 0.3s ease;
 }
 
-.ripple-ring.ring-4 {
-  width: 150px;
-  height: 150px;
-  background: rgba(255, 255, 255, 0.035);
+.notetaker-flowing-wave-svg .wave-line {
+  stroke-linecap: round;
 }
 
-.ripple-ring.ring-3 {
-  width: 122px;
-  height: 122px;
-  background: rgba(255, 255, 255, 0.055);
+.notetaker-flowing-wave-svg .wl-1 {
+  stroke: rgba(200, 106, 50, 0.85);
+  stroke-width: 1.6;
 }
 
-.ripple-ring.ring-2 {
-  width: 96px;
-  height: 96px;
-  background: rgba(255, 255, 255, 0.08);
+.notetaker-flowing-wave-svg .wl-2 {
+  stroke: rgba(245, 158, 11, 0.7);
+  stroke-width: 1.3;
 }
 
-.ripple-ring.ring-1 {
-  width: 74px;
-  height: 74px;
-  background: rgba(255, 255, 255, 0.12);
+.notetaker-flowing-wave-svg .wl-3 {
+  stroke: rgba(200, 106, 50, 0.45);
+  stroke-width: 1.2;
 }
 
-.notetaker-mic-ripple-cluster.is-recording .ripple-ring.ring-4 {
-  animation: ripplePulse 2s infinite ease-out;
-}
-.notetaker-mic-ripple-cluster.is-recording .ripple-ring.ring-3 {
-  animation: ripplePulse 2s infinite ease-out 0.4s;
-}
-.notetaker-mic-ripple-cluster.is-recording .ripple-ring.ring-2 {
-  animation: ripplePulse 2s infinite ease-out 0.8s;
+.notetaker-flowing-wave-svg .wl-4 {
+  stroke: rgba(245, 158, 11, 0.35);
+  stroke-width: 1.0;
 }
 
-@keyframes ripplePulse {
-  0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.3; }
-  50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.8; }
-  100% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.3; }
-}
-
-.ripple-center-circle {
+.notetaker-flowing-mic-badge {
   position: relative;
   z-index: 2;
-  width: 54px;
-  height: 54px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
-  background: #faf7f0;
-  color: #18283f;
+  background: #253749;
+  border: 2px solid rgba(245, 158, 11, 0.35);
+  color: #f59e0b;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  cursor: pointer;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.ripple-center-circle:hover {
-  transform: scale(1.06);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
-}
-
-.notetaker-recorder-title {
   font-size: 22px;
-  font-weight: 700;
-  color: #faf7f0;
-  margin: 0 0 10px 0;
-  font-family: var(--nt-font-serif);
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.notetaker-recorder-desc {
-  font-size: 13px;
-  line-height: 1.5;
-  color: #94a3b8;
-  margin: 0 0 28px 0;
-  max-width: 280px;
-  font-family: var(--nt-font-serif);
+.notetaker-flowing-mic-badge:hover {
+  transform: scale(1.08);
+  border-color: rgba(245, 158, 11, 0.75);
+  box-shadow: 0 6px 24px rgba(245, 158, 11, 0.3);
 }
 
-/* Soundwave Graphic (31 graduated vertical bars) */
-.notetaker-soundwave-graphic {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2.5px;
-  height: 38px;
-  margin-bottom: 28px;
-  width: 100%;
+.notetaker-flowing-mic-section.is-recording .notetaker-flowing-mic-badge {
+  background: #c86a32;
+  color: #ffffff;
+  border-color: #f59e0b;
+  animation: flowingBadgePulse 1.8s infinite ease-in-out;
 }
 
-.notetaker-soundwave-graphic .wave-bar {
-  display: inline-block;
-  width: 2.5px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.45);
-  transition: height 0.15s ease, background-color 0.15s ease;
+@keyframes flowingBadgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200, 106, 50, 0.55); }
+  50% { box-shadow: 0 0 0 14px rgba(200, 106, 50, 0); }
 }
 
-.notetaker-soundwave-graphic .wave-bar:nth-child(n+10):nth-child(-n+22) {
-  background: rgba(255, 255, 255, 0.95);
-}
-
-.notetaker-soundwave-graphic.animating .wave-bar {
-  animation: waveBarBounce 1.2s infinite ease-in-out;
-}
-
-@keyframes waveBarBounce {
-  0%, 100% { transform: scaleY(0.7); }
-  50% { transform: scaleY(1.4); }
-}
-
-/* Start Recording Pill Button */
-.notetaker-recorder-start-pill {
+.notetaker-card-live-rec-timer {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 28px;
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 4px 14px;
   border-radius: 999px;
-  background: #faf7f0;
-  color: #18283f;
-  font-size: 14px;
+}
+
+/* Start Recording Pill Button (Warm Amber/Orange from Image 2) */
+.notetaker-recorder-actions {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.notetaker-recorder-start-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 48px;
+  border-radius: 999px;
+  background: #c86a32 !important;
+  color: #ffffff !important;
+  font-size: 15px;
   font-weight: 700;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 4px 18px rgba(200, 106, 50, 0.35);
+  transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
   font-family: var(--nt-font-serif);
 }
 
 .notetaker-recorder-start-pill:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.32);
+  background: #b45309 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(200, 106, 50, 0.5);
+}
+
+.notetaker-recorder-start-pill:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .notetaker-recorder-live-controls {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
 }
 
 .notetaker-recorder-pause-btn {
+  flex: 1;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 10px 20px;
+  padding: 12px 18px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   color: #ffffff;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -736,19 +695,21 @@ body.dark-theme .notetaker-recorder-card,
 }
 
 .notetaker-recorder-pause-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .notetaker-recorder-stop-pill {
+  flex: 1;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 10px 22px;
+  padding: 12px 20px;
   border-radius: 999px;
   background: #ef4444;
   border: none;
   color: #ffffff;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -762,27 +723,31 @@ body.dark-theme .notetaker-recorder-card,
 }
 
 /* ==========================================================================
-   RIGHT CARD: WORKSPACE CARD & TABS BAR
+   RIGHT CARD: WORKSPACE CARD & TABS BAR (Image 1 Layout + Image 2 Colors)
    ========================================================================== */
 .notetaker-workspace-card {
-  background: #faf7f0;
-  border: 1.5px solid #e7e2d7;
+  background: #faf6ed !important;
+  border: 1px solid #e7dfd0 !important;
   border-radius: 22px;
-  padding: 18px 24px 20px 24px;
+  padding: 18px 24px 16px 24px;
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 520px;
-  box-shadow: 0 2px 14px rgba(24, 40, 63, 0.03);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   position: relative;
   box-sizing: border-box;
+  color: #0f172a;
 }
 
 body.dark-theme .notetaker-workspace-card,
-.notetaker-root.dark-theme .notetaker-workspace-card {
-  background: #0a0c10 !important;
-  border: 1px solid #1a1e26 !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8) !important;
+.notetaker-root.dark-theme .notetaker-workspace-card,
+body.light-theme .notetaker-workspace-card,
+.notetaker-root.light-theme .notetaker-workspace-card {
+  background: #faf6ed !important;
+  border: 1px solid #e7dfd0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  color: #0f172a !important;
 }
 
 .notetaker-workspace-tabs-bar {
@@ -790,13 +755,16 @@ body.dark-theme .notetaker-workspace-card,
   align-items: center;
   justify-content: space-between;
   padding-bottom: 14px;
-  border-bottom: 1px solid #e7e2d7;
+  border-bottom: 1px solid #eae2d3;
   box-sizing: border-box;
+  width: 100%;
 }
 
 body.dark-theme .notetaker-workspace-tabs-bar,
-.notetaker-root.dark-theme .notetaker-workspace-tabs-bar {
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+.notetaker-root.dark-theme .notetaker-workspace-tabs-bar,
+body.light-theme .notetaker-workspace-tabs-bar,
+.notetaker-root.light-theme .notetaker-workspace-tabs-bar {
+  border-bottom-color: #eae2d3 !important;
 }
 
 .notetaker-tabs-left {
@@ -809,12 +777,12 @@ body.dark-theme .notetaker-workspace-tabs-bar,
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 18px;
+  padding: 7px 18px;
   border-radius: 9999px;
   background: transparent;
   border: none;
   color: #64748b;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.16s ease;
@@ -822,31 +790,37 @@ body.dark-theme .notetaker-workspace-tabs-bar,
 }
 
 .notetaker-tab-item:hover {
-  color: #18283f;
-  background: rgba(24, 40, 63, 0.05);
+  color: #1a2936;
+  background: rgba(26, 41, 54, 0.05);
 }
 
 .notetaker-tab-item.active {
-  background: #e5dec9;
-  color: #18283f;
+  background: #dce5ee !important;
+  color: #1a2936 !important;
   font-weight: 700;
 }
 
 body.dark-theme .notetaker-tab-item,
-.notetaker-root.dark-theme .notetaker-tab-item {
-  color: #94a3b8;
+.notetaker-root.dark-theme .notetaker-tab-item,
+body.light-theme .notetaker-tab-item,
+.notetaker-root.light-theme .notetaker-tab-item {
+  color: #64748b;
 }
 
 body.dark-theme .notetaker-tab-item:hover,
-.notetaker-root.dark-theme .notetaker-tab-item:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.06);
+.notetaker-root.dark-theme .notetaker-tab-item:hover,
+body.light-theme .notetaker-tab-item:hover,
+.notetaker-root.light-theme .notetaker-tab-item:hover {
+  color: #1a2936;
+  background: rgba(26, 41, 54, 0.05);
 }
 
 body.dark-theme .notetaker-tab-item.active,
-.notetaker-root.dark-theme .notetaker-tab-item.active {
-  background: #1e293b;
-  color: #f8fafc;
+.notetaker-root.dark-theme .notetaker-tab-item.active,
+body.light-theme .notetaker-tab-item.active,
+.notetaker-root.light-theme .notetaker-tab-item.active {
+  background: #dce5ee !important;
+  color: #1a2936 !important;
 }
 
 .notetaker-tab-badge {
@@ -855,19 +829,21 @@ body.dark-theme .notetaker-tab-item.active,
   justify-content: center;
   min-width: 18px;
   height: 18px;
-  padding: 0 5px;
+  padding: 0 6px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
-  background: #dcd4c3;
-  color: #18283f;
+  background: #fed7aa !important;
+  color: #7c2d12 !important;
   margin-left: 2px;
 }
 
 body.dark-theme .notetaker-tab-badge,
-.notetaker-root.dark-theme .notetaker-tab-badge {
-  background: #334155;
-  color: #f1f5f9;
+.notetaker-root.dark-theme .notetaker-tab-badge,
+body.light-theme .notetaker-tab-badge,
+.notetaker-root.light-theme .notetaker-tab-badge {
+  background: #fed7aa !important;
+  color: #7c2d12 !important;
 }
 
 .notetaker-tab-soundwave {
@@ -900,9 +876,9 @@ body.dark-theme .notetaker-tab-badge,
   gap: 6px;
   padding: 6px 16px;
   border-radius: 9999px;
-  background: #faf7f0;
-  border: 1px solid #ded8cb;
-  color: #18283f;
+  background: #faf6ed;
+  border: 1px solid #ded5c4;
+  color: #1a2936;
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
@@ -912,23 +888,30 @@ body.dark-theme .notetaker-tab-badge,
 
 .notetaker-more-btn:hover,
 .notetaker-more-btn.active {
-  border-color: #18283f;
+  border-color: #1a2936;
+  background: #f3ecdf;
 }
 
 body.dark-theme .notetaker-more-btn,
-.notetaker-root.dark-theme .notetaker-more-btn {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: #cbd5e1;
+.notetaker-root.dark-theme .notetaker-more-btn,
+body.light-theme .notetaker-more-btn,
+.notetaker-root.light-theme .notetaker-more-btn {
+  background: #faf6ed !important;
+  border-color: #ded5c4 !important;
+  color: #1a2936 !important;
 }
 
 body.dark-theme .notetaker-more-btn:hover,
 body.dark-theme .notetaker-more-btn.active,
 .notetaker-root.dark-theme .notetaker-more-btn:hover,
-.notetaker-root.dark-theme .notetaker-more-btn.active {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: #ffffff;
+.notetaker-root.dark-theme .notetaker-more-btn.active,
+body.light-theme .notetaker-more-btn:hover,
+body.light-theme .notetaker-more-btn.active,
+.notetaker-root.light-theme .notetaker-more-btn:hover,
+.notetaker-root.light-theme .notetaker-more-btn.active {
+  background: #f3ecdf !important;
+  border-color: #1a2936 !important;
+  color: #1a2936 !important;
 }
 
 /* More Dropdown Menu - Floats directly below More button on top right */
@@ -1222,14 +1205,186 @@ body.light-theme .notetaker-root .translation-card-text {
   color: #0f172a;
 }
 
-/* Empty Canvas for Workspace Card */
+/* Empty Canvas for Workspace Card (Image 1 Layout + Image 2 Colors) */
 .notetaker-empty-canvas {
   flex: 1;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 340px;
   width: 100%;
+  padding: 24px 0;
+  box-sizing: border-box;
+}
+
+.notetaker-canvas-center-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-width: 440px;
+  z-index: 2;
+  margin: 0 auto;
+}
+
+/* 4 subtle horizontal skeleton notes lines (Image 1) */
+.notetaker-skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 20px;
+}
+
+.notetaker-skeleton-lines .sk-line {
+  display: block;
+  height: 5px;
+  background: #e2d9ca;
+  border-radius: 999px;
+}
+
+.notetaker-skeleton-lines .sk-1 { width: 72px; }
+.notetaker-skeleton-lines .sk-2 { width: 140px; }
+.notetaker-skeleton-lines .sk-3 { width: 105px; }
+.notetaker-skeleton-lines .sk-4 { width: 80px; }
+
+.notetaker-canvas-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: var(--nt-font-serif);
+  margin: 0 0 10px 0;
+  letter-spacing: -0.3px;
+}
+
+.notetaker-canvas-desc {
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.55;
+  margin: 0 0 24px 0;
+  font-family: var(--nt-font-serif);
+  max-width: 380px;
+}
+
+/* Vertical Audio Soundwave Bars below text (Image 1) */
+.notetaker-canvas-soundwave {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3.5px;
+  height: 38px;
+}
+
+.notetaker-canvas-soundwave .canvas-wave-bar {
+  display: inline-block;
+  width: 2.5px;
+  border-radius: 999px;
+  background: #64748b;
+  transition: height 0.15s ease, background-color 0.15s ease;
+}
+
+.notetaker-canvas-soundwave .canvas-wave-bar:nth-child(n+7):nth-child(-n+15) {
+  background: #1e293b;
+}
+
+.notetaker-canvas-soundwave.animating .canvas-wave-bar {
+  animation: canvasWaveBounce 1.2s infinite ease-in-out;
+}
+
+@keyframes canvasWaveBounce {
+  0%, 100% { transform: scaleY(0.7); }
+  50% { transform: scaleY(1.4); }
+}
+
+/* Floating Decorative Chat Bubbles Graphic (Image 1) */
+.notetaker-canvas-floating-bubbles {
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 140px;
+  height: 140px;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.floating-bubble {
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.floating-bubble.bubble-1 {
+  width: 68px;
+  height: 38px;
+  background: #ece5d6;
+  margin-bottom: 8px;
+  margin-right: 14px;
+}
+
+.floating-bubble.bubble-1 .bubble-line {
+  display: block;
+  height: 3px;
+  border-radius: 999px;
+  background: #d4cabb;
+}
+
+.floating-bubble.bubble-1 .bl-1 { width: 32px; }
+.floating-bubble.bubble-1 .bl-2 { width: 44px; }
+
+.floating-bubble.bubble-2 {
+  width: 82px;
+  height: 48px;
+  background: #8fa597;
+  margin-bottom: 6px;
+}
+
+.floating-bubble.bubble-2 .bubble-line {
+  display: block;
+  height: 3.5px;
+  border-radius: 999px;
+  background: #ffffff;
+  opacity: 0.85;
+}
+
+.floating-bubble.bubble-2 .bl-1 { width: 42px; }
+.floating-bubble.bubble-2 .bl-2 { width: 56px; }
+
+.floating-bubble-dot {
+  position: absolute;
+  left: 14px;
+  top: 48%;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #b5c7ba;
+  opacity: 0.9;
+}
+
+.floating-bubble-pill {
+  position: absolute;
+  bottom: 14px;
+  right: 8px;
+  width: 36px;
+  height: 10px;
+  border-radius: 999px;
+  background: #8fa597;
+}
+
+@media (max-width: 820px) {
+  .notetaker-canvas-floating-bubbles {
+    display: none;
+  }
 }
 
 .notetaker-empty-canvas-subtle-hint {
@@ -1260,46 +1415,48 @@ body.light-theme .notetaker-root .translation-card-text {
   width: 100%;
 }
 
-/* Bottom Chat / Ask Bar */
+/* Bottom Chat / Ask Bar (Image 2: Dark Slate Navy Pill) */
 .notetaker-chat-bar {
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
-  background: #faf7f0 !important;
-  border: 1.5px solid #ded8cb !important;
+  background: #213243 !important;
+  border: 1px solid #2e4359 !important;
   border-radius: 9999px !important;
   padding: 6px 14px 6px 20px !important;
   margin-top: auto !important;
   height: 48px !important;
   box-sizing: border-box !important;
   width: 100% !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
   transition: all 0.2s ease !important;
 }
 
 body.dark-theme .notetaker-chat-bar,
-.notetaker-root.dark-theme .notetaker-chat-bar {
-  background: #0f172a !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+.notetaker-root.dark-theme .notetaker-chat-bar,
+body.light-theme .notetaker-chat-bar,
+.notetaker-root.light-theme .notetaker-chat-bar {
+  background: #213243 !important;
+  border-color: #2e4359 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
 }
 
-.notetaker-chat-bar:focus-within {
-  border-color: #18283f !important;
-  box-shadow: 0 0 0 2px rgba(24, 40, 63, 0.08) !important;
+.notetaker-chat-bar:focus-within,
+body.dark-theme .notetaker-chat-bar:focus-within,
+body.light-theme .notetaker-chat-bar:focus-within {
+  border-color: #4f6b89 !important;
+  box-shadow: 0 0 0 3px rgba(33, 50, 67, 0.35) !important;
 }
 
-body.dark-theme .notetaker-chat-bar:focus-within {
-  border-color: #7c3aed !important;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15) !important;
-}
-
-.notetaker-chat-input {
+.notetaker-chat-input,
+body.dark-theme .notetaker-chat-input,
+body.light-theme .notetaker-chat-input {
   flex: 1 !important;
   background: transparent !important;
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
-  color: #18283f !important;
+  color: #f8fafc !important;
   font-family: var(--nt-font-serif) !important;
   font-size: 13.5px !important;
   height: 100% !important;
@@ -1307,18 +1464,11 @@ body.dark-theme .notetaker-chat-bar:focus-within {
   margin: 0 !important;
 }
 
-body.dark-theme .notetaker-chat-input,
-.notetaker-root.dark-theme .notetaker-chat-input {
-  color: #f8fafc !important;
-}
-
-.notetaker-chat-input::placeholder {
-  color: #8c857b !important;
-  font-family: var(--nt-font-serif) !important;
-}
-
-body.dark-theme .notetaker-chat-input::placeholder {
+.notetaker-chat-input::placeholder,
+body.dark-theme .notetaker-chat-input::placeholder,
+body.light-theme .notetaker-chat-input::placeholder {
   color: #94a3b8 !important;
+  font-family: var(--nt-font-serif) !important;
 }
 
 .notetaker-send-btn {
@@ -1328,7 +1478,7 @@ body.dark-theme .notetaker-chat-input::placeholder {
   width: 32px !important;
   height: 32px !important;
   background: transparent !important;
-  color: #8c857b !important;
+  color: #cbd5e1 !important;
   border: none !important;
   border-radius: 50% !important;
   font-size: 14px !important;
@@ -1338,16 +1488,18 @@ body.dark-theme .notetaker-chat-input::placeholder {
 }
 
 .notetaker-send-btn:hover:not(:disabled) {
-  color: #18283f !important;
-  transform: scale(1.08) !important;
+  color: #f59e0b !important;
+  transform: scale(1.1) !important;
 }
 
-body.dark-theme .notetaker-send-btn {
-  color: #94a3b8 !important;
+body.dark-theme .notetaker-send-btn,
+body.light-theme .notetaker-send-btn {
+  color: #cbd5e1 !important;
 }
 
-body.dark-theme .notetaker-send-btn:hover:not(:disabled) {
-  color: #c4b5fd !important;
+body.dark-theme .notetaker-send-btn:hover:not(:disabled),
+body.light-theme .notetaker-send-btn:hover:not(:disabled) {
+  color: #f59e0b !important;
 }
 
 .notetaker-send-btn:disabled {
@@ -1362,20 +1514,22 @@ body.dark-theme .notetaker-send-btn:hover:not(:disabled) {
   justify-content: center;
   gap: 6px;
   font-size: 11.5px;
-  color: #64748b;
+  color: #64748b !important;
   text-align: center;
   margin-top: 10px;
   font-family: var(--nt-font-serif);
 }
 
 .notetaker-disclaimer-icon {
-  color: #7c3aed;
+  color: #64748b !important;
   font-size: 12px;
 }
 
 body.dark-theme .notetaker-card-disclaimer,
-.notetaker-root.dark-theme .notetaker-card-disclaimer {
-  color: #94a3b8;
+.notetaker-root.dark-theme .notetaker-card-disclaimer,
+body.light-theme .notetaker-card-disclaimer,
+.notetaker-root.light-theme .notetaker-card-disclaimer {
+  color: #64748b !important;
 }
 
 /* Floating Help Headset Button */
@@ -1561,33 +1715,13 @@ body.dark-theme .notetaker-side-action-btn.active i,
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 24px 0 16px 0;
+  padding: 20px 0 24px 0;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .notetaker-ai-disclaimer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #78716c;
-  font-family: var(--nt-font-serif);
-}
-
-.notetaker-ai-disclaimer .notetaker-disclaimer-icon {
-  font-size: 12px;
-  color: #18283f;
-}
-
-body.dark-theme .notetaker-ai-disclaimer,
-.notetaker-root.dark-theme .notetaker-ai-disclaimer {
-  color: #94a3b8;
-}
-
-body.dark-theme .notetaker-ai-disclaimer .notetaker-disclaimer-icon,
-.notetaker-root.dark-theme .notetaker-ai-disclaimer .notetaker-disclaimer-icon {
-  color: #cbd5e1;
+  display: none;
 }
 
 .notetaker-footer-links {
@@ -1595,18 +1729,18 @@ body.dark-theme .notetaker-ai-disclaimer .notetaker-disclaimer-icon,
   font-size: 12px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 22px;
 }
 
 .notetaker-footer-links a {
-  color: #78716c;
+  color: #8da0b5 !important;
   text-decoration: none;
   transition: color 0.15s ease;
   font-family: var(--nt-font-serif);
 }
 
 .notetaker-footer-links a:hover {
-  color: #18283f;
+  color: #f8fafc !important;
   text-decoration: underline;
 }
 

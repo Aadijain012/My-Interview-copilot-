@@ -3172,124 +3172,109 @@ startNotetakerBilling();
               </div>
             </div>
           </div>
-
-          {/* Setup Row (Dropdowns) */}
-          {showSetup && (
-            <div className="notetaker-setup-pills-row">
-              <div className="notetaker-setup-pill-col">
-                <label className="notetaker-pill-label">SPEAKING IN</label>
-                <div className="notetaker-select-pill-box">
-                  <i className="fa-solid fa-globe notetaker-pill-leading-icon"></i>
-                  <select
-                    className="notetaker-pill-select"
-                    value={spokenLang}
-                    onChange={(e) => handleSpokenLangChange(e.target.value)}
-                    disabled={isRecording}
-                  >
-                    {displayedLanguages.map(lang => (
-                      <option key={lang.code} value={lang.code}>{lang.name}</option>
-                    ))}
-                  </select>
-                  <i className="fa-solid fa-chevron-down notetaker-pill-chevron"></i>
-                </div>
-              </div>
-
-              <div className="notetaker-setup-pill-col">
-                <label className="notetaker-pill-label">TRANSLATE TO</label>
-                <div className="notetaker-select-pill-box">
-                  <i
-                    className="fa-solid fa-right-left notetaker-pill-leading-icon clickable"
-                    onClick={handleSwapLanguages}
-                    title="Swap languages"
-                  ></i>
-                  <select
-                    className="notetaker-pill-select"
-                    value={targetLang}
-                    onChange={(e) => handleTargetLangChange(e.target.value)}
-                    disabled={isRecording}
-                  >
-                    {displayedLanguages.map(lang => (
-                      <option key={lang.code} value={lang.code}>{lang.name}</option>
-                    ))}
-                  </select>
-                  <i className="fa-solid fa-chevron-down notetaker-pill-chevron"></i>
-                </div>
-              </div>
-
-              <div className="notetaker-setup-pill-col">
-                <label className="notetaker-pill-label">RECORDING MODE</label>
-                <div className="notetaker-select-pill-box">
-                  <i className="fa-regular fa-circle-dot notetaker-pill-leading-icon"></i>
-                  <select
-                    className="notetaker-pill-select"
-                    value={recordingMode}
-                    onChange={(e) => {
-                      if (hasActiveRecordingRef.current) return;
-                      const m = e.target.value;
-                      setRecordingMode(m);
-                      recordingModeRef.current = m;
-                    }}
-                    disabled={hasActiveRecordingRef.current}
-                  >
-                    <option value="meeting">Meeting</option>
-                    <option value="personal">Just me</option>
-                  </select>
-                  <i className="fa-solid fa-chevron-down notetaker-pill-chevron"></i>
-                </div>
-              </div>
-            </div>
-          )}
         </section>
 
-        {/* Main Two-Column Split (Left: Ready to Listen Recorder Card · Right: Workspace Card) */}
+        {/* Main Two-Column Split (Left: Recorder & Setup Card · Right: Workspace Card) */}
         <div className="notetaker-main-split">
-          {/* ===================== LEFT CARD: VOICE RECORDER PANEL ===================== */}
+          {/* ===================== LEFT CARD: VOICE RECORDER & SETUP ===================== */}
           <section className="notetaker-recorder-card">
             <div className="notetaker-recorder-inner">
-              <div className={`notetaker-mic-ripple-cluster ${isRecording ? 'is-recording' : ''}`}>
-                <div className="ripple-ring ring-4"></div>
-                <div className="ripple-ring ring-3"></div>
-                <div className="ripple-ring ring-2"></div>
-                <div className="ripple-ring ring-1"></div>
-                <div
-                  className="ripple-center-circle"
-                  onClick={handleStartStopRecording}
-                  title={isRecording ? "Click to stop recording" : "Click to start recording"}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <i className={`fa-solid ${isRecording ? (recordingStatus === 'paused' ? 'fa-pause' : 'fa-microphone-lines') : 'fa-microphone'}`}></i>
+              {/* Stacked Setup Dropdowns (from Image 1 & 2 design) */}
+              {showSetup && (
+                <div className="notetaker-card-setup-stack">
+                  <div className="notetaker-setup-pill-col">
+                    <label className="notetaker-pill-label">SPEAKING IN</label>
+                    <div className="notetaker-select-pill-box">
+                      <i className="fa-solid fa-globe notetaker-pill-leading-icon"></i>
+                      <select
+                        className="notetaker-pill-select"
+                        value={spokenLang}
+                        onChange={(e) => handleSpokenLangChange(e.target.value)}
+                        disabled={isRecording}
+                      >
+                        {displayedLanguages.map(lang => (
+                          <option key={lang.code} value={lang.code}>{lang.name}</option>
+                        ))}
+                      </select>
+                      <i className="fa-solid fa-chevron-down notetaker-pill-chevron"></i>
+                    </div>
+                  </div>
+
+                  <div className="notetaker-setup-pill-col">
+                    <label className="notetaker-pill-label">TRANSLATE TO</label>
+                    <div className="notetaker-select-pill-box">
+                      <i
+                        className="fa-solid fa-right-left notetaker-pill-leading-icon clickable"
+                        onClick={handleSwapLanguages}
+                        title="Swap languages"
+                      ></i>
+                      <select
+                        className="notetaker-pill-select"
+                        value={targetLang}
+                        onChange={(e) => handleTargetLangChange(e.target.value)}
+                        disabled={isRecording}
+                      >
+                        {displayedLanguages.map(lang => (
+                          <option key={lang.code} value={lang.code}>{lang.name}</option>
+                        ))}
+                      </select>
+                      <i className="fa-solid fa-chevron-down notetaker-pill-chevron"></i>
+                    </div>
+                  </div>
+
+                  <div className="notetaker-setup-pill-col">
+                    <label className="notetaker-pill-label">RECORDING MODE</label>
+                    <div className="notetaker-select-pill-box">
+                      <i className="fa-regular fa-circle-dot notetaker-pill-leading-icon"></i>
+                      <select
+                        className="notetaker-pill-select"
+                        value={recordingMode}
+                        onChange={(e) => {
+                          if (hasActiveRecordingRef.current) return;
+                          const m = e.target.value;
+                          setRecordingMode(m);
+                          recordingModeRef.current = m;
+                        }}
+                        disabled={hasActiveRecordingRef.current}
+                      >
+                        <option value="meeting">Meeting</option>
+                        <option value="personal">Just me</option>
+                      </select>
+                      <i className="fa-solid fa-chevron-down notetaker-pill-chevron"></i>
+                    </div>
+                  </div>
                 </div>
+              )}
+
+              {/* Center Flowing Waveform & Mic Cluster (from Image 1) */}
+              <div className={`notetaker-flowing-mic-section ${isRecording ? 'is-recording' : ''}`}>
+                <div className="notetaker-flowing-curves-container">
+                  <svg className="notetaker-flowing-wave-svg" viewBox="0 0 340 70" preserveAspectRatio="none">
+                    <path className="wave-line wl-1" d="M 0 35 C 40 10, 80 60, 120 35 C 140 22, 150 25, 170 35 C 190 45, 200 48, 220 35 C 260 10, 300 60, 340 35" fill="none" />
+                    <path className="wave-line wl-2" d="M 0 35 C 45 55, 90 15, 130 35 C 145 42, 155 42, 170 35 C 185 28, 195 28, 210 35 C 250 55, 295 15, 340 35" fill="none" />
+                    <path className="wave-line wl-3" d="M 10 35 C 50 20, 95 50, 135 35 C 150 30, 155 30, 170 35 C 185 40, 190 40, 205 35 C 245 20, 290 50, 330 35" fill="none" />
+                    <path className="wave-line wl-4" d="M 10 35 C 55 48, 100 22, 140 35 C 152 38, 158 38, 170 35 C 182 32, 188 32, 200 35 C 240 48, 285 22, 330 35" fill="none" />
+                  </svg>
+                  <div
+                    className="notetaker-flowing-mic-badge"
+                    onClick={handleStartStopRecording}
+                    title={isRecording ? "Click to stop recording" : "Click to start recording"}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <i className={`fa-solid ${isRecording ? (recordingStatus === 'paused' ? 'fa-pause' : 'fa-microphone-lines') : 'fa-microphone'}`}></i>
+                  </div>
+                </div>
+
+                {isRecording && (
+                  <div className="notetaker-card-live-rec-timer">
+                    <span className="notetaker-ready-dot recording"></span>
+                    <span>{recordingStatus === 'paused' ? 'Recording Paused' : `Recording ${formatTimer(timerSeconds)}`}</span>
+                  </div>
+                )}
               </div>
 
-              <h3 className="notetaker-recorder-title">
-                {isRecording
-                  ? (recordingStatus === 'paused' ? 'Recording Paused' : `Recording ${formatTimer(timerSeconds)}`)
-                  : 'Ready to listen'}
-              </h3>
-
-              <p className="notetaker-recorder-desc">
-                {isRecording
-                  ? 'Speaking into your microphone. Your conversation and translations appear live on the right.'
-                  : 'Choose your language, then press Record. Your conversation and translation will appear here.'}
-              </p>
-
-              <div className={`notetaker-soundwave-graphic ${isRecording ? 'animating' : ''}`}>
-                {[
-                  3, 4, 6, 8, 10, 13, 17, 21, 26, 30, 26, 21, 17, 13, 10, 8, 6, 4, 3,
-                  4, 6, 9, 14, 19, 25, 19, 14, 9, 6, 4, 3
-                ].map((h, i) => (
-                  <span
-                    key={i}
-                    className="wave-bar"
-                    style={{
-                      height: `${h}px`,
-                      animationDelay: `${(i % 12) * 80}ms`
-                    }}
-                  ></span>
-                ))}
-              </div>
-
+              {/* Start Recording Button (Warm Amber/Orange from Image 2) */}
               <div className="notetaker-recorder-actions">
                 {!isRecording ? (
                   <button
@@ -3645,9 +3630,39 @@ startNotetakerBilling();
                     </>
                   ) : (
                     <div className="notetaker-empty-canvas">
-                      <div className="notetaker-empty-canvas-subtle-hint">
-                        <i className="fa-regular fa-comment-dots"></i>
-                        <span>Start recording on the left to see live speech transcripts and translations here.</span>
+                      <div className="notetaker-canvas-center-wrap">
+                        {/* 4 subtle horizontal skeleton notes lines (from Image 1) */}
+                        <div className="notetaker-skeleton-lines">
+                          <span className="sk-line sk-1"></span>
+                          <span className="sk-line sk-2"></span>
+                          <span className="sk-line sk-3"></span>
+                          <span className="sk-line sk-4"></span>
+                        </div>
+
+                        <h3 className="notetaker-canvas-title">Ready to listen</h3>
+                        <p className="notetaker-canvas-desc">
+                          Choose your language, then press Record. Your conversation and translation will appear here.
+                        </p>
+
+                        <div className={`notetaker-canvas-soundwave ${isRecording ? 'animating' : ''}`}>
+                          {[3, 5, 8, 12, 17, 25, 32, 25, 17, 12, 8, 12, 17, 25, 30, 25, 17, 12, 8, 5, 3].map((h, i) => (
+                            <span key={i} className="canvas-wave-bar" style={{ height: `${h}px` }}></span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Floating Decorative Chat Bubbles Graphic (from Image 1) */}
+                      <div className="notetaker-canvas-floating-bubbles">
+                        <div className="floating-bubble bubble-1">
+                          <span className="bubble-line bl-1"></span>
+                          <span className="bubble-line bl-2"></span>
+                        </div>
+                        <div className="floating-bubble bubble-2">
+                          <span className="bubble-line bl-1"></span>
+                          <span className="bubble-line bl-2"></span>
+                        </div>
+                        <div className="floating-bubble-dot"></div>
+                        <div className="floating-bubble-pill"></div>
                       </div>
                     </div>
                   )}
@@ -4092,6 +4107,12 @@ startNotetakerBilling();
               <i className={`fa-solid ${isSendingChat ? 'fa-spinner fa-spin' : 'fa-paper-plane'}`}></i>
             </button>
           </form>
+
+          {/* Disclaimer directly under input bar (matching Image 1 & 2) */}
+          <div className="notetaker-card-disclaimer">
+            <i className="fa-solid fa-circle-info notetaker-disclaimer-icon"></i>
+            <span>AI can make mistakes. Check important details.</span>
+          </div>
         </section>
       </div>
 
@@ -4106,12 +4127,8 @@ startNotetakerBilling();
         <span className="notetaker-help-dot">?</span>
       </button>
 
-      {/* Footer */}
+      {/* Footer Links */}
       <footer className="notetaker-page-footer">
-        <div className="notetaker-ai-disclaimer">
-          <i className="fa-solid fa-circle-info notetaker-disclaimer-icon"></i>
-          <span>AI can make mistakes. Check important details.</span>
-        </div>
         <div className="notetaker-footer-links">
           <a href="#" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
           <a href="#" onClick={(e) => e.preventDefault()}>Terms of Service</a>

@@ -21,23 +21,23 @@
   --nt-emerald-glow: rgba(16, 185, 129, 0.35);
 }
 
-/* Light Theme Variables */
+/* Light Theme Variables - Warm Cream & Deep Navy Aesthetic */
 .notetaker-root.light-theme,
 body.light-theme .notetaker-root {
-  --nt-topbar-bg: rgba(240, 253, 244, 0.9);
-  --nt-page-bg: #f8fafc;
-  --nt-card-bg: #ffffff;
-  --nt-card-border: rgba(16, 185, 129, 0.2);
-  --nt-field-bg: #f0fdf4;
-  --nt-field-border: rgba(16, 185, 129, 0.25);
-  --nt-text-main: #0f172a;
-  --nt-text-muted: #475569;
-  --nt-text-label: #334155;
-  --nt-cyan: #059669;
-  --nt-cyan-hover: #10b981;
-  --nt-cyan-dark: #d1fae5;
-  --nt-emerald: #059669;
-  --nt-emerald-glow: rgba(5, 150, 105, 0.25);
+  --nt-topbar-bg: #f5f1ea;
+  --nt-page-bg: #f5f1ea;
+  --nt-card-bg: #faf7f0;
+  --nt-card-border: #e7e2d7;
+  --nt-field-bg: #faf7f0;
+  --nt-field-border: #ded8cb;
+  --nt-text-main: #18283f;
+  --nt-text-muted: #64748b;
+  --nt-text-label: #64748b;
+  --nt-cyan: #18283f;
+  --nt-cyan-hover: #223755;
+  --nt-cyan-dark: #e8e2d5;
+  --nt-emerald: #18283f;
+  --nt-emerald-glow: rgba(24, 40, 63, 0.2);
 }
 
 .notetaker-root {
@@ -86,8 +86,13 @@ html.dark-theme .notetaker-root {
   padding: 0 20px;
   color: var(--nt-text-main);
   z-index: 100;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 4px rgba(24, 40, 63, 0.05);
   transition: all 0.25s ease;
+}
+
+body.dark-theme .notetaker-top-navbar,
+.notetaker-root.dark-theme .notetaker-top-navbar {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .notetaker-nav-left {
@@ -170,8 +175,8 @@ html.dark-theme .notetaker-root {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 16px 24px 20px 24px;
-  max-width: 1400px;
+  padding: 24px 32px 24px 32px;
+  max-width: 1320px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
@@ -181,12 +186,12 @@ html.dark-theme .notetaker-root {
    SMART NOTETAKER HERO CARD (BANNER + COLLAPSIBLE SETUP PILLS ROW)
    ========================================================================== */
 .notetaker-hero-card {
-  background: linear-gradient(135deg, #f5f0ff 0%, #faf5ff 40%, #ede9fe 100%);
-  border: 1.5px solid #e9d5ff;
-  border-radius: 18px;
+  background: #faf7f0;
+  border: 1.5px solid #e7e2d7;
+  border-radius: 20px;
   overflow: hidden;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.06);
+  margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(24, 40, 63, 0.03);
   transition: all 0.25s ease;
 }
 
@@ -203,7 +208,7 @@ body.dark-theme .notetaker-hero-card,
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  min-height: 84px;
+  min-height: 80px;
   box-sizing: border-box;
 }
 
@@ -212,7 +217,7 @@ body.dark-theme .notetaker-hero-card,
   align-items: center;
   gap: 14px;
   z-index: 2;
-  max-width: 65%;
+  flex: 1;
 }
 
 .notetaker-banner-icon-badge {
@@ -221,12 +226,18 @@ body.dark-theme .notetaker-hero-card,
   justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: 13px;
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  border-radius: 12px;
+  background: #18283f;
   color: #ffffff;
-  font-size: 20px;
-  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.35);
+  font-size: 19px;
+  box-shadow: 0 4px 14px rgba(24, 40, 63, 0.2);
   flex-shrink: 0;
+}
+
+body.dark-theme .notetaker-banner-icon-badge,
+.notetaker-root.dark-theme .notetaker-banner-icon-badge {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.35);
 }
 
 .notetaker-banner-text {
@@ -236,9 +247,9 @@ body.dark-theme .notetaker-hero-card,
 
 .notetaker-banner-title {
   margin: 0 0 3px 0;
-  font-size: 19px;
-  font-weight: 800;
-  color: #1e1b4b;
+  font-size: 18.5px;
+  font-weight: 700;
+  color: #18283f;
   letter-spacing: -0.2px;
   font-family: var(--nt-font-serif);
 }
@@ -252,8 +263,8 @@ body.dark-theme .notetaker-banner-title,
   margin: 0;
   font-size: 12.5px;
   color: #64748b;
-  line-height: 1.4;
-  font-weight: 500;
+  line-height: 1.45;
+  font-weight: 400;
   font-family: var(--nt-font-serif);
 }
 
@@ -265,48 +276,72 @@ body.dark-theme .notetaker-banner-subtitle,
 .notetaker-banner-center-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   z-index: 2;
   margin-left: auto;
-  margin-right: 140px;
 }
 
-.notetaker-toggle-setup-pill {
+/* iOS-style Setup Switch Toggle */
+.notetaker-setup-toggle-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 6px 16px;
-  border-radius: 9999px;
-  background: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  color: #1e1b4b;
-  font-size: 12px;
-  font-weight: 700;
+  gap: 10px;
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  transition: all 0.16s ease;
+  user-select: none;
+  padding: 4px 0;
+}
+
+.notetaker-setup-toggle-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #18283f;
   font-family: var(--nt-font-serif);
-  white-space: nowrap;
 }
 
-.notetaker-toggle-setup-pill:hover {
-  transform: translateY(-1px);
-  border-color: #7c3aed;
-  color: #6d28d9;
+body.dark-theme .notetaker-setup-toggle-label,
+.notetaker-root.dark-theme .notetaker-setup-toggle-label {
+  color: #cbd5e1;
 }
 
-body.dark-theme .notetaker-toggle-setup-pill,
-.notetaker-root.dark-theme .notetaker-toggle-setup-pill {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: #f1f5f9;
+.notetaker-switch-toggle {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: #d4cfc5;
+  transition: background-color 0.25s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  box-sizing: border-box;
 }
 
-body.dark-theme .notetaker-toggle-setup-pill:hover,
-.notetaker-root.dark-theme .notetaker-toggle-setup-pill:hover {
-  background: rgba(139, 92, 246, 0.25);
-  border-color: rgba(139, 92, 246, 0.45);
-  color: #ffffff;
+.notetaker-switch-toggle.on {
+  background: #18283f;
+}
+
+body.dark-theme .notetaker-switch-toggle {
+  background: #272d3b;
+}
+
+body.dark-theme .notetaker-switch-toggle.on {
+  background: #7c3aed;
+}
+
+.notetaker-switch-knob {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(0);
+}
+
+.notetaker-switch-toggle.on .notetaker-switch-knob {
+  transform: translateX(18px);
 }
 
 /* Live recording badge in banner */
@@ -337,27 +372,6 @@ body.dark-theme .notetaker-toggle-setup-pill:hover,
   gap: 4px;
 }
 
-.notetaker-banner-art-wrap {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 280px;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  pointer-events: none;
-  z-index: 1;
-  overflow: hidden;
-}
-
-.notetaker-banner-art-img {
-  height: 100%;
-  object-fit: contain;
-  object-position: right center;
-}
-
 /* ==========================================================================
    SETUP PILLS ROW (SPEAKING IN, TRANSLATE TO, RECORDING MODE)
    ========================================================================== */
@@ -366,7 +380,7 @@ body.dark-theme .notetaker-toggle-setup-pill:hover,
   grid-template-columns: 1fr 1fr 1fr;
   gap: 16px;
   padding: 14px 24px 18px 24px;
-  border-top: 1px solid rgba(124, 58, 237, 0.12);
+  border-top: 1px solid #e7e2d7;
   box-sizing: border-box;
 }
 
@@ -381,9 +395,9 @@ body.dark-theme .notetaker-setup-pills-row,
 }
 
 .notetaker-pill-label {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
   text-transform: uppercase;
   color: #64748b;
   margin-bottom: 6px;
@@ -401,15 +415,15 @@ body.dark-theme .notetaker-pill-label,
   align-items: center;
   height: 42px;
   border-radius: 12px;
-  background: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  padding: 0 14px 0 14px;
+  background: #faf7f0;
+  border: 1.5px solid #ded8cb;
+  padding: 0 14px;
   box-sizing: border-box;
   transition: all 0.16s ease;
 }
 
 .notetaker-select-pill-box:hover {
-  border-color: #cbd5e1;
+  border-color: #18283f;
 }
 
 body.dark-theme .notetaker-select-pill-box,
@@ -425,9 +439,14 @@ body.dark-theme .notetaker-select-pill-box:hover,
 
 .notetaker-pill-leading-icon {
   font-size: 15px;
-  color: #7c3aed;
+  color: #18283f;
   margin-right: 10px;
   flex-shrink: 0;
+}
+
+body.dark-theme .notetaker-pill-leading-icon,
+.notetaker-root.dark-theme .notetaker-pill-leading-icon {
+  color: #7c3aed;
 }
 
 .notetaker-pill-leading-icon.clickable {
@@ -437,7 +456,12 @@ body.dark-theme .notetaker-select-pill-box:hover,
 
 .notetaker-pill-leading-icon.clickable:hover {
   transform: rotate(180deg);
-  color: #6d28d9;
+  color: #18283f;
+}
+
+body.dark-theme .notetaker-pill-leading-icon.clickable:hover,
+.notetaker-root.dark-theme .notetaker-pill-leading-icon.clickable:hover {
+  color: #c4b5fd;
 }
 
 .notetaker-pill-select {
@@ -447,7 +471,7 @@ body.dark-theme .notetaker-select-pill-box:hover,
   outline: none;
   font-size: 13.5px;
   font-weight: 600;
-  color: #1e293b;
+  color: #18283f;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
@@ -480,18 +504,276 @@ body.dark-theme .notetaker-pill-select option,
 }
 
 /* ==========================================================================
-   LOWER WORKSPACE CARD & TABS BAR
+   MAIN TWO-COLUMN SPLIT (LEFT: VOICE RECORDER CARD · RIGHT: WORKSPACE CARD)
+   ========================================================================== */
+.notetaker-main-split {
+  display: grid;
+  grid-template-columns: 410px 1fr;
+  gap: 20px;
+  align-items: stretch;
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 980px) {
+  .notetaker-main-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   LEFT CARD: VOICE RECORDER PANEL
+   ========================================================================== */
+.notetaker-recorder-card {
+  background: #18283f;
+  border-radius: 22px;
+  padding: 44px 28px 38px 28px;
+  box-shadow: 0 8px 30px rgba(24, 40, 63, 0.18);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: #ffffff;
+  box-sizing: border-box;
+  min-height: 520px;
+  position: relative;
+  overflow: hidden;
+}
+
+body.dark-theme .notetaker-recorder-card,
+.notetaker-root.dark-theme .notetaker-recorder-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.7);
+}
+
+.notetaker-recorder-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 330px;
+}
+
+/* Concentric Ripple Cluster */
+.notetaker-mic-ripple-cluster {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.ripple-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.ripple-ring.ring-4 {
+  width: 150px;
+  height: 150px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.ripple-ring.ring-3 {
+  width: 122px;
+  height: 122px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.ripple-ring.ring-2 {
+  width: 96px;
+  height: 96px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ripple-ring.ring-1 {
+  width: 74px;
+  height: 74px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.notetaker-mic-ripple-cluster.is-recording .ripple-ring.ring-4 {
+  animation: ripplePulse 2s infinite ease-out;
+}
+.notetaker-mic-ripple-cluster.is-recording .ripple-ring.ring-3 {
+  animation: ripplePulse 2s infinite ease-out 0.4s;
+}
+.notetaker-mic-ripple-cluster.is-recording .ripple-ring.ring-2 {
+  animation: ripplePulse 2s infinite ease-out 0.8s;
+}
+
+@keyframes ripplePulse {
+  0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.3; }
+  50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.3; }
+}
+
+.ripple-center-circle {
+  position: relative;
+  z-index: 2;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #faf7f0;
+  color: #18283f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ripple-center-circle:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+
+.notetaker-recorder-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #faf7f0;
+  margin: 0 0 10px 0;
+  font-family: var(--nt-font-serif);
+}
+
+.notetaker-recorder-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #94a3b8;
+  margin: 0 0 28px 0;
+  max-width: 280px;
+  font-family: var(--nt-font-serif);
+}
+
+/* Soundwave Graphic (31 graduated vertical bars) */
+.notetaker-soundwave-graphic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5px;
+  height: 38px;
+  margin-bottom: 28px;
+  width: 100%;
+}
+
+.notetaker-soundwave-graphic .wave-bar {
+  display: inline-block;
+  width: 2.5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  transition: height 0.15s ease, background-color 0.15s ease;
+}
+
+.notetaker-soundwave-graphic .wave-bar:nth-child(n+10):nth-child(-n+22) {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.notetaker-soundwave-graphic.animating .wave-bar {
+  animation: waveBarBounce 1.2s infinite ease-in-out;
+}
+
+@keyframes waveBarBounce {
+  0%, 100% { transform: scaleY(0.7); }
+  50% { transform: scaleY(1.4); }
+}
+
+/* Start Recording Pill Button */
+.notetaker-recorder-start-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: 999px;
+  background: #faf7f0;
+  color: #18283f;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  font-family: var(--nt-font-serif);
+}
+
+.notetaker-recorder-start-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.32);
+}
+
+.notetaker-recorder-live-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notetaker-recorder-pause-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--nt-font-serif);
+}
+
+.notetaker-recorder-pause-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.notetaker-recorder-stop-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: #ef4444;
+  border: none;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+  font-family: var(--nt-font-serif);
+}
+
+.notetaker-recorder-stop-pill:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   RIGHT CARD: WORKSPACE CARD & TABS BAR
    ========================================================================== */
 .notetaker-workspace-card {
-  background: #ffffff;
-  border: 1.5px solid #f1f5f9;
-  border-radius: 20px;
-  padding: 16px 24px 20px 24px;
+  background: #faf7f0;
+  border: 1.5px solid #e7e2d7;
+  border-radius: 22px;
+  padding: 18px 24px 20px 24px;
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-height: 480px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.03);
+  min-height: 520px;
+  box-shadow: 0 2px 14px rgba(24, 40, 63, 0.03);
   position: relative;
   box-sizing: border-box;
 }
@@ -507,8 +789,8 @@ body.dark-theme .notetaker-workspace-card,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e7e2d7;
   box-sizing: border-box;
 }
 
@@ -527,7 +809,7 @@ body.dark-theme .notetaker-workspace-tabs-bar,
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 18px;
+  padding: 8px 18px;
   border-radius: 9999px;
   background: transparent;
   border: none;
@@ -540,13 +822,13 @@ body.dark-theme .notetaker-workspace-tabs-bar,
 }
 
 .notetaker-tab-item:hover {
-  color: #1e1b4b;
-  background: rgba(124, 58, 237, 0.06);
+  color: #18283f;
+  background: rgba(24, 40, 63, 0.05);
 }
 
 .notetaker-tab-item.active {
-  background: #ede9fe;
-  color: #7c3aed;
+  background: #e5dec9;
+  color: #18283f;
   font-weight: 700;
 }
 
@@ -563,14 +845,35 @@ body.dark-theme .notetaker-tab-item:hover,
 
 body.dark-theme .notetaker-tab-item.active,
 .notetaker-root.dark-theme .notetaker-tab-item.active {
-  background: rgba(124, 58, 237, 0.28);
-  color: #c4b5fd;
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+.notetaker-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #dcd4c3;
+  color: #18283f;
+  margin-left: 2px;
+}
+
+body.dark-theme .notetaker-tab-badge,
+.notetaker-root.dark-theme .notetaker-tab-badge {
+  background: #334155;
+  color: #f1f5f9;
 }
 
 .notetaker-tab-soundwave {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 2.5px;
   height: 12px;
 }
 
@@ -597,10 +900,10 @@ body.dark-theme .notetaker-tab-item.active,
   gap: 6px;
   padding: 6px 16px;
   border-radius: 9999px;
-  background: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  color: #475569;
-  font-size: 12px;
+  background: #faf7f0;
+  border: 1px solid #ded8cb;
+  color: #18283f;
+  font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -609,8 +912,7 @@ body.dark-theme .notetaker-tab-item.active,
 
 .notetaker-more-btn:hover,
 .notetaker-more-btn.active {
-  border-color: #cbd5e1;
-  color: #1e1b4b;
+  border-color: #18283f;
 }
 
 body.dark-theme .notetaker-more-btn,
@@ -920,20 +1222,57 @@ body.light-theme .notetaker-root .translation-card-text {
   color: #0f172a;
 }
 
+/* Empty Canvas for Workspace Card */
+.notetaker-empty-canvas {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 340px;
+  width: 100%;
+}
+
+.notetaker-empty-canvas-subtle-hint {
+  display: none;
+}
+
+.notetaker-split-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 380px;
+  width: 100%;
+}
+
+.notetaker-main-content-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
+.notetaker-content-scrollable {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
 /* Bottom Chat / Ask Bar */
 .notetaker-chat-bar {
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
-  background: #ffffff !important;
-  border: 1.5px solid #e2e8f0 !important;
+  background: #faf7f0 !important;
+  border: 1.5px solid #ded8cb !important;
   border-radius: 9999px !important;
   padding: 6px 14px 6px 20px !important;
-  margin-top: 18px !important;
+  margin-top: auto !important;
   height: 48px !important;
   box-sizing: border-box !important;
   width: 100% !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
   transition: all 0.2s ease !important;
 }
 
@@ -945,6 +1284,11 @@ body.dark-theme .notetaker-chat-bar,
 }
 
 .notetaker-chat-bar:focus-within {
+  border-color: #18283f !important;
+  box-shadow: 0 0 0 2px rgba(24, 40, 63, 0.08) !important;
+}
+
+body.dark-theme .notetaker-chat-bar:focus-within {
   border-color: #7c3aed !important;
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15) !important;
 }
@@ -955,7 +1299,7 @@ body.dark-theme .notetaker-chat-bar,
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
-  color: #0f172a !important;
+  color: #18283f !important;
   font-family: var(--nt-font-serif) !important;
   font-size: 13.5px !important;
   height: 100% !important;
@@ -969,29 +1313,41 @@ body.dark-theme .notetaker-chat-input,
 }
 
 .notetaker-chat-input::placeholder {
-  color: #94a3b8 !important;
+  color: #8c857b !important;
   font-family: var(--nt-font-serif) !important;
+}
+
+body.dark-theme .notetaker-chat-input::placeholder {
+  color: #94a3b8 !important;
 }
 
 .notetaker-send-btn {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 34px !important;
-  height: 34px !important;
+  width: 32px !important;
+  height: 32px !important;
   background: transparent !important;
-  color: #7c3aed !important;
+  color: #8c857b !important;
   border: none !important;
   border-radius: 50% !important;
-  font-size: 15px !important;
+  font-size: 14px !important;
   cursor: pointer !important;
   transition: all 0.15s ease !important;
   flex-shrink: 0 !important;
 }
 
 .notetaker-send-btn:hover:not(:disabled) {
-  background: rgba(124, 58, 237, 0.1) !important;
+  color: #18283f !important;
   transform: scale(1.08) !important;
+}
+
+body.dark-theme .notetaker-send-btn {
+  color: #94a3b8 !important;
+}
+
+body.dark-theme .notetaker-send-btn:hover:not(:disabled) {
+  color: #c4b5fd !important;
 }
 
 .notetaker-send-btn:disabled {
@@ -1201,28 +1557,67 @@ body.dark-theme .notetaker-side-action-btn.active i,
 
 .notetaker-page-footer {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding-top: 12px;
-  padding-bottom: 8px;
+  gap: 8px;
+  padding: 24px 0 16px 0;
+  width: 100%;
+}
+
+.notetaker-ai-disclaimer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #78716c;
+  font-family: var(--nt-font-serif);
+}
+
+.notetaker-ai-disclaimer .notetaker-disclaimer-icon {
+  font-size: 12px;
+  color: #18283f;
+}
+
+body.dark-theme .notetaker-ai-disclaimer,
+.notetaker-root.dark-theme .notetaker-ai-disclaimer {
+  color: #94a3b8;
+}
+
+body.dark-theme .notetaker-ai-disclaimer .notetaker-disclaimer-icon,
+.notetaker-root.dark-theme .notetaker-ai-disclaimer .notetaker-disclaimer-icon {
+  color: #cbd5e1;
 }
 
 .notetaker-footer-links {
   font-family: var(--nt-font-serif) !important;
-  font-size: 11px;
-  color: var(--nt-text-muted);
+  font-size: 12px;
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
 .notetaker-footer-links a {
-  color: var(--nt-text-muted);
+  color: #78716c;
   text-decoration: none;
   transition: color 0.15s ease;
+  font-family: var(--nt-font-serif);
 }
 
 .notetaker-footer-links a:hover {
-  color: var(--nt-text-main);
+  color: #18283f;
+  text-decoration: underline;
+}
+
+body.dark-theme .notetaker-footer-links a,
+.notetaker-root.dark-theme .notetaker-footer-links a {
+  color: #94a3b8;
+}
+
+body.dark-theme .notetaker-footer-links a:hover,
+.notetaker-root.dark-theme .notetaker-footer-links a:hover {
+  color: #ffffff;
 }
 
 /* ==========================================================================

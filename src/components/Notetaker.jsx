@@ -3144,16 +3144,6 @@ startNotetakerBilling();
             </div>
 
             <div className="notetaker-banner-center-actions">
-              <button
-                className="notetaker-toggle-setup-pill"
-                type="button"
-                onClick={() => setShowSetup(!showSetup)}
-              >
-                <i className="fa-solid fa-sparkles"></i>
-                <span>{showSetup ? 'Hide setup' : 'Show setup'}</span>
-                <i className={`fa-solid ${showSetup ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
-              </button>
-
               {hasActiveRecordingRef.current && (
                 <div className="notetaker-live-recording-indicator">
                   <span className="notetaker-ready-dot recording"></span>
@@ -3167,14 +3157,19 @@ startNotetakerBilling();
                   </button>
                 </div>
               )}
-            </div>
 
-            <div className="notetaker-banner-art-wrap">
-              <img
-                src={darkMode ? "/assets/notetaker_banner_art_dark.png" : "/assets/notetaker_banner_art.png"}
-                alt="Smart Notetaker Notepad"
-                className="notetaker-banner-art-img"
-              />
+              <div
+                className="notetaker-setup-toggle-wrap"
+                onClick={() => setShowSetup(!showSetup)}
+                role="button"
+                tabIndex={0}
+                title={showSetup ? "Hide setup" : "Show setup"}
+              >
+                <span className="notetaker-setup-toggle-label">{showSetup ? 'Hide setup' : 'Show setup'}</span>
+                <div className={`notetaker-switch-toggle ${showSetup ? 'on' : 'off'}`}>
+                  <span className="notetaker-switch-knob"></span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -3246,8 +3241,94 @@ startNotetakerBilling();
           )}
         </section>
 
-        {/* Lower Workspace Card (Separated by page background gap) */}
-        <section className="notetaker-workspace-card">
+        {/* Main Two-Column Split (Left: Ready to Listen Recorder Card · Right: Workspace Card) */}
+        <div className="notetaker-main-split">
+          {/* ===================== LEFT CARD: VOICE RECORDER PANEL ===================== */}
+          <section className="notetaker-recorder-card">
+            <div className="notetaker-recorder-inner">
+              <div className={`notetaker-mic-ripple-cluster ${isRecording ? 'is-recording' : ''}`}>
+                <div className="ripple-ring ring-4"></div>
+                <div className="ripple-ring ring-3"></div>
+                <div className="ripple-ring ring-2"></div>
+                <div className="ripple-ring ring-1"></div>
+                <div
+                  className="ripple-center-circle"
+                  onClick={handleStartStopRecording}
+                  title={isRecording ? "Click to stop recording" : "Click to start recording"}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <i className={`fa-solid ${isRecording ? (recordingStatus === 'paused' ? 'fa-pause' : 'fa-microphone-lines') : 'fa-microphone'}`}></i>
+                </div>
+              </div>
+
+              <h3 className="notetaker-recorder-title">
+                {isRecording
+                  ? (recordingStatus === 'paused' ? 'Recording Paused' : `Recording ${formatTimer(timerSeconds)}`)
+                  : 'Ready to listen'}
+              </h3>
+
+              <p className="notetaker-recorder-desc">
+                {isRecording
+                  ? 'Speaking into your microphone. Your conversation and translations appear live on the right.'
+                  : 'Choose your language, then press Record. Your conversation and translation will appear here.'}
+              </p>
+
+              <div className={`notetaker-soundwave-graphic ${isRecording ? 'animating' : ''}`}>
+                {[
+                  3, 4, 6, 8, 10, 13, 17, 21, 26, 30, 26, 21, 17, 13, 10, 8, 6, 4, 3,
+                  4, 6, 9, 14, 19, 25, 19, 14, 9, 6, 4, 3
+                ].map((h, i) => (
+                  <span
+                    key={i}
+                    className="wave-bar"
+                    style={{
+                      height: `${h}px`,
+                      animationDelay: `${(i % 12) * 80}ms`
+                    }}
+                  ></span>
+                ))}
+              </div>
+
+              <div className="notetaker-recorder-actions">
+                {!isRecording ? (
+                  <button
+                    type="button"
+                    className="notetaker-recorder-start-pill"
+                    onClick={handleStartStopRecording}
+                    disabled={recordingStatus === 'processing'}
+                  >
+                    <span>Start Recording</span>
+                    <i className="fa-solid fa-arrow-right"></i>
+                  </button>
+                ) : (
+                  <div className="notetaker-recorder-live-controls">
+                    <button
+                      type="button"
+                      className="notetaker-recorder-pause-btn"
+                      onClick={handlePauseResumeRecording}
+                      title={recordingStatus === 'paused' ? 'Resume recording' : 'Pause recording'}
+                    >
+                      <i className={`fa-solid ${recordingStatus === 'paused' ? 'fa-play' : 'fa-pause'}`}></i>
+                      <span>{recordingStatus === 'paused' ? 'Resume' : 'Pause'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="notetaker-recorder-stop-pill"
+                      onClick={handleStartStopRecording}
+                      title="Stop recording"
+                    >
+                      <i className="fa-solid fa-square"></i>
+                      <span>Stop</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* ===================== RIGHT CARD: WORKSPACE ===================== */}
+          <section className="notetaker-workspace-card">
           {/* Tabs Bar */}
           <div className="notetaker-workspace-tabs-bar">
             <div className="notetaker-tabs-left">
@@ -3563,32 +3644,11 @@ startNotetakerBilling();
                       )}
                     </>
                   ) : (
-                    <div className="notetaker-empty-state notetaker-ready-view">
-                      <div className="notetaker-ready-mic-cluster">
-                        <div className="notetaker-flank-wave left">
-                          <span></span><span></span><span></span>
-                        </div>
-                        <div className="notetaker-mic-circle">
-                          <i className="fa-solid fa-microphone"></i>
-                        </div>
-                        <div className="notetaker-flank-wave right">
-                          <span></span><span></span><span></span>
-                        </div>
+                    <div className="notetaker-empty-canvas">
+                      <div className="notetaker-empty-canvas-subtle-hint">
+                        <i className="fa-regular fa-comment-dots"></i>
+                        <span>Start recording on the left to see live speech transcripts and translations here.</span>
                       </div>
-                      <h3 className="notetaker-empty-title">Ready to listen</h3>
-                      <p className="notetaker-empty-desc">
-                        Choose your language, then press Record. Your conversation and translation will appear here.
-                      </p>
-                      <button
-                        type="button"
-                        className="notetaker-ready-start-btn"
-                        onClick={handleStartStopRecording}
-                        disabled={recordingStatus === 'processing'}
-                      >
-                        <i className="fa-solid fa-microphone"></i>
-                        <span>Start Recording</span>
-                        <i className="fa-solid fa-arrow-right"></i>
-                      </button>
                     </div>
                   )}
                 </div>
@@ -4013,55 +4073,50 @@ startNotetakerBilling();
 
           </div>
 
-          {/* Bottom Ask / Chat Bar (Only shown on live Transcript tab per screenshot) */}
-          {rightTab === 'live' && (
-            <>
-              <form onSubmit={handleSendChat} className="notetaker-chat-bar">
-                <input
-                  type="text"
-                  className="notetaker-chat-input"
-                  placeholder="Ask about this meeting..."
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  disabled={isSendingChat}
-                />
-                <button
-                  className="notetaker-send-btn"
-                  type="submit"
-                  disabled={isSendingChat || !chatInput.trim()}
-                  title="Send"
-                >
-                  <i className={`fa-solid ${isSendingChat ? 'fa-spinner fa-spin' : 'fa-paper-plane'}`}></i>
-                </button>
-              </form>
-
-              {/* Disclaimer inside card */}
-              <div className="notetaker-card-disclaimer">
-                <i className="fa-solid fa-circle-info notetaker-disclaimer-icon"></i>
-                <span>AI can make mistakes. Check important details.</span>
-              </div>
-            </>
-          )}
+          {/* Bottom Ask / Chat Bar */}
+          <form onSubmit={handleSendChat} className="notetaker-chat-bar">
+            <input
+              type="text"
+              className="notetaker-chat-input"
+              placeholder="Ask about this meeting..."
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              disabled={isSendingChat}
+            />
+            <button
+              className="notetaker-send-btn"
+              type="submit"
+              disabled={isSendingChat || !chatInput.trim()}
+              title="Send"
+            >
+              <i className={`fa-solid ${isSendingChat ? 'fa-spinner fa-spin' : 'fa-paper-plane'}`}></i>
+            </button>
+          </form>
         </section>
+      </div>
 
-        {/* Floating Help Headset Button */}
-        <button
-          className="notetaker-floating-help-btn"
-          type="button"
-          onClick={() => showToast?.('AI Assistant Help & Tips')}
-          title="Help & Feedback"
-        >
-          <i className="fa-solid fa-headset"></i>
-          <span className="notetaker-help-dot">?</span>
-        </button>
+      {/* Floating Help Headset Button */}
+      <button
+        className="notetaker-floating-help-btn"
+        type="button"
+        onClick={() => showToast?.('AI Assistant Help & Tips')}
+        title="Help & Feedback"
+      >
+        <i className="fa-solid fa-headset"></i>
+        <span className="notetaker-help-dot">?</span>
+      </button>
 
-        {/* Footer Links (Outside card) */}
-        <footer className="notetaker-page-footer">
-          <div className="notetaker-footer-links">
-            <a href="#" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
-            <a href="#" onClick={(e) => e.preventDefault()}>Terms of Service</a>
-          </div>
-        </footer>
+      {/* Footer */}
+      <footer className="notetaker-page-footer">
+        <div className="notetaker-ai-disclaimer">
+          <i className="fa-solid fa-circle-info notetaker-disclaimer-icon"></i>
+          <span>AI can make mistakes. Check important details.</span>
+        </div>
+        <div className="notetaker-footer-links">
+          <a href="#" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
+          <a href="#" onClick={(e) => e.preventDefault()}>Terms of Service</a>
+        </div>
+      </footer>
       </div>
 
       {/* Navigation Drawer */}

@@ -271,6 +271,147 @@ export default function Upload({
   const [audioSeekSec, setAudioSeekSec] = useState(0);
   const [wsInputText, setWsInputText] = useState('');
 
+  // ── Upload History Popup States (Persistent via localStorage) ──
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historySearchQuery, setHistorySearchQuery] = useState('');
+  const [historyFilterTab, setHistoryFilterTab] = useState('all'); // 'all' | 'audio' | 'video' | 'document'
+
+  const [uploadHistory, setUploadHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('kairos_upload_session_history');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse upload history from localStorage', e);
+    }
+    return [
+      {
+        id: 'demo_session_interview_10nov',
+        title: 'Interview · 10 Nov - Audio.ogg',
+        fileName: 'Interview · 10 Nov - Audio.ogg',
+        fileType: 'audio',
+        duration: '0:57',
+        durationSeconds: 57,
+        wordsCount: 49,
+        date: new Date().toISOString(),
+        formattedDate: '10 Nov, 10:00 AM',
+        status: 'ready',
+        transcript: DEFAULT_MOCK_SESSION.transcript,
+        utterances: DEFAULT_MOCK_SESSION.utterances,
+        activeTool: 'key_points',
+        toolState: 'ready',
+        messages: [
+          {
+            role: 'ai',
+            text: 'Key points ready: The speaker actively contrasts Python and Java, examining which programming ecosystem provides superior advantages.',
+            time: '10:01 AM'
+          }
+        ]
+      }
+    ];
+  });
+
+  // Sync uploadHistory to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('kairos_upload_session_history', JSON.stringify(uploadHistory.slice(0, 50)));
+    } catch (e) {
+      console.warn('Failed to save upload history to localStorage', e);
+    }
+  }, [uploadHistory]);
+
+  const saveSessionToHistory = (sessionData) => {
+    if (!sessionData) return;
+    setUploadHistory((prev) => {
+      const id = sessionData.id || ('upload_sess_' + Date.now());
+      const existingIdx = prev.findIndex((s) => s.id === id);
+      const isVid = sessionData.fileType === 'video' || sessionData.isVideoSession;
+      const historyItem = {
+        id,
+        title: sessionData.fileName || sessionData.title || (isVid ? 'Video Recording' : 'Audio Recording'),
+        fileName: sessionData.fileName || sessionData.title || (isVid ? 'Video Recording' : 'Audio Recording'),
+        fileType: sessionData.fileType || (isVid ? 'video' : 'audio'),
+        isVideoSession: Boolean(isVid),
+        duration: sessionData.duration || '0:57',
+        durationSeconds: sessionData.durationSeconds || 57,
+        wordsCount: sessionData.wordsCount || (sessionData.transcript ? sessionData.transcript.split(/\s+/).filter(Boolean).length : 49),
+        date: sessionData.date || sessionData.createdAt || new Date().toISOString(),
+        formattedDate: sessionData.formattedDate || new Date().toLocaleDateString([], {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        status: 'ready',
+        transcript: sessionData.transcript || '',
+        utterances: sessionData.utterances || [],
+        messages: sessionData.messages || sessionData.chatMessages || [],
+        activeTool: sessionData.activeTool || null,
+        toolState: sessionData.toolState || 'ready',
+        ...sessionData
+      };
+
+      if (existingIdx >= 0) {
+        const copy = [...prev];
+        copy[existingIdx] = { ...copy[existingIdx], ...historyItem };
+        return copy;
+      }
+      return [historyItem, ...prev];
+    });
+  };
+
+  const handleOpenHistorySession = (sess) => {
+    setActiveSession(sess);
+    setSelectedFileName(sess.fileName || sess.title || '');
+    setSelectedFile(null);
+    setMessages(sess.messages || []);
+    setMediaDuration(sess.duration || '0:57');
+    setActiveTab('transcript');
+    setUploadFlowStep('workspace');
+    setShowHistoryModal(false);
+    if (showToast) {
+      showToast(`Loaded "${sess.fileName || sess.title}" from history`);
+    }
+  };
+
+  const handleDeleteHistorySession = async (e, sessionId) => {
+    e?.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this session from history?')) return;
+    setUploadHistory((prev) => prev.filter((s) => s.id !== sessionId));
+    if (activeSession?.id === sessionId) {
+      setActiveSession(null);
+      setUploadFlowStep('initial');
+    }
+    try {
+      if (sessions.some((s) => s.id === sessionId)) {
+        await axios.delete(`${API_BASE}/api/upload/session/${sessionId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      if (videoSessions.some((vs) => vs.id === sessionId)) {
+        await deleteVideoSession(sessionId, token);
+      }
+    } catch (err) {
+      // ignore
+    }
+    if (showToast) showToast('Session deleted from history');
+  };
+
+  const handleClearAllHistory = () => {
+    if (!window.confirm('Are you sure you want to clear all upload history?')) return;
+    setUploadHistory([]);
+    try {
+      localStorage.removeItem('kairos_upload_session_history');
+    } catch (e) {}
+    if (activeSession) {
+      setActiveSession(null);
+      setUploadFlowStep('initial');
+    }
+    if (showToast) showToast('All upload history cleared');
+  };
+
   // ── New Redesign V2 States (Matching media_1794574048062_21272d0c.png) ──
   const [showHelpWithUploads, setShowHelpWithUploads] = useState(true);
   const [showSupportedTypes, setShowSupportedTypes] = useState(true);
@@ -533,10 +674,14 @@ export default function Upload({
       ]);
       if (!isMountedRef.current) return;
       if (uploadRes.status === 'fulfilled' && uploadRes.value.data.ok) {
-        setSessions(uploadRes.value.data.sessions || []);
+        const backendUploads = uploadRes.value.data.sessions || [];
+        setSessions(backendUploads);
+        backendUploads.forEach(s => saveSessionToHistory(s));
       }
       if (videoRes.status === 'fulfilled' && videoRes.value.ok) {
-        setVideoSessions(videoRes.value.sessions || []);
+        const backendVideos = videoRes.value.sessions || [];
+        setVideoSessions(backendVideos);
+        backendVideos.forEach(vs => saveSessionToHistory({ ...vs, isVideoSession: true, fileType: 'video' }));
       }
     } catch (err) {
       console.error('[Upload Sessions] fetch error:', err);
@@ -840,6 +985,7 @@ export default function Upload({
         const session = response.data.session;
         session.isTranscribing = false;
         setActiveSession(session);
+        saveSessionToHistory(session);
         setMessages(session.messages || []);
         setMediaDuration(session.duration || '0:30');
         fetchSessions();
@@ -867,6 +1013,7 @@ export default function Upload({
         title: targetFile.name
       };
       setActiveSession(mockSession);
+      saveSessionToHistory(mockSession);
       setSelectedFileName(targetFile.name);
       setUploadFlowStep('workspace');
       showToast('Processing complete! Displaying transcription & insights.');
@@ -1005,6 +1152,7 @@ export default function Upload({
         };
 
         setActiveSession(session);
+        saveSessionToHistory(session);
         setMessages([]);
         setMediaDuration('0:30');
         fetchSessions();
@@ -2112,6 +2260,30 @@ export default function Upload({
     l.native.toLowerCase().includes(langSearch.toLowerCase())
   );
 
+  // Filtered upload history for popup modal
+  const filteredHistory = uploadHistory.filter((item) => {
+    if (historyFilterTab === 'audio') {
+      const isAud = item.fileType === 'audio' || (!item.isVideoSession && item.fileType !== 'document' && item.fileType !== 'image');
+      if (!isAud) return false;
+    } else if (historyFilterTab === 'video') {
+      const isVid = item.fileType === 'video' || item.isVideoSession;
+      if (!isVid) return false;
+    } else if (historyFilterTab === 'document') {
+      const isDoc = item.fileType === 'document' || item.fileType === 'image';
+      if (!isDoc) return false;
+    }
+
+    if (historySearchQuery.trim()) {
+      const q = historySearchQuery.toLowerCase();
+      const matchName = String(item.fileName || item.title || '').toLowerCase().includes(q);
+      const matchTranscript = String(item.transcript || '').toLowerCase().includes(q);
+      const matchMessages = Array.isArray(item.messages) && item.messages.some(m => String(m.text || '').toLowerCase().includes(q));
+      if (!matchName && !matchTranscript && !matchMessages) return false;
+    }
+
+    return true;
+  });
+
   return (
     <div className={`interview-panel-root upload-page-root ${darkMode ? 'dark-theme' : 'light-theme'}`}>
       {/* Top Red Navbar - Matches User Reference Screenshot */}
@@ -2134,6 +2306,20 @@ export default function Upload({
         </div>
 
         <div className="upload-nav-right">
+          <button
+            className="upload-nav-history-btn"
+            onClick={() => setShowHistoryModal(true)}
+            type="button"
+            title="Upload History"
+            aria-label="Open Upload History"
+          >
+            <i className="fa-solid fa-clock-rotate-left"></i>
+            <span>History</span>
+            {uploadHistory.length > 0 && (
+              <span className="upload-nav-history-badge">{uploadHistory.length}</span>
+            )}
+          </button>
+
           <button
             className="upload-settings-btn"
             onClick={toggleDarkMode}
@@ -2177,6 +2363,16 @@ export default function Upload({
             darkMode={darkMode}
             showToast={showToast}
             onOpenDrawer={() => setShowNavDrawer(true)}
+            session={activeSession}
+            onUpdateSession={(updatedFields) => {
+              if (activeSession?.id) {
+                const updatedSession = { ...activeSession, ...updatedFields };
+                saveSessionToHistory(updatedSession);
+                setActiveSession(updatedSession);
+              }
+            }}
+            onOpenHistory={() => setShowHistoryModal(true)}
+            historyCount={uploadHistory.length}
           />
         ) : uploadFlowStep === 'preferences' ? (
           /* =================== STATE 2A: READING PREFERENCES (EXACT MATCH frame_0285s) =================== */
@@ -2839,6 +3035,223 @@ export default function Upload({
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload History Modal Popup */}
+      {showHistoryModal && (
+        <div className="upload-history-modal-overlay" onClick={() => setShowHistoryModal(false)}>
+          <div className="upload-history-modal-dialog" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="upload-history-modal-header">
+              <div className="upload-history-modal-header-left">
+                <div className="upload-history-modal-icon-circle">
+                  <i className="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div className="upload-history-modal-title-wrap">
+                  <h3 className="upload-history-modal-title">Upload History</h3>
+                  <span className="upload-history-modal-sub">
+                    {uploadHistory.length} recorded session{uploadHistory.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="upload-history-modal-close-btn"
+                onClick={() => setShowHistoryModal(false)}
+                title="Close"
+                aria-label="Close modal"
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            {/* Search & Filter Tabs */}
+            <div className="upload-history-search-row">
+              <div className="upload-history-search-box">
+                <i className="fa-solid fa-magnifying-glass"></i>
+                <input
+                  type="text"
+                  placeholder="Search files, chats, transcripts..."
+                  value={historySearchQuery}
+                  onChange={(e) => setHistorySearchQuery(e.target.value)}
+                  autoFocus
+                />
+                {historySearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setHistorySearchQuery('')}
+                    className="upload-history-search-clear"
+                    title="Clear search"
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                )}
+              </div>
+
+              <div className="upload-history-filter-pills">
+                <button
+                  type="button"
+                  className={`upload-history-tab-btn ${historyFilterTab === 'all' ? 'active' : ''}`}
+                  onClick={() => setHistoryFilterTab('all')}
+                >
+                  All ({uploadHistory.length})
+                </button>
+                <button
+                  type="button"
+                  className={`upload-history-tab-btn ${historyFilterTab === 'audio' ? 'active' : ''}`}
+                  onClick={() => setHistoryFilterTab('audio')}
+                >
+                  Audio ({uploadHistory.filter(s => s.fileType === 'audio' || (!s.isVideoSession && s.fileType !== 'document' && s.fileType !== 'image')).length})
+                </button>
+                <button
+                  type="button"
+                  className={`upload-history-tab-btn ${historyFilterTab === 'video' ? 'active' : ''}`}
+                  onClick={() => setHistoryFilterTab('video')}
+                >
+                  Video ({uploadHistory.filter(s => s.fileType === 'video' || s.isVideoSession).length})
+                </button>
+                <button
+                  type="button"
+                  className={`upload-history-tab-btn ${historyFilterTab === 'document' ? 'active' : ''}`}
+                  onClick={() => setHistoryFilterTab('document')}
+                >
+                  Documents ({uploadHistory.filter(s => s.fileType === 'document' || s.fileType === 'image').length})
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body: Sessions List or Empty State */}
+            <div className="upload-history-modal-body">
+              {filteredHistory.length === 0 ? (
+                <div className="upload-history-empty-state">
+                  <div className="upload-history-empty-icon-wrap">
+                    <i className="fa-regular fa-folder-open"></i>
+                  </div>
+                  <h4 className="upload-history-empty-heading">No upload sessions found</h4>
+                  <p className="upload-history-empty-text">
+                    {historySearchQuery
+                      ? `No files or chats matched "${historySearchQuery}". Try a different keyword.`
+                      : 'Upload an audio, video, document, or image to start. Your transcripts and AI conversations will automatically be saved here.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="upload-history-cards-list">
+                  {filteredHistory.map((sess) => {
+                    const isVid = sess.fileType === 'video' || sess.isVideoSession;
+                    const isDoc = sess.fileType === 'document' || sess.fileType === 'image';
+                    const messagesCount = (sess.messages?.length) || (sess.chatMessages?.length) || 0;
+                    const isSelected = activeSession?.id === sess.id;
+
+                    return (
+                      <div
+                        key={sess.id}
+                        className={`upload-history-card ${isSelected ? 'active' : ''}`}
+                        onClick={() => handleOpenHistorySession(sess)}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <div className="upload-history-card-top">
+                          <div className="upload-history-card-icon-title">
+                            <div className={`upload-history-card-icon ${isVid ? 'video' : isDoc ? 'doc' : 'audio'}`}>
+                              <i className={`fa-solid ${isVid ? 'fa-video' : isDoc ? 'fa-file-lines' : 'fa-headphones'}`}></i>
+                            </div>
+                            <div className="upload-history-card-info">
+                              <h4 className="upload-history-card-title" title={sess.fileName || sess.title}>
+                                {sess.fileName || sess.title}
+                              </h4>
+                              <span className="upload-history-card-date">{sess.formattedDate || 'Recent'}</span>
+                            </div>
+                          </div>
+
+                          <div className="upload-history-card-badges">
+                            {sess.duration && (
+                              <span className="upload-history-tag-pill">
+                                <i className="fa-regular fa-clock"></i> {sess.duration}
+                              </span>
+                            )}
+                            {sess.wordsCount ? (
+                              <span className="upload-history-tag-pill">
+                                {sess.wordsCount} words
+                              </span>
+                            ) : null}
+                            <span className="upload-history-tag-pill status-ready">
+                              ✓ Ready
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Chat or Transcript Preview */}
+                        <div className="upload-history-card-preview-box">
+                          {messagesCount > 0 ? (
+                            <div className="upload-history-preview-chat">
+                              <i className="fa-regular fa-comment-dots"></i>
+                              <span>
+                                <strong>Last Question / Chat:</strong> "{sess.messages[sess.messages.length - 1].text?.slice(0, 110)}
+                                {sess.messages[sess.messages.length - 1].text?.length > 110 ? '...' : ''}"
+                              </span>
+                            </div>
+                          ) : sess.transcript ? (
+                            <div className="upload-history-preview-transcript">
+                              <i className="fa-regular fa-file-lines"></i>
+                              <span>
+                                "{sess.transcript.slice(0, 110)}
+                                {sess.transcript.length > 110 ? '...' : ''}"
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="upload-history-preview-empty">
+                              <span>File ready for AI questions &amp; transcript analysis.</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Actions Row */}
+                        <div className="upload-history-card-actions" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            className="upload-history-open-btn"
+                            onClick={() => handleOpenHistorySession(sess)}
+                          >
+                            <i className="fa-solid fa-arrow-up-right-from-square"></i> Open Chat &amp; File
+                          </button>
+
+                          <button
+                            type="button"
+                            className="upload-history-delete-btn"
+                            onClick={(e) => handleDeleteHistorySession(e, sess.id)}
+                            title="Delete session from history"
+                          >
+                            <i className="fa-regular fa-trash-can"></i>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="upload-history-modal-footer">
+              {uploadHistory.length > 0 && (
+                <button
+                  type="button"
+                  className="upload-history-clear-btn"
+                  onClick={handleClearAllHistory}
+                >
+                  <i className="fa-regular fa-trash-can"></i> Clear All History
+                </button>
+              )}
+              <button
+                type="button"
+                className="upload-history-close-btn"
+                onClick={() => setShowHistoryModal(false)}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

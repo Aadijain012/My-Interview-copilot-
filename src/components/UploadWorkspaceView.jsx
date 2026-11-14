@@ -21,9 +21,16 @@ export default function UploadWorkspaceView({
   darkMode = true,
   showToast = (msg) => console.log(msg),
   onOpenDrawer,
+  session = null,
+  onUpdateSession,
+  onOpenHistory,
+  historyCount = 0,
 }) {
   // File Metadata
-  const fileName = file?.name || 'Interview · 10 Nov - Audio.ogg';
+  const fileName = file?.name || session?.fileName || session?.title || 'Interview · 10 Nov - Audio.ogg';
+  const utterances = session?.utterances && session.utterances.length > 0 ? session.utterances : DEFAULT_UTTERANCES;
+  const duration = session?.duration || '0:57';
+  const wordsCount = session?.wordsCount || 49;
   const [showFileDetails, setShowFileDetails] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
@@ -34,14 +41,37 @@ export default function UploadWorkspaceView({
   const timerRef = useRef(null);
 
   // Quick Tools State: null | 'summarize' | 'key_points' | 'explain' | 'actions' | 'mindmap'
-  const [activeTool, setActiveTool] = useState(null);
-  const [toolState, setToolState] = useState('idle'); // 'idle' | 'accepted' | 'creating' | 'ready'
+  const [activeTool, setActiveTool] = useState(() => {
+    if (session?.activeTool) return session.activeTool;
+    if (session?.id === 'demo_session_interview_10nov' || String(fileName).includes('10 Nov')) return 'key_points';
+    return null;
+  });
+  const [toolState, setToolState] = useState(() => {
+    if (session?.toolState) return session.toolState;
+    if (session?.id === 'demo_session_interview_10nov' || String(fileName).includes('10 Nov')) return 'ready';
+    return 'idle';
+  });
   const [elapsedSec, setElapsedSec] = useState(0);
   const [showMoreTools, setShowMoreTools] = useState(false);
 
   // Chat / Query State
   const [chatInput, setChatInput] = useState('');
-  const [chatMessages, setChatMessages] = useState([]);
+  const [chatMessages, setChatMessages] = useState(() => {
+    if (session?.messages && session.messages.length > 0) return session.messages;
+    if (session?.chatMessages && session.chatMessages.length > 0) return session.chatMessages;
+    return [];
+  });
+
+  // Keep chat and tools synced when switching sessions
+  useEffect(() => {
+    if (session) {
+      setChatMessages(session.messages || session.chatMessages || []);
+      if (session.activeTool) {
+        setActiveTool(session.activeTool);
+        setToolState(session.toolState || 'ready');
+      }
+    }
+  }, [session?.id]);
 
   // Voice Chat Assistant State
   const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
@@ -84,11 +114,14 @@ export default function UploadWorkspaceView({
     setTimeout(() => {
       setToolState('ready');
       clearInterval(secTimer);
+      if (onUpdateSession) {
+        onUpdateSession({ activeTool: toolKey, toolState: 'ready' });
+      }
     }, 1900);
   };
 
   const handleCopyTranscript = () => {
-    const fullText = DEFAULT_UTTERANCES.map((u) => `${u.speaker} (${u.time}): ${u.text}`).join('\n');
+    const fullText = utterances.map((u) => `${u.speaker || 'Speaker'} (${u.time || ''}): ${u.text}`).join('\n');
     if (navigator.clipboard) {
       navigator.clipboard.writeText(fullText);
       showToast('Transcript copied to clipboard!');
@@ -113,9 +146,13 @@ export default function UploadWorkspaceView({
     }
 
     const aiMsg = { role: 'ai', text: reply, time: timeStr };
+    const updated = [...chatMessages, userMsg, aiMsg];
 
-    setChatMessages((prev) => [...prev, userMsg, aiMsg]);
+    setChatMessages(updated);
     setChatInput('');
+    if (onUpdateSession) {
+      onUpdateSession({ messages: updated });
+    }
   };
 
   return (
@@ -136,7 +173,7 @@ export default function UploadWorkspaceView({
               {fileName}
             </h2>
             <div className="uws-file-submeta">
-              <span>Audio · 0:57 · 49 words</span>
+              <span>Audio · {duration} · {wordsCount} words</span>
               <span className="uws-ready-pill">
                 <span className="uws-ready-dot"></span>
                 <span>Ready</span>
@@ -146,6 +183,19 @@ export default function UploadWorkspaceView({
         </div>
 
         <div className="uws-topbar-right">
+          {onOpenHistory && (
+            <button
+              type="button"
+              className="uws-badge-btn uws-history-topbar-btn"
+              onClick={onOpenHistory}
+              title="Upload History"
+            >
+              <i className="fa-solid fa-clock-rotate-left"></i>
+              <span>History</span>
+              {historyCount > 0 && <span className="uws-count-badge">{historyCount}</span>}
+            </button>
+          )}
+
           <button type="button" className="uws-badge-btn" onClick={() => onOpenDrawer?.()}>
             <i className="fa-regular fa-bookmark"></i>
             <span>Saved results</span>
@@ -261,11 +311,11 @@ export default function UploadWorkspaceView({
 
           {/* Transcript Speaker Turns */}
           <div className="uws-utterances-scroller">
-            {DEFAULT_UTTERANCES.map((utt) => (
-              <div key={utt.id} className="uws-utterance-item">
+            {utterances.map((utt, idx) => (
+              <div key={utt.id || idx} className="uws-utterance-item">
                 <div className="uws-speaker-time-row">
-                  <span>{utt.speaker}</span>
-                  <span>{utt.time}</span>
+                  <span>{utt.speaker || 'Speaker 1'}</span>
+                  <span>{utt.time || '0:00'}</span>
                 </div>
                 <p className="uws-utt-p">{utt.text}</p>
               </div>
@@ -305,6 +355,9 @@ export default function UploadWorkspaceView({
                   setActiveTool(null);
                   setToolState('idle');
                   setChatMessages([]);
+                  if (onUpdateSession) {
+                    onUpdateSession({ activeTool: null, toolState: 'idle', messages: [] });
+                  }
                 }}
               >
                 + New question

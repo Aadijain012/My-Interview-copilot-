@@ -243,6 +243,16 @@ body.light-theme .upload-workspace-view-root,
   color: var(--uws-btn-hover-text);
 }
 
+.uws-history-topbar-btn:hover {
+  border-color: #2dd4bf;
+  color: #2dd4bf;
+}
+
+.upload-workspace-view-root.light-theme .uws-history-topbar-btn:hover {
+  border-color: #0d9488;
+  color: #0d9488;
+}
+
 .uws-count-badge {
   background: var(--uws-badge-bg);
   padding: 1px 7px;

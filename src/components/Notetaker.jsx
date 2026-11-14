@@ -108,9 +108,45 @@ const isSystemStatusMessage = (msg) => {
   );
 };
 
+const DEFAULT_SAMPLE_NOTETAKER_SESSION = {
+  id: 'sample_notetaker_meeting_10nov',
+  title: 'Product Sprint & Architecture Discussion',
+  tech: 'Notetaker Session',
+  durationSeconds: 324,
+  durationDisplay: '05:24',
+  date: 'Nov 14, 2026',
+  time: '11:30 AM',
+  payload: {
+    spokenLanguage: 'English',
+    targetLanguage: 'English',
+    notes: `### Executive Summary
+The team discussed the upcoming Q4 architecture roadmap, focusing on microservices consolidation, low-latency audio streaming pipelines, and automated speech-to-text accuracy benchmarks.
+
+### Key Points
+- **Architecture Scalability:** Transitioning WebSocket gateways to distributed Redis Pub/Sub for sub-50ms latency across global clusters.
+- **Speech Processing:** Integration of Deepgram Nova-3 real-time models yielding a 34% reduction in word error rate (WER).
+- **Security & Compliance:** Finalizing AES-256 end-to-end encryption for stored meeting transcripts and audio artifacts.
+
+### Action Items
+- [ ] Dev Team: Deploy staging canary build for distributed audio WebSocket proxies by Friday.
+- [ ] QA Team: Run multi-speaker stress test with 50 concurrent simulated streams.
+- [ ] Product Team: Review user feedback on previous session management UI and finalize release notes.`,
+    transcript: [
+      { id: 't1', sender: 'user', speaker: 'Speaker 1', text: 'Good morning everyone, let us kick off our sprint architecture review.', wallTime: '11:30 AM' },
+      { id: 't2', sender: 'user', speaker: 'Speaker 2', text: 'Morning! Our primary focus today is reducing streaming latency and reviewing the new speech engine benchmarks.', wallTime: '11:31 AM' },
+      { id: 't3', sender: 'user', speaker: 'Speaker 1', text: 'The Deepgram Nova-3 integration numbers look fantastic—we saw a 34% reduction in word error rate in early testing.', wallTime: '11:32 AM' },
+      { id: 't4', sender: 'user', speaker: 'Speaker 3', text: 'Agreed. Next we need to ensure the WebSocket gateways are scaled across Redis Pub/Sub to maintain low latency under peak loads.', wallTime: '11:33 AM' }
+    ],
+    translationHistory: []
+  }
+};
+
 export default function Notetaker({ token, user, onLogout, onBackToLanding, onGoToPanel, onGoToVoiceAgent, onGoToUpload, onGoToDashboard, onGoToProfile, onGoToSubscription, onGoToUsage, onGoToReferral, showToast, darkMode, toggleDarkMode, windowType }) {
   const [activeTab, setActiveTab] = useState('record'); // 'record' or 'past'
   const [rightTab, setRightTab] = useState('live'); // 'live', 'notes', or 'feedback'
+  const [selectedPastSessionDetail, setSelectedPastSessionDetail] = useState(null);
+  const [pastSessionsSearchQuery, setPastSessionsSearchQuery] = useState('');
+  const [sessionDetailSubTab, setSessionDetailSubTab] = useState('summary'); // 'summary' | 'transcript'
   const [isRecording, setIsRecording] = useState(false);
   const [recordingStatus, setRecordingStatus] = useState('idle');
 
@@ -2887,7 +2923,8 @@ startNotetakerBilling();
   };
 
   const handleSelectPastSession = (sessId) => {
-    const found = pastSessions.find(s => (s.id === sessId || s._id === sessId));
+    const found = (pastSessions || []).find(s => (s.id === sessId || s._id === sessId)) ||
+      (sessId === DEFAULT_SAMPLE_NOTETAKER_SESSION.id ? DEFAULT_SAMPLE_NOTETAKER_SESSION : null);
     if (found) {
       const notesText = found.payload?.notes || found.payload?.generatedNotes || found.notes || '';
       setGeneratedNotes(cleanNotesText(notesText));
@@ -3028,6 +3065,36 @@ startNotetakerBilling();
       date: formattedDate,
       duration: formattedDuration
     };
+  });
+
+  const handleDeletePastSession = async (e, sessId) => {
+    e?.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this session?')) return;
+    removeLocalSession(sessId);
+    setPastSessions(prev => prev.filter(s => (s.id !== sessId && s._id !== sessId)));
+    if (selectedPastSessionDetail?.id === sessId || selectedPastSessionDetail?._id === sessId) {
+      setSelectedPastSessionDetail(null);
+    }
+    try {
+      const effectiveToken = getEffectiveToken();
+      if (effectiveToken) {
+        await fetch(`${API_BASE}/api/interview-panel-sessions/${sessId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${effectiveToken}` }
+        });
+      }
+    } catch (_) {}
+    showToast('Session deleted.');
+  };
+
+  const allSessionsList = pastSessions.length > 0 ? pastSessions : [DEFAULT_SAMPLE_NOTETAKER_SESSION];
+  const displaySessionsList = allSessionsList.filter(sess => {
+    if (!pastSessionsSearchQuery.trim()) return true;
+    const q = pastSessionsSearchQuery.toLowerCase();
+    const title = String(sess.title || '').toLowerCase();
+    const notes = String(sess.payload?.notes || sess.payload?.generatedNotes || sess.notes || '').toLowerCase();
+    const date = String(sess.date || sess.payload?.date || '').toLowerCase();
+    return title.includes(q) || notes.includes(q) || date.includes(q);
   });
 
   return (
@@ -3204,11 +3271,17 @@ startNotetakerBilling();
               </button>
               <button
                 className={`notetaker-tab-item ${rightTab === 'history' ? 'active' : ''}`}
-                onClick={() => setRightTab('history')}
+                onClick={() => {
+                  setRightTab('history');
+                  setSelectedPastSessionDetail(null);
+                }}
                 type="button"
               >
-                <i className="fa-solid fa-language"></i>
-                <span>Translations</span>
+                <i className="fa-solid fa-clock-rotate-left"></i>
+                <span>Previous sessions</span>
+                {allSessionsList.length > 0 && (
+                  <span className="notetaker-tab-badge">{allSessionsList.length}</span>
+                )}
               </button>
             </div>
 
@@ -3283,7 +3356,8 @@ startNotetakerBilling();
                   <button
                     className="notetaker-side-action-btn"
                     onClick={() => {
-                      setShowPastSessionsModal(true);
+                      setRightTab('history');
+                      setSelectedPastSessionDetail(null);
                       setShowMoreMenu(false);
                     }}
                     type="button"
@@ -3555,88 +3629,382 @@ startNotetakerBilling();
             )}
 
             {rightTab === 'history' && (
-              <div className="notetaker-history-panel" style={{ padding: '10px 0', overflowY: 'auto', flex: 1, minHeight: 0 }}>
+              <div className="notetaker-sessions-tab-wrapper" style={{ padding: '4px 0 24px 0', overflowY: 'auto', flex: 1, minHeight: 0 }}>
                 {isRecording && (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '14px 0', gap: '8px' }}>
-                    <div className="listening-indicator-pulse" style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--nt-cyan)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 0 rgba(8, 127, 114, 0.7)', animation: 'pulse 1.5s infinite' }}>
-                      <i className="fa-solid fa-microphone" style={{ fontSize: '16px', color: '#05161c' }}></i>
-                    </div>
-                    <span style={{ fontSize: '12px', color: 'var(--nt-text-muted)', fontWeight: '500' }}>Listening &amp; Translating...</span>
+                  <div className="notetaker-recording-active-banner">
+                    <span className="recording-pulse-dot"></span>
+                    <span>Live recording is active. You can browse previous sessions or switch back to Transcript anytime.</span>
                   </div>
                 )}
 
-                <div>
-                  <div className="notetaker-field-label" style={{ marginBottom: '8px' }}>HISTORY</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {(() => {
-                      const uniqueHistory = translationHistory.reduce((acc, current) => {
-                        const cleanOrig = (current.originalText || '').trim().toLowerCase();
-                        if (!cleanOrig) return acc;
+                {!selectedPastSessionDetail ? (
+                  /* ===================== VIEW 1: SESSIONS LIST ===================== */
+                  <div className="notetaker-sessions-container">
+                    <div className="notetaker-sessions-header">
+                      <div className="notetaker-sessions-title-group">
+                        <h3 className="notetaker-sessions-heading">
+                          <i className="fa-solid fa-clock-rotate-left"></i>
+                          <span>Previous Sessions</span>
+                          <span className="notetaker-sessions-count-chip">{displaySessionsList.length}</span>
+                        </h3>
+                        <p className="notetaker-sessions-subtitle">
+                          Review, inspect transcripts, and explore AI summaries from your past recordings. Tap any session to view its full details.
+                        </p>
+                      </div>
 
-                        const existingIdx = acc.findIndex(item => (item.originalText || '').trim().toLowerCase() === cleanOrig);
-                        if (existingIdx >= 0) {
-                          acc[existingIdx] = current;
-                          return acc;
-                        }
+                      <div className="notetaker-sessions-search-wrapper">
+                        <i className="fa-solid fa-magnifying-glass notetaker-sessions-search-icon"></i>
+                        <input
+                          type="text"
+                          className="notetaker-sessions-search-input"
+                          placeholder="Search sessions by title, date, notes..."
+                          value={pastSessionsSearchQuery}
+                          onChange={(e) => setPastSessionsSearchQuery(e.target.value)}
+                        />
+                        {pastSessionsSearchQuery && (
+                          <button
+                            type="button"
+                            className="notetaker-sessions-search-clear"
+                            onClick={() => setPastSessionsSearchQuery('')}
+                            title="Clear search"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    </div>
 
-                        const prefixIdx = acc.findIndex(item => {
-                          const prevClean = (item.originalText || '').trim().toLowerCase();
-                          return cleanOrig.startsWith(prevClean) || prevClean.startsWith(cleanOrig);
-                        });
-
-                        if (prefixIdx >= 0) {
-                          if (cleanOrig.length >= (acc[prefixIdx].originalText || '').trim().length) {
-                            acc[prefixIdx] = current;
-                          }
-                          return acc;
-                        }
-
-                        acc.push(current);
-                        return acc;
-                      }, []);
-
-                      if (uniqueHistory.length === 0) {
-                        return (
-                          <div className="notetaker-empty-history-box">
-                            No translation history yet. Start recording and speaking to begin.
+                    <div className="notetaker-sessions-list">
+                      {displaySessionsList.length === 0 ? (
+                        <div className="notetaker-sessions-empty">
+                          <div className="notetaker-sessions-empty-icon">
+                            <i className="fa-regular fa-folder-open"></i>
                           </div>
-                        );
-                      }
+                          <h4>No sessions found</h4>
+                          <p>
+                            {pastSessionsSearchQuery
+                              ? `No past sessions matched "${pastSessionsSearchQuery}"`
+                              : 'No previous sessions saved yet. Start recording and stop to automatically save your session.'}
+                          </p>
+                          {pastSessionsSearchQuery && (
+                            <button
+                              type="button"
+                              className="notetaker-sessions-reset-btn"
+                              onClick={() => setPastSessionsSearchQuery('')}
+                            >
+                              Clear Search
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        displaySessionsList.map((sess, idx) => {
+                          const sessId = sess.id || sess._id || `sess_${idx}`;
+                          const title = sess.title || sess.sessionName || 'Untitled Session';
+                          const formattedDate = sess.date || (sess.createdAt ? new Date(sess.createdAt).toLocaleDateString() : 'Nov 14, 2026');
+                          const formattedTime = sess.time || (sess.createdAt ? new Date(sess.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '');
+                          const duration = sess.durationDisplay || (sess.durationSeconds ? `${Math.floor(sess.durationSeconds / 60)}:${String(sess.durationSeconds % 60).padStart(2, '0')}` : '05:24');
+                          const spLang = sess.payload?.spokenLanguage || sess.spokenLanguage || 'English';
+                          const tgLang = sess.payload?.targetLanguage || sess.targetLanguage || 'English';
+                          const rawNotes = sess.payload?.notes || sess.payload?.generatedNotes || sess.notes || '';
+                          const notesPreview = rawNotes.replace(/###\s*/g, '').replace(/[\*\_\[\]]/g, '').slice(0, 150).trim();
+                          const rawTrans = sess.payload?.transcript || sess.transcript || [];
+                          const transcriptCount = Array.isArray(rawTrans) ? rawTrans.length : 0;
+                          const techMode = sess.tech || sess.recordingMode || 'Meeting';
 
-                      return uniqueHistory.map((item, idx) => {
-                        const itemKey = item.msgId || `${item.timestamp}_${idx}`;
-                        const isSpeaking = currentlyPlayingMsgId === itemKey;
+                          return (
+                            <div
+                              key={sessId}
+                              className="notetaker-session-card"
+                              onClick={() => {
+                                setSelectedPastSessionDetail(sess);
+                                setSessionDetailSubTab('summary');
+                              }}
+                              role="button"
+                              tabIndex={0}
+                            >
+                              <div className="notetaker-session-card-main">
+                                <div className="notetaker-session-card-header">
+                                  <div className="notetaker-session-card-title-row">
+                                    <div className="notetaker-session-badge-icon">
+                                      <i className="fa-regular fa-file-lines"></i>
+                                    </div>
+                                    <div className="notetaker-session-title-wrap">
+                                      <h4 className="notetaker-session-card-title">{title}</h4>
+                                      <div className="notetaker-session-meta-chips">
+                                        <span className="notetaker-session-chip">
+                                          <i className="fa-regular fa-calendar"></i>
+                                          {formattedDate} {formattedTime ? `· ${formattedTime}` : ''}
+                                        </span>
+                                        <span className="notetaker-session-chip">
+                                          <i className="fa-regular fa-clock"></i>
+                                          {duration}
+                                        </span>
+                                        <span className="notetaker-session-chip lang-chip">
+                                          <i className="fa-solid fa-language"></i>
+                                          {spLang}{spLang.toLowerCase() !== tgLang.toLowerCase() ? ` → ${tgLang}` : ''}
+                                        </span>
+                                        <span className="notetaker-session-chip mode-chip">
+                                          <i className="fa-solid fa-microphone-lines"></i>
+                                          {techMode}
+                                        </span>
+                                        {transcriptCount > 0 && (
+                                          <span className="notetaker-session-chip count-chip">
+                                            <i className="fa-regular fa-comments"></i>
+                                            {transcriptCount} turns
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
 
-                        return (
-                          <div key={idx} style={{ background: darkMode ? '#030712' : '#ffffff', border: darkMode ? '1px solid #121e33' : '1px solid #e2e8f0', boxShadow: darkMode ? 'none' : '0 1px 3px rgba(0,0,0,0.04)', borderRadius: '8px', padding: '14px 16px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '11px', color: 'var(--nt-text-muted)' }}>
-                              <span>{item.timestamp}</span>
-                              <span style={{ fontWeight: '600' }}>
-                                {(languageOptions.find(l => l.code === item.sourceLang)?.name || item.sourceLang)} → {(languageOptions.find(l => l.code === item.targetLang)?.name || item.targetLang)}
-                              </span>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                              <div>
-                                <div style={{ fontSize: '13.5px', color: darkMode ? '#94a3b8' : '#64748b', wordBreak: 'break-word', lineHeight: '1.4' }}>{item.originalText}</div>
+                                  <div className="notetaker-session-card-actions" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                      type="button"
+                                      className="notetaker-session-action-btn view-btn"
+                                      title="View details inside this session"
+                                      onClick={() => {
+                                        setSelectedPastSessionDetail(sess);
+                                        setSessionDetailSubTab('summary');
+                                      }}
+                                    >
+                                      <i className="fa-regular fa-eye"></i>
+                                      <span>View Details</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      className="notetaker-session-action-btn load-btn"
+                                      title="Load into workspace"
+                                      onClick={() => {
+                                        handleSelectPastSession(sessId);
+                                        setRightTab('notes');
+                                        showToast('Session loaded into workspace.');
+                                      }}
+                                    >
+                                      <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                                      <span>Load</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      className="notetaker-session-action-btn delete-btn"
+                                      title="Delete session"
+                                      onClick={(e) => handleDeletePastSession(e, sessId)}
+                                    >
+                                      <i className="fa-regular fa-trash-can"></i>
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {notesPreview && (
+                                  <div className="notetaker-session-card-preview">
+                                    <span className="preview-label">Executive Snippet:</span>
+                                    <p className="preview-text">{notesPreview}...</p>
+                                  </div>
+                                )}
                               </div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ fontSize: '13.5px', color: darkMode ? '#f1f5f9' : '#0f172a', fontWeight: '500', wordBreak: 'break-word', lineHeight: '1.4' }}>{item.translatedText}</div>
-                                <button
-                                  onClick={() => isSpeaking ? stopSpeaking() : speakText(item.translatedText, item.targetLang, itemKey)}
-                                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--nt-cyan)', fontSize: '14px', cursor: 'pointer', padding: '4px', flexShrink: 0 }}
-                                  type="button"
-                                  title={isSpeaking ? "Stop translation" : "Replay translation"}
-                                >
-                                  <i className={isSpeaking ? "fa-solid fa-stop" : "fa-solid fa-play"}></i>
-                                </button>
-                              </div>
                             </div>
-                          </div>
-                        );
-                      });
-                    })()}
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  /* ===================== VIEW 2: SESSION DETAILS ===================== */
+                  <div className="notetaker-session-detail-wrapper">
+                    <div className="notetaker-session-detail-topbar">
+                      <button
+                        type="button"
+                        className="notetaker-session-detail-back-btn"
+                        onClick={() => setSelectedPastSessionDetail(null)}
+                      >
+                        <i className="fa-solid fa-arrow-left"></i>
+                        <span>Back to all sessions</span>
+                      </button>
+
+                      <div className="notetaker-session-detail-actions">
+                        <button
+                          type="button"
+                          className="notetaker-detail-btn primary"
+                          onClick={() => {
+                            const sId = selectedPastSessionDetail.id || selectedPastSessionDetail._id;
+                            handleSelectPastSession(sId);
+                            setRightTab('notes');
+                            showToast('Loaded session into workspace.');
+                          }}
+                        >
+                          <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                          <span>Load into Workspace</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          className="notetaker-detail-btn"
+                          onClick={() => {
+                            const notes = selectedPastSessionDetail.payload?.notes || selectedPastSessionDetail.payload?.generatedNotes || selectedPastSessionDetail.notes || '';
+                            if (notes) {
+                              navigator.clipboard.writeText(cleanNotesText(notes));
+                              showToast('AI Notes copied to clipboard!');
+                            } else {
+                              showToast('No notes to copy.');
+                            }
+                          }}
+                        >
+                          <i className="fa-regular fa-copy"></i>
+                          <span>Copy Notes</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          className="notetaker-detail-btn danger"
+                          title="Delete session"
+                          onClick={(e) => handleDeletePastSession(e, selectedPastSessionDetail.id || selectedPastSessionDetail._id)}
+                        >
+                          <i className="fa-regular fa-trash-can"></i>
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="notetaker-session-detail-banner">
+                      <div className="notetaker-session-detail-title-row">
+                        <div className="notetaker-detail-icon-box">
+                          <i className="fa-solid fa-file-waveform"></i>
+                        </div>
+                        <div className="notetaker-detail-header-text">
+                          <h3 className="notetaker-detail-title">
+                            {selectedPastSessionDetail.title || selectedPastSessionDetail.sessionName || 'Untitled Session'}
+                          </h3>
+                          <div className="notetaker-detail-meta-row">
+                            <span className="notetaker-detail-meta-tag">
+                              <i className="fa-regular fa-calendar"></i>
+                              {selectedPastSessionDetail.date || (selectedPastSessionDetail.createdAt ? new Date(selectedPastSessionDetail.createdAt).toLocaleDateString() : 'Nov 14, 2026')}
+                            </span>
+                            <span className="notetaker-detail-meta-tag">
+                              <i className="fa-regular fa-clock"></i>
+                              {selectedPastSessionDetail.durationDisplay || (selectedPastSessionDetail.durationSeconds ? `${Math.floor(selectedPastSessionDetail.durationSeconds / 60)}:${String(selectedPastSessionDetail.durationSeconds % 60).padStart(2, '0')}` : '05:24')}
+                            </span>
+                            <span className="notetaker-detail-meta-tag">
+                              <i className="fa-solid fa-language"></i>
+                              {selectedPastSessionDetail.payload?.spokenLanguage || selectedPastSessionDetail.spokenLanguage || 'English'}
+                              {(selectedPastSessionDetail.payload?.targetLanguage || selectedPastSessionDetail.targetLanguage) && (selectedPastSessionDetail.payload?.targetLanguage || selectedPastSessionDetail.targetLanguage) !== (selectedPastSessionDetail.payload?.spokenLanguage || selectedPastSessionDetail.spokenLanguage)
+                                ? ` → ${selectedPastSessionDetail.payload?.targetLanguage || selectedPastSessionDetail.targetLanguage}`
+                                : ''}
+                            </span>
+                            <span className="notetaker-detail-meta-tag mode-tag">
+                              <i className="fa-solid fa-microphone-lines"></i>
+                              {selectedPastSessionDetail.tech || selectedPastSessionDetail.recordingMode || 'Meeting'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Sub-tabs: AI Summary & Notes vs Full Transcript */}
+                    <div className="notetaker-detail-subtabs">
+                      <button
+                        type="button"
+                        className={`notetaker-detail-subtab-btn ${sessionDetailSubTab === 'summary' ? 'active' : ''}`}
+                        onClick={() => setSessionDetailSubTab('summary')}
+                      >
+                        <i className="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>AI Summary &amp; Notes</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`notetaker-detail-subtab-btn ${sessionDetailSubTab === 'transcript' ? 'active' : ''}`}
+                        onClick={() => setSessionDetailSubTab('transcript')}
+                      >
+                        <i className="fa-solid fa-comments"></i>
+                        <span>Full Transcript</span>
+                        {Array.isArray(selectedPastSessionDetail.payload?.transcript || selectedPastSessionDetail.transcript) && (
+                          <span className="notetaker-detail-badge">
+                            {(selectedPastSessionDetail.payload?.transcript || selectedPastSessionDetail.transcript).length}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Sub-tab Body */}
+                    <div className="notetaker-detail-body">
+                      {sessionDetailSubTab === 'summary' && (
+                        <div className="notetaker-detail-summary-pane">
+                          {(() => {
+                            const rawNotes = selectedPastSessionDetail.payload?.notes || selectedPastSessionDetail.payload?.generatedNotes || selectedPastSessionDetail.notes || '';
+                            if (!rawNotes.trim()) {
+                              return (
+                                <div className="notetaker-detail-empty">
+                                  <i className="fa-regular fa-note-sticky"></i>
+                                  <p>No AI summary was generated for this session.</p>
+                                  <button
+                                    type="button"
+                                    className="notetaker-detail-btn primary"
+                                    onClick={() => {
+                                      const sId = selectedPastSessionDetail.id || selectedPastSessionDetail._id;
+                                      handleSelectPastSession(sId);
+                                      setRightTab('notes');
+                                    }}
+                                  >
+                                    Load session to generate summary
+                                  </button>
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <div className="notetaker-detail-notes-card">
+                                <div className="notetaker-detail-notes-content">
+                                  {cleanNotesText(rawNotes)}
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
+
+                      {sessionDetailSubTab === 'transcript' && (
+                        <div className="notetaker-detail-transcript-pane">
+                          {(() => {
+                            const rawTranscript = selectedPastSessionDetail.payload?.transcript || selectedPastSessionDetail.transcript || [];
+                            if (!Array.isArray(rawTranscript) || rawTranscript.length === 0) {
+                              return (
+                                <div className="notetaker-detail-empty">
+                                  <i className="fa-regular fa-comment-dots"></i>
+                                  <p>No speech transcript recorded for this session.</p>
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <div className="notetaker-detail-transcript-list">
+                                {rawTranscript.map((tMsg, tIdx) => (
+                                  <div key={tMsg.id || tIdx} className="notetaker-detail-transcript-item">
+                                    <div className="transcript-item-header">
+                                      <span className="transcript-speaker-name">
+                                        <i className="fa-regular fa-user"></i>
+                                        {tMsg.speaker || `Speaker ${tMsg.sender === 'user' ? '1' : '2'}`}
+                                      </span>
+                                      <span className="transcript-item-time">{tMsg.wallTime || tMsg.timestamp || ''}</span>
+                                    </div>
+                                    <div className="transcript-item-text">{tMsg.text}</div>
+                                    {tMsg.translation && tMsg.translation !== 'Translating...' && (
+                                      <div className="transcript-item-translation">
+                                        <span className="translation-tag">
+                                          <i className="fa-solid fa-language"></i> Translation:
+                                        </span>
+                                        <span>{tMsg.translation}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
               </div>

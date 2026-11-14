@@ -1237,22 +1237,22 @@ body.dark-theme .notetaker-side-action-btn.active i,
   display: flex;
 }
 
+.notetaker-drawer-overlay.light-theme,
+.notetaker-root.light-theme .notetaker-drawer-overlay,
+body.light-theme .notetaker-root .notetaker-drawer-overlay {
+  background: rgba(15, 23, 42, 0.4);
+}
+
 .notetaker-drawer-panel {
   width: 290px;
   height: 100%;
-  background: #0a0c10 !important;
+  background: #0a0c10;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.8);
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #1a1e26 !important;
+  border-right: 1px solid #1a1e26;
   animation: slideInLeft 0.22s ease-out;
-}
-
-.notetaker-root.light-theme .notetaker-drawer-panel,
-body.light-theme .notetaker-root .notetaker-drawer-panel {
-  background: #ffffff;
-  border-right: 1px solid #e2e8f0;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+  color: #f1f5f9;
 }
 
 @keyframes slideInLeft {
@@ -1265,7 +1265,8 @@ body.light-theme .notetaker-root .notetaker-drawer-panel {
   align-items: center;
   justify-content: space-between;
   padding: 18px 20px;
-  background: var(--nt-topbar-bg);
+  background: #11141b;
+  border-bottom: 1px solid #1a1e26;
   color: #ffffff;
 }
 
@@ -1280,10 +1281,16 @@ body.light-theme .notetaker-root .notetaker-drawer-panel {
 .notetaker-drawer-close-btn {
   background: transparent;
   border: none;
-  color: #ffffff;
-  font-size: 22px;
+  color: #94a3b8;
+  font-size: 24px;
   cursor: pointer;
   padding: 4px 8px;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.notetaker-drawer-close-btn:hover {
+  color: #ffffff;
 }
 
 .notetaker-drawer-nav {
@@ -1293,6 +1300,7 @@ body.light-theme .notetaker-root .notetaker-drawer-panel {
   gap: 4px;
   flex: 1;
   overflow-y: auto;
+  background: transparent;
 }
 
 .notetaker-drawer-nav-item {
@@ -1309,11 +1317,7 @@ body.light-theme .notetaker-root .notetaker-drawer-panel {
   cursor: pointer;
   text-align: left;
   transition: all 0.15s ease;
-}
-
-.notetaker-root.light-theme .notetaker-drawer-nav-item,
-body.light-theme .notetaker-root .notetaker-drawer-nav-item {
-  color: #334155;
+  width: 100%;
 }
 
 .notetaker-drawer-nav-item i {
@@ -1321,42 +1325,156 @@ body.light-theme .notetaker-root .notetaker-drawer-nav-item {
   width: 20px;
   text-align: center;
   color: #728a9b;
-}
-
-.notetaker-root.light-theme .notetaker-drawer-nav-item i,
-body.light-theme .notetaker-root .notetaker-drawer-nav-item i {
-  color: #64748b;
+  transition: color 0.15s ease;
 }
 
 .notetaker-drawer-nav-item:hover {
-  background: rgba(0, 203, 214, 0.1);
-  color: var(--nt-cyan);
-}
-
-.notetaker-root.light-theme .notetaker-drawer-nav-item:hover,
-body.light-theme .notetaker-root .notetaker-drawer-nav-item:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
 }
 
 .notetaker-drawer-nav-item:hover i {
-  color: var(--nt-cyan);
+  color: #34d399;
 }
 
 .notetaker-drawer-nav-item.active {
-  background: rgba(0, 203, 214, 0.15);
-  color: var(--nt-cyan);
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
   font-weight: 700;
 }
 
-.notetaker-root.light-theme .notetaker-drawer-nav-item.active,
-body.light-theme .notetaker-root .notetaker-drawer-nav-item.active {
-  background: #e0f7fa;
-  color: #008f99;
+.notetaker-drawer-nav-item.active i {
+  color: #34d399;
 }
 
-.notetaker-drawer-nav-item.active i {
-  color: var(--nt-cyan);
+.notetaker-drawer-footer {
+  padding: 12px 14px;
+  border-top: 1px solid #1a1e26;
+  background: #0a0c10;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notetaker-drawer-logout {
+  color: #ef4444 !important;
+}
+
+.notetaker-drawer-logout i {
+  color: #ef4444 !important;
+}
+
+.notetaker-drawer-logout:hover {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #f87171 !important;
+}
+
+/* ==========================================================================
+   NAVIGATION DRAWER LIGHT THEME (PURE CLEAN WHITE THEME)
+   ========================================================================== */
+.notetaker-drawer-panel.light-theme,
+.notetaker-root.light-theme .notetaker-drawer-panel,
+body.light-theme .notetaker-root .notetaker-drawer-panel,
+html.light-theme .notetaker-drawer-panel {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border-right: 1px solid #e2e8f0 !important;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.09) !important;
+  color: #0f172a !important;
+}
+
+.notetaker-drawer-panel.light-theme .notetaker-drawer-header,
+.notetaker-root.light-theme .notetaker-drawer-header,
+body.light-theme .notetaker-root .notetaker-drawer-header {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.notetaker-drawer-panel.light-theme .notetaker-drawer-close-btn,
+.notetaker-root.light-theme .notetaker-drawer-close-btn,
+body.light-theme .notetaker-root .notetaker-drawer-close-btn {
+  color: #64748b !important;
+}
+
+.notetaker-drawer-panel.light-theme .notetaker-drawer-close-btn:hover,
+.notetaker-root.light-theme .notetaker-drawer-close-btn:hover,
+body.light-theme .notetaker-root .notetaker-drawer-close-btn:hover {
+  color: #0f172a !important;
+  background: #f1f5f9;
+  border-radius: 6px;
+}
+
+.notetaker-drawer-panel.light-theme .notetaker-drawer-nav,
+.notetaker-root.light-theme .notetaker-drawer-nav,
+body.light-theme .notetaker-root .notetaker-drawer-nav {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+.notetaker-drawer-panel.light-theme .notetaker-drawer-nav-item,
+.notetaker-root.light-theme .notetaker-drawer-nav-item,
+body.light-theme .notetaker-root .notetaker-drawer-nav-item {
+  color: #334155 !important;
+  background: transparent !important;
+}
+
+.notetaker-drawer-panel.light-theme .notetaker-drawer-nav-item i,
+.notetaker-root.light-theme .notetaker-drawer-nav-item i,
+body.light-theme .notetaker-root .notetaker-drawer-nav-item i {
+  color: #64748b !important;
+}
+
+.notetaker-drawer-panel.light-theme .notetaker-drawer-nav-item:hover,
+.notetaker-root.light-theme .notetaker-drawer-nav-item:hover,
+body.light-theme .notetaker-root .notetaker-drawer-nav-item:hover {
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.notetaker-drawer-panel.light-theme .notetaker-drawer-nav-item:hover i,
+.notetaker-root.light-theme .notetaker-drawer-nav-item:hover i,
+body.light-theme .notetaker-root .notetaker-drawer-nav-item:hover i {
+  color: #059669 !important;
+}
+
+.notetaker-drawer-panel.light-theme .notetaker-drawer-nav-item.active,
+.notetaker-root.light-theme .notetaker-drawer-nav-item.active,
+body.light-theme .notetaker-root .notetaker-drawer-nav-item.active {
+  background: #ecfdf5 !important;
+  background-color: #ecfdf5 !important;
+  color: #059669 !important;
+  font-weight: 700 !important;
+}
+
+.notetaker-drawer-panel.light-theme .notetaker-drawer-nav-item.active i,
+.notetaker-root.light-theme .notetaker-drawer-nav-item.active i,
+body.light-theme .notetaker-root .notetaker-drawer-nav-item.active i {
+  color: #059669 !important;
+}
+
+.notetaker-drawer-panel.light-theme .notetaker-drawer-footer,
+.notetaker-root.light-theme .notetaker-drawer-footer,
+body.light-theme .notetaker-root .notetaker-drawer-footer {
+  border-top: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+.notetaker-drawer-panel.light-theme .notetaker-drawer-logout,
+.notetaker-root.light-theme .notetaker-drawer-logout,
+body.light-theme .notetaker-root .notetaker-drawer-logout {
+  color: #dc2626 !important;
+}
+
+.notetaker-drawer-panel.light-theme .notetaker-drawer-logout:hover,
+.notetaker-root.light-theme .notetaker-drawer-logout:hover,
+body.light-theme .notetaker-root .notetaker-drawer-logout:hover {
+  background: #fef2f2 !important;
+  background-color: #fef2f2 !important;
+  color: #b91c1c !important;
 }
 
 /* Modals */

@@ -4066,11 +4066,11 @@ startNotetakerBilling();
 
       {/* Navigation Drawer */}
       {showNavDrawer && (
-        <div className="notetaker-drawer-overlay" onClick={() => setShowNavDrawer(false)}>
-          <div className="notetaker-drawer-panel" onClick={(e) => e.stopPropagation()}>
+        <div className={`notetaker-drawer-overlay ${darkMode ? 'dark-theme' : 'light-theme'}`} onClick={() => setShowNavDrawer(false)}>
+          <div className={`notetaker-drawer-panel ${darkMode ? 'dark-theme' : 'light-theme'}`} onClick={(e) => e.stopPropagation()}>
             <div className="notetaker-drawer-header">
               <BrandLogo size="sm" />
-              <button className="notetaker-drawer-close-btn" onClick={() => setShowNavDrawer(false)}>×</button>
+              <button className="notetaker-drawer-close-btn" onClick={() => setShowNavDrawer(false)} type="button">×</button>
             </div>
 
             <nav className="notetaker-drawer-nav">
@@ -4101,11 +4101,11 @@ startNotetakerBilling();
             </nav>
 
             <div className="notetaker-drawer-footer">
-              <button className="notetaker-drawer-nav-item" onClick={toggleDarkMode}>
+              <button className="notetaker-drawer-nav-item" onClick={toggleDarkMode} type="button">
                 <i className={`fa-solid ${darkMode ? 'fa-sun' : 'fa-moon'}`}></i> {darkMode ? 'Light Mode' : 'Dark Mode'}
               </button>
-              <button className="notetaker-drawer-nav-item" onClick={handleLogoutClick} style={{ color: '#ef4444' }}>
-                <i className="fa-solid fa-right-from-bracket" style={{ color: '#ef4444' }}></i> Log Out
+              <button className="notetaker-drawer-nav-item notetaker-drawer-logout" onClick={handleLogoutClick} type="button">
+                <i className="fa-solid fa-right-from-bracket"></i> Log Out
               </button>
             </div>
           </div>

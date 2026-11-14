@@ -2552,7 +2552,7 @@ export default function Upload({
             <div className="upload-bg-glow-2"></div>
             <div className="upload-bg-glow-3"></div>
 
-            <div className="upload-container-centered upload-redesign-v2">
+            <div className={`upload-container-centered upload-redesign-v2 ${!showHelpWithUploads ? 'help-hidden' : ''}`}>
               {/* Top Row: Left Hero + Right Dropzone with Arrow */}
               <div className="upload-redesign-top-row">
                 {/* Left Hero Column */}
@@ -2600,8 +2600,8 @@ export default function Upload({
                 </div>
 
                 {/* Right Dropzone Column */}
-                <div className="upload-redesign-right-dropzone-col">
-                  <div className="upload-unified-dropzone-card">
+                <div className={`upload-redesign-right-dropzone-col ${!showHelpWithUploads ? 'expanded' : ''}`}>
+                  <div className={`upload-unified-dropzone-card ${!showHelpWithUploads ? 'expanded' : ''}`}>
                     {/* Top 4 Format Category Pills */}
                     <div className="upload-format-categories-row">
                       <div
@@ -2671,7 +2671,7 @@ export default function Upload({
 
                     {/* Drag & Drop Center Area */}
                     <div
-                      className={`upload-dropzone-center-body ${isDragging ? 'dragging' : ''}`}
+                      className={`upload-dropzone-center-body ${isDragging ? 'dragging' : ''} ${!showHelpWithUploads ? 'expanded' : ''}`}
                       onDragOver={handleDragOver}
                       onDragLeave={handleDragLeave}
                       onDrop={handleDrop}

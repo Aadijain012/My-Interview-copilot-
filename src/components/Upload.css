@@ -5584,6 +5584,10 @@ body.dark-theme .upload-showcase-chip:hover {
   width: 100%;
 }
 
+.upload-container-centered.upload-redesign-v2.help-hidden .upload-redesign-top-row {
+  align-items: flex-start;
+}
+
 @media (max-width: 900px) {
   .upload-redesign-top-row {
     grid-template-columns: 1fr;
@@ -5802,7 +5806,12 @@ body.dark-theme .upload-showcase-chip:hover {
   flex-direction: column;
   gap: 10px;
   box-sizing: border-box;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.upload-unified-dropzone-card.expanded {
+  min-height: 355px;
+  justify-content: flex-start;
 }
 
 .upload-page-root.dark-theme .upload-unified-dropzone-card {
@@ -5931,7 +5940,13 @@ body.dark-theme .upload-showcase-chip:hover {
   text-align: center;
   cursor: pointer;
   border-radius: 12px;
-  transition: background 0.16s ease;
+  transition: background 0.16s ease, padding 0.25s cubic-bezier(0.16, 1, 0.3, 1), min-height 0.25s ease;
+}
+
+.upload-dropzone-center-body.expanded {
+  flex: 1;
+  min-height: 240px;
+  padding: 42px 20px 32px;
 }
 
 .upload-dropzone-center-body:hover,

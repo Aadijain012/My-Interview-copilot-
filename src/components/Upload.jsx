@@ -414,7 +414,6 @@ export default function Upload({
 
   // ── New Redesign V2 States (Matching media_1794574048062_21272d0c.png) ──
   const [showHelpWithUploads, setShowHelpWithUploads] = useState(true);
-  const [showSupportedTypes, setShowSupportedTypes] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [closedHelpCards, setClosedHelpCards] = useState({});
 
@@ -2690,40 +2689,7 @@ export default function Upload({
                       <div className="upload-dz-limits-sub">
                         Audio/Video: up to 10.7 GB &nbsp;|&nbsp; Documents: up to 100 MB
                       </div>
-
-                      {/* Collapsible Trigger for Supported Types */}
-                      <button
-                        type="button"
-                        className="upload-dz-toggle-limits-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowSupportedTypes(prev => !prev);
-                        }}
-                      >
-                        <i className={`fa-solid ${showSupportedTypes ? 'fa-caret-up' : 'fa-caret-down'}`}></i>
-                        <span>Supported file types &amp; limits</span>
-                      </button>
                     </div>
-
-                    {/* Collapsible Supported Types Panel */}
-                    {showSupportedTypes && (
-                      <div className="upload-supported-limits-panel" onClick={(e) => e.stopPropagation()}>
-                        <p className="upload-limits-intro">
-                          Choose one for a time. You can review documents and language actions before uploading:
-                        </p>
-                        <ul className="upload-limits-list">
-                          <li>
-                            <strong>Documents:</strong> PDF, DOCX, PPTX, XLSX, ODT, TXT, CSV, TSV, JSON, HTML. Up to 120 MB.
-                          </li>
-                          <li>
-                            <strong>Images:</strong> PNG, JPG, WEBP, up to 20 MB and 10 pages. Printed text can be read from the image.
-                          </li>
-                          <li>
-                            <strong>Audio and video:</strong> Up to 10.0 GB and 8 hours. Video is processed from its audio and generates a searchable audio track.
-                          </li>
-                        </ul>
-                      </div>
-                    )}
                   </div>
 
                   {/* Footer Trust Links Row (Directly under dropzone card on right) */}

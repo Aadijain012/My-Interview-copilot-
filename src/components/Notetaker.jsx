@@ -3306,7 +3306,7 @@ startNotetakerBilling();
                     <button
                       type="button"
                       className="notetaker-recorder-pause-btn"
-                      onClick={handlePauseResumeRecording}
+                      onClick={handlePauseResume}
                       title={recordingStatus === 'paused' ? 'Resume recording' : 'Pause recording'}
                     >
                       <i className={`fa-solid ${recordingStatus === 'paused' ? 'fa-play' : 'fa-pause'}`}></i>

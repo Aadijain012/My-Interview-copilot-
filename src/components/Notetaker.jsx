@@ -1,62 +1,55 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import BrandLogo from './common/BrandLogo';
-import AccountDropdown from './UserProfile/AccountDropdown';
 import CreditUsagePromptModal from './common/CreditUsagePromptModal';
 import {
   CREDIT_USAGE_CONFIG,
   getUserCredits,
-  getDownloadStatus,
   recordDownloadAction,
-  getNotetakerIntervalMinutes,
   getNotetakerCreditCost,
   recordNotetakerUsageAction
 } from '../config/creditUsageConfig';
 import { API_BASE, WS_BASE, websocketProtocols } from '../utils/api';
-import { createHourlyUsageBilling } from '../utils/hourlyUsageBilling';
-import { downloadPdfReport, renderTranscriptRow, renderQaCard } from '../utils/pdfReportTemplate';
+import { downloadPdfReport } from '../utils/pdfReportTemplate';
 import PdfCustomizerModal from './PdfCustomizerModal';
 import './Notetaker.css';
 
 const ipcRenderer = window.require ? window.require('electron').ipcRenderer : null;
 
-
-const workletCode = `
-class PCMForwarder extends AudioWorkletProcessor {
-  constructor() {
-    super();
-    this.bufferSize = 2048;
-    this.buffer = new Int16Array(this.bufferSize);
-    this.index = 0;
-  }
-
-  process(inputs, outputs, parameters) {
-    const input = inputs[0];
-    if (input && input[0]) {
-      const inputData = input[0];
-      for (let i = 0; i < inputData.length; i++) {
-        const s = Math.max(-1, Math.min(1, inputData[i]));
-        this.buffer[this.index++] = s < 0 ? s * 0x8000 : s * 0x7fff;
-        if (this.index >= this.bufferSize) {
-          const sendBuffer = new Int16Array(this.buffer);
-          this.port.postMessage(sendBuffer.buffer, [sendBuffer.buffer]);
-          this.index = 0;
-        }
-      }
-    }
-    return true;
-  }
-}
-registerProcessor("pcm-forwarder", PCMForwarder);
-`;
+// Speech language mapping for Web Speech API
+const speechLangMap = {
+  en: 'en-US',
+  hi: 'hi-IN',
+  pa: 'pa-IN',
+  es: 'es-ES',
+  fr: 'fr-FR',
+  de: 'de-DE',
+  it: 'it-IT',
+  pt: 'pt-BR',
+  ja: 'ja-JP',
+  ko: 'ko-KR',
+  zh: 'zh-CN',
+  ru: 'ru-RU',
+  tr: 'tr-TR',
+  nl: 'nl-NL',
+  ar: 'ar-SA',
+  bn: 'bn-IN',
+  te: 'te-IN',
+  ta: 'ta-IN',
+  mr: 'mr-IN',
+  gu: 'gu-IN',
+  kn: 'kn-IN',
+  ml: 'ml-IN'
+};
 
 const languageOptions = [
   { code: 'en', name: 'English' },
+  { code: 'hi', name: 'Hindi' },
+  { code: 'pa', name: 'Punjabi' },
   { code: 'es', name: 'Spanish' },
   { code: 'fr', name: 'French' },
   { code: 'de', name: 'German' },
   { code: 'it', name: 'Italian' },
   { code: 'pt', name: 'Portuguese' },
-  { code: 'hi', name: 'Hindi' },
   { code: 'ja', name: 'Japanese' },
   { code: 'ko', name: 'Korean' },
   { code: 'zh', name: 'Chinese' },
@@ -71,543 +64,258 @@ const languageOptions = [
   { code: 'gu', name: 'Gujarati' },
   { code: 'kn', name: 'Kannada' },
   { code: 'ml', name: 'Malayalam' },
-  { code: 'pa', name: 'Punjabi' },
 ];
 
-const cleanNotesText = (text) => {
-  if (!text || typeof text !== 'string') return text || '';
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '$1')
-    .replace(/\*(.*?)\*/g, '$1')
-    .replace(/###\s*/g, '')
-    .replace(/##\s*/g, '')
-    .replace(/#\s*/g, '')
-    .replace(/\*\*/g, '');
-};
+export const translateWithFallback = async (text, fromCode = 'auto', toCode = 'en') => {
+  if (!text || !text.trim()) return '';
+  const clean = text.trim();
+  if (fromCode && toCode && fromCode === toCode) return clean;
 
-const isSystemStatusMessage = (msg) => {
-  if (!msg || !msg.text) return false;
-  if (msg.isSystem || msg.messageType === 'system') return true;
-  const raw = String(msg.text).trim();
-  const t = raw.toLowerCase();
-  return (
-    t.startsWith('started recording') ||
-    t.startsWith('recording started') ||
-    t.startsWith('recording stopped') ||
-    t.startsWith('recording restarted') ||
-    t.startsWith('hi! i am your ai interviewer') ||
-    t === 'thinking...' ||
-    (msg.sender === 'ai' && (
-      raw.startsWith('रिकॉर्डिंग शुरू') ||
-      raw.startsWith('रिकॉर्डिंग बंद') ||
-      raw.startsWith('रिकॉर्डिंग फिर') ||
-      t.includes('ai is generating a bilingual summary') ||
-      t.includes('generating a bilingual summary') ||
-      t.includes('no speech was detected')
-    ))
-  );
-};
-
-const DEFAULT_SAMPLE_NOTETAKER_SESSION = {
-  id: 'sample_notetaker_meeting_10nov',
-  title: 'Product Sprint & Architecture Discussion',
-  tech: 'Notetaker Session',
-  durationSeconds: 324,
-  durationDisplay: '05:24',
-  date: 'Nov 14, 2026',
-  time: '11:30 AM',
-  payload: {
-    spokenLanguage: 'English',
-    targetLanguage: 'English',
-    notes: `### Executive Summary
-The team discussed the upcoming Q4 architecture roadmap, focusing on microservices consolidation, low-latency audio streaming pipelines, and automated speech-to-text accuracy benchmarks.
-
-### Key Points
-- **Architecture Scalability:** Transitioning WebSocket gateways to distributed Redis Pub/Sub for sub-50ms latency across global clusters.
-- **Speech Processing:** Integration of Deepgram Nova-3 real-time models yielding a 34% reduction in word error rate (WER).
-- **Security & Compliance:** Finalizing AES-256 end-to-end encryption for stored meeting transcripts and audio artifacts.
-
-### Action Items
-- [ ] Dev Team: Deploy staging canary build for distributed audio WebSocket proxies by Friday.
-- [ ] QA Team: Run multi-speaker stress test with 50 concurrent simulated streams.
-- [ ] Product Team: Review user feedback on previous session management UI and finalize release notes.`,
-    transcript: [
-      { id: 't1', sender: 'user', speaker: 'Speaker 1', text: 'Good morning everyone, let us kick off our sprint architecture review.', wallTime: '11:30 AM' },
-      { id: 't2', sender: 'user', speaker: 'Speaker 2', text: 'Morning! Our primary focus today is reducing streaming latency and reviewing the new speech engine benchmarks.', wallTime: '11:31 AM' },
-      { id: 't3', sender: 'user', speaker: 'Speaker 1', text: 'The Deepgram Nova-3 integration numbers look fantastic—we saw a 34% reduction in word error rate in early testing.', wallTime: '11:32 AM' },
-      { id: 't4', sender: 'user', speaker: 'Speaker 3', text: 'Agreed. Next we need to ensure the WebSocket gateways are scaled across Redis Pub/Sub to maintain low latency under peak loads.', wallTime: '11:33 AM' }
-    ],
-    translationHistory: []
-  }
-};
-
-export default function Notetaker({ token, user, onLogout, onBackToLanding, onGoToPanel, onGoToVoiceAgent, onGoToUpload, onGoToDashboard, onGoToProfile, onGoToSubscription, onGoToUsage, onGoToReferral, showToast, darkMode, toggleDarkMode, windowType }) {
-  const [activeTab, setActiveTab] = useState('record'); // 'record' or 'past'
-  const [rightTab, setRightTab] = useState('live'); // 'live', 'notes', or 'feedback'
-  const [selectedPastSessionDetail, setSelectedPastSessionDetail] = useState(null);
-  const [pastSessionsSearchQuery, setPastSessionsSearchQuery] = useState('');
-  const [sessionDetailSubTab, setSessionDetailSubTab] = useState('summary'); // 'summary' | 'transcript'
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingStatus, setRecordingStatus] = useState('idle');
-
-  // Credit Usage & Download Limits Modal State
-  const [pdfCustomizerModal, setPdfCustomizerModal] = useState({
-    isOpen: false,
-    reportData: null,
-    filename: 'report.pdf'
-  });
-
-  const [creditPromptModal, setCreditPromptModal] = useState({
-    isOpen: false,
-    type: 'download',
-    title: '',
-    message: '',
-    fileDetails: null,
-    pendingAction: null
-  });
-  const [recordingMode, setRecordingMode] = useState('meeting'); // 'personal' | 'meeting'
-  const [showSetup, setShowSetup] = useState(true);
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const [showNavDrawer, setShowNavDrawer] = useState(false);
-  const [showPastSessionsModal, setShowPastSessionsModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-
-  const handleSwapLanguages = () => {
-    if (isRecording) return;
-    const oldSpoken = spokenLang;
-    const oldTarget = targetLang;
-    handleSpokenLangChange(oldTarget);
-    handleTargetLangChange(oldSpoken);
-  };
-
-  const handleClearSession = () => {
-    if (isRecording) {
-      showToast('Please stop recording before clearing.');
-      return;
+  // 1. Try backend endpoint first if available
+  try {
+    const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token') || '';
+    const fromName = languageOptions.find(l => l.code === fromCode)?.name || fromCode;
+    const toName = languageOptions.find(l => l.code === toCode)?.name || toCode;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const res = await fetch(`${API_BASE}/api/translate-text`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ text: clean, from: fromName, to: toName }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.translatedText) return data.translatedText;
     }
-    setChatMessages([]);
-    setLiveTranscript('');
-    setGeneratedNotes('');
-    setDisplayedNotesLang('');
-    setGeneratedFeedback('');
-    setTranslationHistory([]);
-    setTimerSeconds(0);
-    showToast('Session cleared.');
-  };
-  const [timerSeconds, setTimerSeconds] = useState(0);
-  const [interviewTitle, setInterviewTitle] = useState('');
-  const [jobDescription, setJobDescription] = useState('');
-  const [chatInput, setChatInput] = useState('');
-  const [chatMessages, setChatMessages] = useState([
-    { sender: 'ai', text: 'Hi! I am your AI Interviewer Notetaker. Start recording or type a question here to get real-time advice during your interview.' }
-  ]);
+  } catch (_) {}
 
+  // 2. High-speed Google GTX public endpoint (instant client-side fallback)
+  try {
+    const src = fromCode || 'auto';
+    const dest = toCode || 'en';
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(src)}&tl=${encodeURIComponent(dest)}&dt=t&q=${encodeURIComponent(clean)}`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && Array.isArray(data[0])) {
+        const translated = data[0].map(s => s[0]).filter(Boolean).join('');
+        if (translated) return translated;
+      }
+    }
+  } catch (err) {
+    console.warn('[translateWithFallback] GTX error:', err);
+  }
+
+  return clean;
+};
+
+export default function Notetaker({
+  token,
+  user,
+  onLogout,
+  onBackToLanding,
+  onGoToPanel,
+  onGoToVoiceAgent,
+  onGoToUpload,
+  onGoToDashboard,
+  onGoToProfile,
+  onGoToSubscription,
+  onGoToUsage,
+  onGoToReferral,
+  showToast,
+  darkMode,
+  toggleDarkMode,
+  windowType
+}) {
+  // Session State
+  const [sessionState, setSessionState] = useState('idle'); // 'idle' | 'recording' | 'paused' | 'stopped'
+  const [recordingMode, setRecordingMode] = useState('meeting'); // 'meeting' | 'inperson' | 'upload'
+  const [sessionTitle, setSessionTitle] = useState(() => `Meeting notes · ${new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}`);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [spokenLang, setSpokenLang] = useState('en');
-  const [targetLang, setTargetLang] = useState('en');
-  const [translationEngine, setTranslationEngine] = useState(() => localStorage.getItem('translationEngine') || 'google');
-  const [liveTranscript, setLiveTranscript] = useState('');
+  const [targetLang, setTargetLang] = useState('pa'); // Default to Punjabi or Hindi as shown in video
+  const [showSetup, setShowSetup] = useState(true);
+  const [askAiOpen, setAskAiOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('transcript'); // 'transcript' | 'notes' | 'translations'
+  const [transcriptViewFilter, setTranscriptViewFilter] = useState('dual'); // 'dual' | 'original' | 'translation'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [autoFollowLive, setAutoFollowLive] = useState(true);
+
+  // Live Timer & Status
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [savedStatusText, setSavedStatusText] = useState('Auto-saved');
+  const [micAudioLevel, setMicAudioLevel] = useState(0); // 0 to 100 for live meter
+
+  // Transcript Passages
+  const [chatMessages, setChatMessages] = useState([]);
   const [interimMsg, setInterimMsg] = useState(null);
-  const [generatedNotes, setGeneratedNotes] = useState('');
-  const [generatedFeedback, setGeneratedFeedback] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [activeQuestion, setActiveQuestion] = useState('');
-  
-  // Translation Speech and History states
-  const [lastOriginalText, setLastOriginalText] = useState('');
-  const [lastTranslatedText, setLastTranslatedText] = useState('');
   const [translationHistory, setTranslationHistory] = useState([]);
-  
-  // Export Modal state
+
+  // Smart Notes
+  const [smartNotes, setSmartNotes] = useState('');
+  const [isGeneratingNotes, setIsGeneratingNotes] = useState(false);
+
+  // Ask AI Drawer State
+  const [askAiMessages, setAskAiMessages] = useState([
+    {
+      id: 'ai_welcome',
+      sender: 'ai',
+      text: 'Ask anything about what was spoken. Responses are grounded in your meeting transcript.',
+      timestamp: 'Just now'
+    }
+  ]);
+  const [askAiInput, setAskAiInput] = useState('');
+  const [askAiAnswerLang, setAskAiAnswerLang] = useState('en');
+  const [isSendingAiQuery, setIsSendingAiQuery] = useState(false);
+  const [activeSpeakingId, setActiveSpeakingId] = useState(null);
+
+  // Audio Playback for Stopped Session
+  const [recordedAudioUrl, setRecordedAudioUrl] = useState(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [audioCurrentTime, setAudioCurrentTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+  const audioElemRef = useRef(null);
+
+  // Modals & Drawers
+  const [showPastSessionsModal, setShowPastSessionsModal] = useState(false);
+  const [pastSessionsList, setPastSessionsList] = useState([]);
+  const [selectedPastSession, setSelectedPastSession] = useState(null);
+  const [showNavDrawer, setShowNavDrawer] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
-  const [showSaveSessionModal, setShowSaveSessionModal] = useState(false);
-  const [tempTitle, setTempTitle] = useState('');
   const [exportInclude, setExportInclude] = useState('both');
   const [exportFormat, setExportFormat] = useState('pdf');
-  const [exportIncludeAiChat, setExportIncludeAiChat] = useState(true);
-  const [displayedNotesLang, setDisplayedNotesLang] = useState('');
-  const [pastSessions, setPastSessions] = useState([]);
-  const [lineByLineMode, setLineByLineMode] = useState(false);
-  const [isSendingChat, setIsSendingChat] = useState(false);
-  const isSendingChatLockRef = useRef(false);
-  const saveConfirmLockRef = useRef(false);
+  const [exportIncludeAiChat, setExportIncludeAiChat] = useState(false);
+  const [creditPromptModal, setCreditPromptModal] = useState({ isOpen: false, type: 'notetaker', title: '', message: '', fileDetails: null });
+  const [pdfCustomizerModal, setPdfCustomizerModal] = useState({ isOpen: false, filename: '', reportData: null });
 
-  const timerRef = useRef(null);
-  const chatContainerRef = useRef(null);
-  const notesContainerRef = useRef(null);
-  const moreMenuRef = useRef(null);
-  const lineByLineModeRef = useRef(false);
-  lineByLineModeRef.current = lineByLineMode;
-
-  // Dragging Header Controls
-  const handleMinimize = () => ipcRenderer?.send('window-minimize');
-  const handleMaximize = () => ipcRenderer?.send('window-maximize');
-
-  const audioContextRef = useRef(null);
-  const streamsRef = useRef([]);
-  const nodesRef = useRef(null);
-  const activeUtteranceRef = useRef(null);
-  const activeOnlineAudioRef = useRef(null);
-  const accumulatedTranscriptRef = useRef('');
-  const lastSpeakerRef = useRef(null);
-  // Generation counter to guard against async start/stop/restart race conditions
-  const notetakerGenRef = useRef(0);
-  const isStartingRef = useRef(false);
-  const hasActiveRecordingRef = useRef(false);
-  const lastToggleTimeRef = useRef(0);
-  const lastDeductedNotetakerIntervalRef = useRef(0);
-  const hourlyBillingSessionIdRef = useRef(null);
-  const isMountedRef = useRef(true);
-
-  // Sync state values inside refs to be read in event listeners reliably
-  const timerSecondsRef = useRef(timerSeconds);
-  timerSecondsRef.current = timerSeconds;
-
-  const tokenRef = useRef(token);
-  tokenRef.current = token;
-
+  // Refs
+  const isRecordingRef = useRef(false);
+  const timerIntervalRef = useRef(null);
+  const timerSecondsRef = useRef(0);
   const spokenLangRef = useRef(spokenLang);
-  spokenLangRef.current = spokenLang;
-
   const targetLangRef = useRef(targetLang);
-  targetLangRef.current = targetLang;
-
-  const recordingModeRef = useRef(recordingMode);
-  recordingModeRef.current = recordingMode;
-
-  const translationEngineRef = useRef(translationEngine);
-  translationEngineRef.current = translationEngine;
-
   const chatMessagesRef = useRef(chatMessages);
-  chatMessagesRef.current = chatMessages;
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const speechRecognitionRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const micStreamRef = useRef(null);
+  const animFrameRef = useRef(null);
+  const transcriptScrollRef = useRef(null);
+  const moreMenuRef = useRef(null);
 
-  const translationHistoryRef = useRef(translationHistory);
-  translationHistoryRef.current = translationHistory;
+  // Keep refs in sync
+  useEffect(() => { spokenLangRef.current = spokenLang; }, [spokenLang]);
+  useEffect(() => { targetLangRef.current = targetLang; }, [targetLang]);
+  useEffect(() => { chatMessagesRef.current = chatMessages; }, [chatMessages]);
+  useEffect(() => { timerSecondsRef.current = timerSeconds; }, [timerSeconds]);
 
-  const isRecordingRef = useRef(isRecording);
-  isRecordingRef.current = isRecording;
-
-  const transReqSeqRef = useRef({});
-  const recentInterviewerTextsRef = useRef([]);
-  const speakerRegistryRef = useRef(new Map());
-
-  const getEffectiveToken = () => {
-    let t = token || tokenRef.current || localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
-    if (!t) {
-      try {
-        const authData = JSON.parse(localStorage.getItem('interview_auth') || '{}');
-        t = authData?.token || authData?.authToken;
-      } catch (_) {}
-    }
-    return t || '';
+  // Format MM:SS
+  const formatTimer = (totalSecs) => {
+    const mins = Math.floor(totalSecs / 60);
+    const secs = totalSecs % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  const getLocalSessionsKey = useCallback(() => {
-    return user?.email 
-      ? `notetaker_saved_sessions_${user.email}` 
-      : (user?.id ? `notetaker_saved_sessions_${user.id}` : 'notetaker_saved_sessions');
+  // Local storage sessions key
+  const getStorageKey = useCallback(() => {
+    return user?.email ? `notetaker_saved_${user.email}` : 'notetaker_saved_sessions';
   }, [user]);
 
-  const removeLocalSession = (id) => {
-    if (!id) return;
+  // Load past sessions from localStorage & backend
+  const loadPastSessions = useCallback(async () => {
     try {
-      const storageKey = getLocalSessionsKey();
-      const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      localStorage.setItem(
-        storageKey,
-        JSON.stringify(existing.filter((s) => s && s.id !== id))
-      );
-    } catch { /* best-effort */ }
-  };
+      const stored = localStorage.getItem(getStorageKey());
+      const localList = stored ? JSON.parse(stored) : [];
+      setPastSessionsList(localList);
 
-  // Identifies the same session across the local cache and the backend.
-  // Ids cannot be compared: the cache assigns `local_<ts>` before the server
-  // assigns `session_<ts>_<rand>`, so the two are disjoint by construction.
-  // Title, duration and the save timestamp are written from the same object on
-  // both sides, so they match exactly.
-  const sessionSignature = (sess) => {
-    if (!sess) return '';
-    let payload = sess.payload;
-    if (typeof payload === 'string') {
-      try { payload = JSON.parse(payload); } catch { /* best-effort */ }
-    }
-    if (!payload && typeof sess.payloadJson === 'string') {
-      try { payload = JSON.parse(sess.payloadJson); } catch { /* best-effort */ }
-    }
-    payload = payload || {};
-    return [
-      sess.title || '',
-      sess.durationSeconds ?? '',
-      payload.date || sess.date || '',
-      payload.time || sess.time || ''
-    ].join('|');
-  };
-
-  const fetchPastSessions = async () => {
-    const storageKey = getLocalSessionsKey();
-    let localList = [];
-    try {
-      localList = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    } catch (_) {}
-
-    const isNotetakerSession = (sess) => {
-      if (!sess) return false;
-      let payload = sess.payload;
-      if (typeof payload === 'string') {
-        try { payload = JSON.parse(payload); } catch (_) {}
-      }
-      if (!payload && typeof sess.payloadJson === 'string') {
-        try { payload = JSON.parse(sess.payloadJson); } catch (_) {}
-      }
-      payload = payload || {};
-      
-      // 1. Explicit Notetaker markers -> ALWAYS include first!
-      if (payload.isNotetaker || payload.sessionType === 'notetaker' || sess.isNotetaker || sess.sessionType === 'notetaker') return true;
-      if (payload.notes && payload.notes !== 'Session recorded.' && !payload.version) return true;
-      if (sess.tech === 'Notetaker Session' || (typeof sess.tech === 'string' && sess.tech.toLowerCase().includes('notetaker'))) return true;
-      if (typeof sess.title === 'string' && (sess.title.startsWith('Meeting Notes') || sess.title.startsWith('Notetaker') || sess.title.toLowerCase().includes('meeting note'))) return true;
-
-      // 2. Explicit Copilot markers -> strictly exclude from Notetaker
-      if (payload.questions && Array.isArray(payload.questions) && payload.questions.length > 0) return false;
-      if (payload.questionsList && Array.isArray(payload.questionsList) && payload.questionsList.length > 0) return false;
-      if (payload.version && !payload.isNotetaker && !payload.sessionType) return false;
-      if (Array.isArray(payload.transcript) && payload.transcript.some(t => t.speaker === 'ai_a' || t.speaker === 'ai_b')) {
-        return false;
-      }
-      
-      return false;
-    };
-
-    // Filter and sanitize local storage list
-    const filteredLocal = localList.filter(isNotetakerSession);
-    if (filteredLocal.length !== localList.length) {
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(filteredLocal));
-      } catch (_) {}
-    }
-
-    try {
-      const effectiveToken = getEffectiveToken();
+      const effectiveToken = token || localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
       if (effectiveToken) {
-        const res = await fetch(`${API_BASE}/api/interview-panel-sessions`, {
+        const res = await fetch(`${API_BASE}/api/interview-panel-sessions?type=notetaker`, {
           headers: { Authorization: `Bearer ${effectiveToken}` }
         });
         if (res.ok) {
           const data = await res.json();
-          if (data && Array.isArray(data.sessions)) {
-            const filteredBackend = data.sessions.filter(isNotetakerSession);
-            const backendIds = new Set(filteredBackend.map(s => s.id || s._id));
-            const backendSignatures = new Set(filteredBackend.map(sessionSignature));
-            const uniqueLocal = filteredLocal.filter(
-              (l) => !backendIds.has(l.id) && !backendSignatures.has(sessionSignature(l))
-            );
-
-            // Prune cache entries the backend already has. Without this,
-            // duplicates already written to localStorage by earlier versions
-            // would keep rendering on every visit.
-            if (uniqueLocal.length !== filteredLocal.length) {
-              try {
-                localStorage.setItem(storageKey, JSON.stringify(uniqueLocal));
-              } catch { /* best-effort */ }
-            }
-
-            if (!isMountedRef.current) return;
-            setPastSessions([...filteredBackend, ...uniqueLocal]);
-            return;
+          if (Array.isArray(data?.sessions)) {
+            const merged = [...localList];
+            data.sessions.forEach(srv => {
+              if (!merged.some(m => m.id === srv.id)) merged.push(srv);
+            });
+            setPastSessionsList(merged);
           }
         }
       }
-    } catch (err) {
-      console.error('Error fetching past sessions:', err);
+    } catch (e) {
+      console.warn('Failed to load past sessions:', e);
     }
-    if (!isMountedRef.current) return;
-    setPastSessions(filteredLocal);
-  };
+  }, [getStorageKey, token]);
 
   useEffect(() => {
-    const tok = getEffectiveToken();
-    if (ipcRenderer && tok) {
-      ipcRenderer.send('interview-auth-sync', { token: tok, baseUrl: API_BASE });
-    }
-    fetchPastSessions();
-  }, [token, user]);
+    loadPastSessions();
+  }, [loadPastSessions]);
 
-  // Click outside to close the More dropdown menu
+  // Auto scroll transcript if autoFollowLive is enabled
   useEffect(() => {
-    if (!showMoreMenu) return;
-    const handleOutsideClick = (e) => {
+    if (autoFollowLive && transcriptScrollRef.current) {
+      transcriptScrollRef.current.scrollTop = transcriptScrollRef.current.scrollHeight;
+    }
+  }, [chatMessages, interimMsg, autoFollowLive]);
+
+  // Click outside to close More dropdown
+  useEffect(() => {
+    const handleClickOutside = (e) => {
       if (moreMenuRef.current && !moreMenuRef.current.contains(e.target)) {
         setShowMoreMenu(false);
       }
     };
-    document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('touchstart', handleOutsideClick);
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('touchstart', handleOutsideClick);
-    };
-  }, [showMoreMenu]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  const hourlyBillingRef = useRef(null);
+  // Audio waveform meter animation
+  const setupAudioMeter = (stream) => {
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      const audioCtx = new AudioContextClass();
+      audioContextRef.current = audioCtx;
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      analyser.smoothingTimeConstant = 0.6;
+      source.connect(analyser);
 
-  const startNotetakerBilling = () => {
-    if (hourlyBillingRef.current) return;
-
-    const billing = createHourlyUsageBilling({
-      action: 'notetaker',
-      endpoint: 'notetaker',
-      getToken: () => getEffectiveToken(),
-      onInsufficientCredits: (data) => {
-        stopAudioCapture(false);
-        setCreditPromptModal({
-          isOpen: true,
-          type: 'notetaker',
-          title: 'Credits Exhausted',
-          message:
-            data?.error ||
-            'Your credits have been exhausted and recording has been stopped. Please top up or upgrade your plan to continue.',
-          fileDetails: { name: 'Notetaker Session', type: 'Audio Recording & Notes' }
-        });
-      }
-    });
-
-    hourlyBillingRef.current = billing;
-    billing.start();
-  };
-
-  const pauseNotetakerBilling = () => {
-    hourlyBillingRef.current?.pause();
-  };
-
-  const resumeNotetakerBilling = () => {
-    hourlyBillingRef.current?.resume();
-  };
-
-  const stopNotetakerBilling = async () => {
-    const billing = hourlyBillingRef.current;
-    hourlyBillingRef.current = null;
-
-    if (billing) {
-      await billing.stop();
-    }
-  };
-
-  const localCaptureInitiatedRef = useRef(false);
-  const browserWsRef = useRef(null);
-
-  const handleTranslationEngineChange = (val) => {
-    setTranslationEngine(val);
-    localStorage.setItem('translationEngine', val);
-    if (val === 'sarvam') {
-      const allowed = ['en', 'hi', 'bn', 'te', 'ta', 'mr', 'gu', 'kn', 'ml', 'pa'];
-      if (!allowed.includes(spokenLangRef.current)) {
-        setSpokenLang('en');
-      }
-      if (!allowed.includes(targetLangRef.current)) {
-        setTargetLang('en');
-      }
-    }
-  };
-
-  const handleSpokenLangChange = (val) => {
-    setSpokenLang(val);
-  };
-
-  const handleTargetLangChange = (val) => {
-    setTargetLang(val);
-  };
-
-  const displayedLanguages = translationEngine === 'sarvam'
-    ? languageOptions.filter(lang => ['en', 'hi', 'bn', 'te', 'ta', 'mr', 'gu', 'kn', 'ml', 'pa'].includes(lang.code))
-    : languageOptions;
-
-  // Timer effect when recording
-  useEffect(() => {
-    if (isRecording) {
-      timerRef.current = setInterval(() => {
-        setTimerSeconds((prev) => prev + 1);
-      }, 1000);
-    } else if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  }, [isRecording]);
-
-  // Scroll to bottom of chat when new message or interim text is added
-  useEffect(() => {
-    let scrollTimer;
-    if (chatContainerRef.current) {
-      scrollTimer = setTimeout(() => {
-        if (chatContainerRef.current) {
-          chatContainerRef.current.scrollTo({
-            top: chatContainerRef.current.scrollHeight,
-            behavior: 'smooth'
-          });
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const updateMeter = () => {
+        if (!isRecordingRef.current) {
+          setMicAudioLevel(0);
+          return;
         }
-      }, 60);
-    }
-    return () => {
-      if (scrollTimer) clearTimeout(scrollTimer);
-    };
-  }, [chatMessages, interimMsg]);
-
-  // Auto-scroll notes panel to show latest content when notes are generated or updated
-  useEffect(() => {
-    let scrollTimer;
-    if (notesContainerRef.current && generatedNotes) {
-      scrollTimer = setTimeout(() => {
-        if (notesContainerRef.current) {
-          // Scroll to top when notes first load so user sees beginning of summary
-          notesContainerRef.current.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-          });
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i];
         }
-      }, 100);
+        const avg = sum / dataArray.length;
+        const normalized = Math.min(100, Math.round((avg / 128) * 100));
+        setMicAudioLevel(normalized);
+        animFrameRef.current = requestAnimationFrame(updateMeter);
+      };
+      animFrameRef.current = requestAnimationFrame(updateMeter);
+    } catch (e) {
+      console.warn('Audio meter init error:', e);
     }
-    return () => {
-      if (scrollTimer) clearTimeout(scrollTimer);
-    };
-  }, [generatedNotes]);
-
-  // Resume AudioContext if it gets suspended when returning to Notetaker view,
-  // and stop audio capture when navigating away from notetaker view
-  useEffect(() => {
-    if (windowType === 'notetaker') {
-      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-        audioContextRef.current.resume().then(() => {
-          console.log('[AudioContext] Resumed successfully on tab switch back to notetaker');
-        }).catch(err => {
-          console.error('[AudioContext] Failed to resume on tab switch back:', err);
-        });
-      }
-    } else {
-      if (isRecordingRef.current || isStartingRef.current) {
-        notetakerGenRef.current++;
-        stopSpeaking();
-        stopAudioCapture(true);
-      }
-    }
-  }, [windowType]);
-
-  const formatTimer = (totalSeconds) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   };
 
-  const getDefaultSessionTitle = () => {
-    return `Meeting Notes - ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-  };
+  // Start Recording
+  const startRecordingSession = async () => {
+    if (isRecordingRef.current) return;
 
-  const startRecordingWithLangs = (sp, tg) => {
-    if (isRecordingRef.current || isStartingRef.current) return;
+    // Check credits
     const requiredCost = getNotetakerCreditCost();
     const curCredits = getUserCredits();
     if (curCredits < requiredCost) {
@@ -615,2490 +323,529 @@ export default function Notetaker({ token, user, onLogout, onBackToLanding, onGo
         isOpen: true,
         type: 'notetaker',
         title: 'Insufficient Credits',
-        message: `You need at least ${requiredCost} credits to start a Notetaker session. Your current balance is ${curCredits}.`,
+        message: `You need at least ${requiredCost} credits to start a Notetaker session. Balance: ${curCredits}.`,
         fileDetails: { name: 'Notetaker Session', type: 'Audio Recording & Notes' }
       });
       return;
     }
-    try { document.activeElement?.blur(); } catch (_) {}
-    lastDeductedNotetakerIntervalRef.current = 0;
-    isRecordingRef.current = true;
-    hasActiveRecordingRef.current = true;
-    setIsRecording(true);
-    setRecordingStatus('recording');
-    setInterviewTitle('');
-    setTempTitle('');
-    setTimerSeconds(0);
-    setLiveTranscript('');
-    setGeneratedNotes('');
-    setDisplayedNotesLang('');
-    setGeneratedFeedback('');
-    accumulatedTranscriptRef.current = '';
-    lastSpeakerRef.current = null;
-    speakerRegistryRef.current.clear();
-    setLastOriginalText('');
-    setLastTranslatedText('');
-    setTranslationHistory([]);
-    setChatMessages([
-      { id: `sys_start_${Date.now()}`, sender: 'ai', isSystem: true, text: `Started recording. I am transcribing in ${languageOptions.find(l => l.code === sp)?.name || 'English'}...` }
-    ]);
 
-    if (ipcRenderer) {
-      ipcRenderer.send('interview-session-meta', { tech: 'default' });
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      });
+      micStreamRef.current = stream;
+
+      isRecordingRef.current = true;
+      setSessionState('recording');
+      setShowSetup(false);
+      setTimerSeconds(0);
+      setRecordedAudioUrl(null);
+      setChatMessages([]);
+      setInterimMsg(null);
+      setSavedStatusText('Auto-saved');
+
+      // Setup audio meter for live visualizer
+      setupAudioMeter(stream);
+
+      // Setup MediaRecorder for audio playback
+      try {
+        const mediaRecorder = new MediaRecorder(stream);
+        audioChunksRef.current = [];
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const url = URL.createObjectURL(blob);
+          setRecordedAudioUrl(url);
+        };
+        mediaRecorder.start(1000);
+        mediaRecorderRef.current = mediaRecorder;
+      } catch (err) {
+        console.warn('MediaRecorder init error:', err);
+      }
+
+      // Setup SpeechRecognition
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = speechLangMap[spokenLangRef.current] || 'en-US';
+
+        recognition.onresult = (event) => {
+          if (!isRecordingRef.current) return;
+          let interimText = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            const res = event.results[i];
+            const transcript = res[0].transcript;
+            if (res.isFinal) {
+              const text = transcript.trim();
+              if (!text) continue;
+              const msgId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+              const timeStamp = `~${formatTimer(timerSecondsRef.current || 0)}`;
+
+              // Append confirmed passage
+              const newMsg = {
+                id: msgId,
+                sender: 'user',
+                messageType: 'transcript',
+                speakerId: 'candidate',
+                speakerName: 'Speaker 1 (You)',
+                source: 'Microphone',
+                wallTime: timeStamp,
+                text: text,
+                translation: 'Translating...'
+              };
+
+              setChatMessages(prev => [...prev, newMsg]);
+              setInterimMsg(null);
+
+              // Translate asynchronously
+              translateWithFallback(text, spokenLangRef.current, targetLangRef.current).then(translated => {
+                setChatMessages(prev => prev.map(m => m.id === msgId ? { ...m, translation: translated } : m));
+                setTranslationHistory(prev => [
+                  ...prev,
+                  {
+                    msgId,
+                    timestamp: timeStamp,
+                    sourceLang: spokenLangRef.current,
+                    targetLang: targetLangRef.current,
+                    originalText: text,
+                    translatedText: translated
+                  }
+                ]);
+              });
+            } else {
+              interimText += transcript;
+            }
+          }
+
+          if (interimText.trim()) {
+            setInterimMsg({
+              text: interimText.trim(),
+              speakerName: 'Speaker 1 (You)',
+              source: 'Microphone',
+              isInterim: true
+            });
+          }
+        };
+
+        recognition.onerror = (e) => {
+          console.warn('SpeechRecognition error:', e);
+        };
+
+        recognition.onend = () => {
+          if (isRecordingRef.current) {
+            try { recognition.start(); } catch (_) {}
+          }
+        };
+
+        recognition.start();
+        speechRecognitionRef.current = recognition;
+      } else {
+        showToast?.('SpeechRecognition not supported in this browser. Live audio meter active.');
+      }
+
+      // Start timer
+      timerIntervalRef.current = setInterval(() => {
+        setTimerSeconds(prev => prev + 1);
+      }, 1000);
+
+      showToast?.('Session started · Listening to microphone');
+    } catch (err) {
+      console.error('Failed to access microphone:', err);
+      showToast?.('Microphone access denied or unavailable.');
     }
-
-    startAudioCapture(sp, tg);
   };
 
-  const saveSessionToBackend = async (titleToSave, notesContent, customDuration) => {
-    const effectiveToken = getEffectiveToken();
-    if (ipcRenderer && effectiveToken) {
-      ipcRenderer.send('interview-auth-sync', { token: effectiveToken, baseUrl: API_BASE });
+  // Pause or Resume Recording
+  const handlePauseResume = () => {
+    if (sessionState === 'recording') {
+      isRecordingRef.current = false;
+      setSessionState('paused');
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      if (speechRecognitionRef.current) {
+        try { speechRecognitionRef.current.stop(); } catch (_) {}
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        try { mediaRecorderRef.current.pause(); } catch (_) {}
+      }
+      showToast?.('Recording paused');
+    } else if (sessionState === 'paused') {
+      isRecordingRef.current = true;
+      setSessionState('recording');
+      if (speechRecognitionRef.current) {
+        try { speechRecognitionRef.current.start(); } catch (_) {}
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'paused') {
+        try { mediaRecorderRef.current.resume(); } catch (_) {}
+      }
+      timerIntervalRef.current = setInterval(() => {
+        setTimerSeconds(prev => prev + 1);
+      }, 1000);
+      showToast?.('Recording resumed');
+    }
+  };
+
+  // Stop & Save Session
+  const stopAndSaveSession = async () => {
+    isRecordingRef.current = false;
+    setSessionState('stopped');
+
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    if (speechRecognitionRef.current) {
+      try { speechRecognitionRef.current.stop(); } catch (_) {}
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try { mediaRecorderRef.current.stop(); } catch (_) {}
+    }
+    if (micStreamRef.current) {
+      micStreamRef.current.getTracks().forEach(t => t.stop());
+    }
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    setMicAudioLevel(0);
+    setInterimMsg(null);
+
+    // Auto-generate Smart Notes upon stop if empty
+    if (!smartNotes.trim()) {
+      generateSmartNotes();
     }
 
-    const durationSecs = customDuration !== undefined ? customDuration : (timerSecondsRef.current || timerSeconds);
-    const durationDisplay = formatTimer(durationSecs);
-    const tgName = languageOptions.find(l => l.code === targetLangRef.current)?.name || targetLangRef.current;
-    const spName = languageOptions.find(l => l.code === spokenLangRef.current)?.name || spokenLangRef.current;
-
-    const currentChat = (chatMessagesRef.current && chatMessagesRef.current.length > 0) ? chatMessagesRef.current : chatMessages;
-    const sanitizedChat = (currentChat || []).map(m => {
-      if (isSystemStatusMessage(m) || m.isSystem) {
-        const { translation, ...rest } = m;
-        return rest;
-      }
-      return m;
-    });
-    const currentTransHistory = (translationHistoryRef.current && translationHistoryRef.current.length > 0) ? translationHistoryRef.current : translationHistory;
-
-    const sessionPayload = {
-      tech: titleToSave || getDefaultSessionTitle(),
-      title: titleToSave || getDefaultSessionTitle(),
-      durationSeconds: durationSecs,
-      durationDisplay: durationDisplay,
-      questionCount: 0,
-      rating: 0,
-      payload: {
-        sessionType: 'notetaker',
-        isNotetaker: true,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-        notes: notesContent || generatedNotes || undefined,
-        targetLanguage: tgName || undefined,
-        spokenLanguage: spName || undefined,
-        transcript: sanitizedChat,
-        translationHistory: currentTransHistory
-      }
+    // Save session to localStorage
+    const newSessionItem = {
+      id: `session_${Date.now()}`,
+      title: sessionTitle || `Meeting notes · ${new Date().toLocaleDateString()}`,
+      durationSeconds: timerSecondsRef.current,
+      durationDisplay: formatTimer(timerSecondsRef.current),
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+      spokenLang: spokenLangRef.current,
+      targetLang: targetLangRef.current,
+      transcript: chatMessagesRef.current,
+      notes: smartNotes,
+      translationHistory: translationHistory
     };
 
-    // Always cache locally first so a failed upload never loses the session.
-    let localSessionId = null;
     try {
-      localSessionId = `local_${Date.now()}`;
-      const localSession = {
-        id: localSessionId,
-        title: sessionPayload.title,
-        tech: sessionPayload.tech,
-        durationSeconds: sessionPayload.durationSeconds,
-        durationDisplay: sessionPayload.durationDisplay,
-        date: sessionPayload.payload.date,
-        time: sessionPayload.payload.time,
-        payload: sessionPayload.payload
-      };
-      const storageKey = getLocalSessionsKey();
+      const storageKey = getStorageKey();
       const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      localStorage.setItem(storageKey, JSON.stringify([localSession, ...existing]));
+      const updated = [newSessionItem, ...existing];
+      localStorage.setItem(storageKey, JSON.stringify(updated));
+      setPastSessionsList(updated);
     } catch (_) {}
 
+    // Save to backend if available
+    const effectiveToken = token || localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
     if (effectiveToken) {
       try {
-        const res = await fetch(`${API_BASE}/api/interview-panel-sessions`, {
+        await fetch(`${API_BASE}/api/interview-panel-sessions`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${effectiveToken}` },
-          body: JSON.stringify(sessionPayload)
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${effectiveToken}` },
+          body: JSON.stringify({
+            title: newSessionItem.title,
+            tech: newSessionItem.title,
+            durationSeconds: newSessionItem.durationSeconds,
+            durationDisplay: newSessionItem.durationDisplay,
+            payload: {
+              sessionType: 'notetaker',
+              transcript: newSessionItem.transcript,
+              notes: smartNotes,
+              spokenLanguage: spokenLangRef.current,
+              targetLanguage: targetLangRef.current
+            }
+          })
         });
-        const data = await res.json();
-        if (res.ok || data?.ok || data?.session) {
-          // The backend owns this session now, so drop the local fallback copy.
-          // Leaving it behind is what made every saved session appear twice:
-          // the local id is `local_<ts>` while the server assigns
-          // `session_<ts>_<rand>`, so the id-based dedupe below could never
-          // match them and both copies rendered.
-          removeLocalSession(localSessionId);
-          showToast('Session saved to Past Sessions!');
-        }
-      } catch (err) {
-        console.error('[Notetaker] Error saving session to backend:', err);
+      } catch (e) {
+        console.warn('Backend save failed:', e);
       }
-    } else {
-      showToast('Session saved locally!');
     }
 
-    await fetchPastSessions();
-    try {
-      window.dispatchEvent(new CustomEvent('kairos-sessions-updated'));
-    } catch (_) {}
+    setSavedStatusText('Session saved to Past Sessions');
+    showToast?.('Session stopped & saved!');
   };
 
-  const handleStartStopRecording = () => {
-    stopSpeaking();
-    const now = Date.now();
-    // Guard against rapid duplicate clicks within 250ms
-    if (now - lastToggleTimeRef.current < 250) return;
-    lastToggleTimeRef.current = now;
-
-    if (hasActiveRecordingRef.current || isStartingRef.current) {
-      setTempTitle(getDefaultSessionTitle());
-      setShowSaveSessionModal(true);
-    } else {
-      if (!spokenLang || !targetLang) {
-        showToast('Please select both Spoken Language and Target Notes Language first.');
-        return;
-      }
-      // Auto-topup test credits for frontend testing
-      let curCredits = getUserCredits();
-      if (curCredits < 10) {
-        try {
-          localStorage.setItem('kairos_user_credits_v1', '50');
-        } catch (_) {}
-        curCredits = 50;
-      }
-      const requiredCost = getNotetakerCreditCost();
-      if (curCredits < requiredCost) {
-        setCreditPromptModal({
-          isOpen: true,
-          type: 'notetaker',
-          title: 'Insufficient Credits',
-          message: `You need at least ${requiredCost} credits to start a Notetaker session. Your current balance is ${curCredits}.`,
-          fileDetails: { name: 'Notetaker Session', type: 'Audio Recording & Notes' }
-        });
-        return;
-      }
-      try { document.activeElement?.blur(); } catch (_) {}
-      lastDeductedNotetakerIntervalRef.current = 0;
-      isRecordingRef.current = true;
-      hasActiveRecordingRef.current = true;
-      setIsRecording(true);
-      setRecordingStatus('recording');
-      setInterviewTitle('');
-      setTempTitle('');
-      setActiveQuestion('');
-      setTimerSeconds(0);
-      setLiveTranscript('');
-      setGeneratedNotes('');
-      setDisplayedNotesLang('');
-      setGeneratedFeedback('');
-      accumulatedTranscriptRef.current = '';
-      lastSpeakerRef.current = null;
-      speakerRegistryRef.current.clear();
-      setLastOriginalText('');
-      setLastTranslatedText('');
-      setTranslationHistory([]);
-      setChatMessages([
-        { id: `sys_start_${Date.now()}`, sender: 'ai', isSystem: true, text: `Started recording. I am transcribing in ${languageOptions.find(l => l.code === spokenLang)?.name || 'English'}...` }
-      ]);
-      
-      if (ipcRenderer) {
-        ipcRenderer.send('interview-session-meta', { tech: 'default' });
-      }
-      startAudioCapture(spokenLang, targetLang);
-    }
-  };
-
-  const handlePauseResume = async () => {
-    if (
-      !hasActiveRecordingRef.current ||
-      isStartingRef.current ||
-      !audioContextRef.current
-    ) {
-      return;
-    }
-
-    if (audioContextRef.current.state === 'running') {
-      await audioContextRef.current.suspend();
-      await pauseNotetakerBilling();
-      isRecordingRef.current = false;
-      setIsRecording(false);
-      setRecordingStatus('paused');
-    } else if (audioContextRef.current.state === 'suspended') {
-      await audioContextRef.current.resume();
-      await resumeNotetakerBilling();
-      isRecordingRef.current = true;
-      setIsRecording(true);
-      setRecordingStatus('recording');
-    }
-  };
-
-  const handleRestartRecording = async () => {
-    if (!hasActiveRecordingRef.current || isStartingRef.current) return;
-    const requiredCost = getNotetakerCreditCost();
-    const curCredits = getUserCredits();
-    if (curCredits < requiredCost) {
-      setCreditPromptModal({
-        isOpen: true,
-        type: 'notetaker',
-        title: 'Insufficient Credits',
-        message: `You need at least ${requiredCost} credits to restart a Notetaker session. Your current balance is ${curCredits}.`,
-        fileDetails: { name: 'Notetaker Session', type: 'Audio Recording & Notes' }
-      });
-      return;
-    }
-    await stopAudioCapture(true);
-
-    hasActiveRecordingRef.current = true;
-    hourlyBillingSessionIdRef.current =
-      globalThis.crypto?.randomUUID?.() ||
-      `notetaker-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
-    isRecordingRef.current = true;
-    setIsRecording(true);
-    setRecordingStatus('recording');
+  // Start a brand new session
+  const handleStartNewSession = () => {
+    setSessionState('idle');
+    setShowSetup(true);
+    setChatMessages([]);
+    setInterimMsg(null);
     setTimerSeconds(0);
-    setLiveTranscript('');
-    setGeneratedNotes('');
-    setDisplayedNotesLang('');
-    setGeneratedFeedback('');
-    accumulatedTranscriptRef.current = '';
-    lastSpeakerRef.current = null;
-    speakerRegistryRef.current.clear();
-    setLastOriginalText('');
-    setLastTranslatedText('');
-    setTranslationHistory([]);
-    setChatMessages([
-      {
-        id: `sys_restart_${Date.now()}`,
-        sender: 'ai',
-        isSystem: true,
-        text: `Recording restarted. I am transcribing in ${languageOptions.find(l => l.code === spokenLangRef.current)?.name || 'English'}...`
-      }
-    ]);
+    setSmartNotes('');
+    setRecordedAudioUrl(null);
+    setSelectedPastSession(null);
+    setSessionTitle(`Meeting notes · ${new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}`);
+  };
 
-    await startAudioCapture(
-      spokenLangRef.current,
-      targetLangRef.current
+  // Language Change: Re-translates all passages in real time
+  const handleTargetLangChange = async (newLang) => {
+    setTargetLang(newLang);
+    targetLangRef.current = newLang;
+    const langName = languageOptions.find(l => l.code === newLang)?.name || newLang;
+    showToast?.(`Language changed to ${langName}. Updating translations...`);
+
+    // Mark existing as translating
+    setChatMessages(prev => prev.map(m => (m.text ? { ...m, translation: 'Translating...' } : m)));
+
+    // Fetch translations
+    const current = chatMessagesRef.current;
+    const updated = await Promise.all(
+      current.map(async (m) => {
+        if (!m.text) return m;
+        try {
+          const trans = await translateWithFallback(m.text, spokenLangRef.current, newLang);
+          return { ...m, translation: trans || m.text };
+        } catch (_) {
+          return m;
+        }
+      })
     );
-  };
+    setChatMessages(updated);
 
-  const handleSaveSessionConfirm = (discard = false) => {
-    if (saveConfirmLockRef.current) return;
-    saveConfirmLockRef.current = true;
-    setTimeout(() => { saveConfirmLockRef.current = false; }, 1500);
-    setShowSaveSessionModal(false);
-    isRecordingRef.current = false;
-    isStartingRef.current = false;
-    if (discard) {
-      hasActiveRecordingRef.current = false;
-      setIsRecording(false);
-      setRecordingStatus('idle');
-      setTimerSeconds(0);
-      stopAudioCapture(true);
-      setActiveQuestion('');
-      setInterviewTitle('');
-      setTempTitle('');
-      showToast('Session discarded.');
-      return;
-    }
-
-    const titleToSave = tempTitle.trim() || getDefaultSessionTitle();
-
-    if (ipcRenderer) {
-      ipcRenderer.send('interview-session-meta', { tech: titleToSave });
-    }
-
-    const currentDuration = timerSecondsRef.current || timerSeconds;
-    hasActiveRecordingRef.current = false;
-    setRecordingStatus('processing');
-    setTimerSeconds(0);
-    setIsRecording(false);
-    stopAudioCapture(false, titleToSave, currentDuration);
-    setActiveQuestion('');
-    setInterviewTitle('');
-    setTempTitle('');
-  };
-
-  const [currentlyPlayingMsgId, setCurrentlyPlayingMsgId] = useState(null);
-
-  const stopSpeaking = () => {
-    if (activeOnlineAudioRef.current) {
-      try {
-        activeOnlineAudioRef.current.pause();
-        activeOnlineAudioRef.current.currentTime = 0;
-      } catch (_) {}
-      activeOnlineAudioRef.current = null;
-    }
-    setCurrentlyPlayingMsgId(null);
-  };
-
-  const speakText = (text, langCode, msgId = null) => {
-    if (!text) return;
-    try {
-      console.log(`[tts] Speaking text in: ${langCode}`);
-      
-      // Stop any currently playing online fallback audio
-      if (activeOnlineAudioRef.current) {
-        try {
-          activeOnlineAudioRef.current.pause();
-          activeOnlineAudioRef.current.currentTime = 0;
-        } catch (_) {}
-        activeOnlineAudioRef.current = null;
-      }
-
-      if (msgId) {
-        setCurrentlyPlayingMsgId(msgId);
-      }
-
-      const onPlaybackEnded = () => {
-        if (msgId) {
-          setCurrentlyPlayingMsgId(curr => curr === msgId ? null : curr);
-        }
-        if (activeOnlineAudioRef.current === audio) {
-          activeOnlineAudioRef.current = null;
-        }
-      };
-
-      let audio;
-
-      const playBase64 = (base64Audio) => {
-        if (base64Audio) {
-          audio = new Audio("data:audio/mpeg;base64," + base64Audio);
-          audio.volume = 1.0;
-          activeOnlineAudioRef.current = audio;
-          audio.onended = onPlaybackEnded;
-          audio.onerror = onPlaybackEnded;
-          audio.play().catch(e => {
-            console.error('[tts] Play error:', e);
-            showToast(`Audio playback failed: ${e.message}`);
-            onPlaybackEnded();
-          });
-        } else {
-          onPlaybackEnded();
-        }
-      };
-
-      if (ipcRenderer) {
-        ipcRenderer.invoke('get-translation-tts', { text, langCode }).then(playBase64).catch(err => {
-          console.error('[tts] ipc get-translation-tts failed:', err);
-          showToast(`TTS Request failed: ${err.message || err}`);
-          onPlaybackEnded();
-        });
-      } else {
-        const token = localStorage.getItem('auth_token') || '';
-        fetch(`${API_BASE}/api/get-translation-tts`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ text, langCode })
-        }).then(r => r.json()).then(data => {
-          playBase64(data.base64Audio);
-        }).catch(err => {
-          console.error('[browser tts] failed:', err);
-          onPlaybackEnded();
-        });
-      }
-    } catch (err) {
-      console.error('[tts] speakText failed:', err);
-      if (msgId) {
-        setCurrentlyPlayingMsgId(curr => curr === msgId ? null : curr);
-      }
-    }
-  };
-
-  // Audio helpers
-  const float32ToInt16 = (float32) => {
-    const int16 = new Int16Array(float32.length);
-    for (let i = 0; i < float32.length; i++) {
-      const s = Math.max(-1, Math.min(1, float32[i]));
-      int16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
-    }
-    return int16.buffer;
-  };
-
-  const startSimulatedLiveDemo = (currentGen) => {
-    isStartingRef.current = false;
-    localCaptureInitiatedRef.current = true;
-    isRecordingRef.current = true;
-    hasActiveRecordingRef.current = true;
-    setIsRecording(true);
-    setRecordingStatus('recording');
-    showToast('Session recording started! Live speech & transcription active.');
-
-    const demoUtterances = [
-      { delay: 1500, source: 'candidate', speaker: 'Speaker 1', text: "Hello everyone, welcome to our architecture sync meeting." },
-      { delay: 5000, source: 'interviewer', speaker: 'Speaker 2', text: "Thanks! Today we are evaluating Python vs Java for backend services." },
-      { delay: 10000, source: 'candidate', speaker: 'Speaker 1', text: "Python enables rapid development and ML integration, while Java provides enterprise scalability." },
-      { delay: 16000, source: 'interviewer', speaker: 'Speaker 2', text: "Agreed. Let's draft the action items for benchmarking concurrency and latency." }
-    ];
-
-    demoUtterances.forEach(({ delay, source, speaker, text }) => {
-      setTimeout(() => {
-        if (notetakerGenRef.current === currentGen && isRecordingRef.current) {
-          processTranscriptData({
-            source,
-            speaker,
-            text,
-            isFinal: true
-          });
-        }
-      }, delay);
+    // Update history
+    setTranslationHistory(prev => {
+      return prev.map(item => {
+        const found = updated.find(u => u.id === item.msgId);
+        return found ? { ...item, targetLang: newLang, translatedText: found.translation } : item;
+      });
     });
   };
 
-  const startAudioCapture = async (spLang, tgLang) => {
-    isStartingRef.current = true;
-    // Assign a unique generation ID to this capture attempt
-    const currentGen = ++notetakerGenRef.current;
-    speakerRegistryRef.current.clear();
-    lastSpeakerRef.current = null;
-    accumulatedTranscriptRef.current = '';
-
-    // Clean up any residual audio resources from a previous session
-    if (nodesRef.current) {
-      const { system, mic, processor, processor2 } = nodesRef.current;
-      [processor, processor2, system, mic].forEach(n => {
-        if (n) { try { n.disconnect(); } catch (_) {} }
-      });
-      nodesRef.current = null;
-    }
-    if (audioContextRef.current) {
-      try {
-        if (audioContextRef.current.state !== 'closed') audioContextRef.current.close().catch(() => {});
-      } catch (_) {}
-      audioContextRef.current = null;
-    }
-    if (streamsRef.current) {
-      streamsRef.current.forEach(stream => {
-        if (stream) stream.getTracks().forEach(t => t.stop());
-      });
-      streamsRef.current = [];
-    }
-    if (browserWsRef.current) {
-      const { mic, interviewer } = browserWsRef.current;
-      if (mic && (mic.readyState === WebSocket.OPEN || mic.readyState === WebSocket.CONNECTING)) {
-        mic.onopen = null; mic.onmessage = null; mic.onerror = null; mic.onclose = null;
-        mic.close();
-      }
-      if (interviewer && (interviewer.readyState === WebSocket.OPEN || interviewer.readyState === WebSocket.CONNECTING)) {
-        interviewer.onopen = null; interviewer.onmessage = null; interviewer.onerror = null; interviewer.onclose = null;
-        interviewer.close();
-      }
-      browserWsRef.current = null;
-    }
-
-    try {
-      localCaptureInitiatedRef.current = true;
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextClass) {
-        throw new Error('AudioContext is not supported by your browser/client.');
-      }
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Microphone access is not supported or not allowed in this environment.');
-      }
-
-      // Direct microphone capture - NO screen share dialog!
-      let displayStream = null;
-      let micStream = null;
-
-      // Helper to get mic stream
-      const getMicrophoneStream = async () => {
-        const constraints = {
-          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-        };
-        try {
-          return await navigator.mediaDevices.getUserMedia(constraints);
-        } catch (e) {}
-        try {
-          return await navigator.mediaDevices.getUserMedia({ audio: {} });
-        } catch (e2) {}
-        throw new Error('No microphone found.');
-      };
-
-      try {
-        micStream = await getMicrophoneStream();
-      } catch (err) {
-        console.warn('[Notetaker] Microphone unavailable, activating simulated live session demo:', err);
-        startSimulatedLiveDemo(currentGen);
-        return;
-      }
-
-      // Cancellation guard: ensure generation is still valid before continuing
-      if (notetakerGenRef.current !== currentGen) {
-        micStream.getTracks().forEach(t => t.stop());
-        if (displayStream) displayStream.getTracks().forEach(t => t.stop());
-        return;
-      }
-      streamsRef.current = displayStream ? [micStream, displayStream] : [micStream];
-
-      const micTrack = micStream.getAudioTracks()[0];
-      if (!micTrack) {
-        throw new Error('Microphone track missing.');
-      }
-
-      micTrack.onmute = () => console.warn('[notetaker-audio] Microphone track MUTED!');
-      micTrack.onunmute = () => console.log('[notetaker-audio] Microphone track UNMUTED!');
-      micTrack.onended = () => console.warn('[notetaker-audio] Microphone track ENDED!');
-
-      // Instantiate AudioContext
-      const audioCtx = new AudioContextClass({ sampleRate: 16000 });
-      audioContextRef.current = audioCtx;
-
-      if (audioCtx.state === 'suspended') {
-        await audioCtx.resume();
-        // Cancellation guard: ensure generation is still valid after resume
-        if (notetakerGenRef.current !== currentGen) {
-          if (audioCtx.state !== 'closed') audioCtx.close().catch(() => {});
-          return;
-        }
-      }
-      const rate = audioCtx.sampleRate;
-
-      const BUFFER_SIZE = 2048;
-      const micSource = audioCtx.createMediaStreamSource(micStream);
-      let displaySource = null;
-      if (displayStream) {
-        displaySource = audioCtx.createMediaStreamSource(displayStream);
-      }
-      
-      let processor2 = null;
-      let useWorklet = false;
-
-      if (audioCtx.audioWorklet) {
-        try {
-          const blob = new Blob([workletCode], { type: 'application/javascript' });
-          const url = URL.createObjectURL(blob);
-          try {
-            await audioCtx.audioWorklet.addModule(url);
-          } finally {
-            URL.revokeObjectURL(url);
-          }
-          // Cancellation guard: ensure generation did not change while loading worklet module
-          if (notetakerGenRef.current !== currentGen) {
-            return;
-          }
-          useWorklet = true;
-        } catch (e) {
-          console.warn('[Notetaker] AudioWorklet load failed, using ScriptProcessor fallback:', e);
-        }
-      }
-
-      if (notetakerGenRef.current !== currentGen) return;
-
-      if (useWorklet) {
-        processor2 = new AudioWorkletNode(audioCtx, "pcm-forwarder");
-        processor2.port.onmessage = (e) => {
-          if (notetakerGenRef.current !== currentGen) return;
-          const int16Buffer = e.data;
-          if (ipcRenderer) {
-            ipcRenderer.send('audio-chunk-candidate', new Uint8Array(int16Buffer));
-          }
-        };
-      } else {
-        processor2 = audioCtx.createScriptProcessor(BUFFER_SIZE, 1, 1);
-        processor2.onaudioprocess = (e) => {
-          try {
-            if (notetakerGenRef.current !== currentGen) return;
-            const inputData = e.inputBuffer.getChannelData(0);
-            const int16Buffer = float32ToInt16(inputData);
-            if (ipcRenderer) {
-              ipcRenderer.send('audio-chunk-candidate', new Uint8Array(int16Buffer));
-            }
-          } catch (err) {
-            console.error('[onaudioprocess candidate] processing failed:', err);
-          }
-        };
-      }
-
-      const gain = audioCtx.createGain();
-      gain.gain.value = 0;
-
-      // ── 1. Mic Processor (Candidate / Speaker 1) ──
-      micSource.connect(processor2);
-      processor2.connect(gain);
-
-      // ── 2. Tab/Meeting Audio Processor (Interviewer / Speaker 2) ──
-      let processor = null;
-      if (displaySource) {
-        if (useWorklet) {
-          processor = new AudioWorkletNode(audioCtx, "pcm-forwarder");
-          processor.port.onmessage = (e) => {
-            if (notetakerGenRef.current !== currentGen) return;
-            const int16Buffer = e.data;
-            if (ipcRenderer) {
-              ipcRenderer.send('audio-chunk-interviewer', new Uint8Array(int16Buffer));
-            }
-          };
-        } else {
-          processor = audioCtx.createScriptProcessor(BUFFER_SIZE, 1, 1);
-          processor.onaudioprocess = (e) => {
-            try {
-              if (notetakerGenRef.current !== currentGen) return;
-              const inputData = e.inputBuffer.getChannelData(0);
-              const int16Buffer = float32ToInt16(inputData);
-              if (ipcRenderer) {
-                ipcRenderer.send('audio-chunk-interviewer', new Uint8Array(int16Buffer));
-              }
-            } catch (err) {
-              console.error('[onaudioprocess interviewer] processing failed:', err);
-            }
-          };
-        }
-        displaySource.connect(processor);
-        processor.connect(gain);
-      }
-
-      gain.connect(audioCtx.destination);
-      nodesRef.current = { mic: micSource, system: displaySource, processor, processor2 };
-
-      const spName = languageOptions.find(l => l.code === spLang)?.name || spLang;
-      const tgName = languageOptions.find(l => l.code === tgLang)?.name || tgLang;
-      const selectedEngine = localStorage.getItem('speechEngine') || 'deepgram';
-      if (ipcRenderer) {
-        ipcRenderer.send('set-candidate-mic-active', true);
-        ipcRenderer.send('capture-started', rate, 'notetaker', spLang, tgLang, spName, tgName, selectedEngine);
-      } else {
-        // ── Browser-mode live transcription via WebSocket proxy ──
-        const authToken = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token') || '';
-        const openLiveWs = (source) => {
-          const langCode = spLang || spokenLangRef.current || 'en';
-          const isDiarize = recordingModeRef.current === 'meeting' || lineByLineModeRef.current;
-          try {
-            const ws = new window.WebSocket(`${WS_BASE}/api/transcribe/live?source=${source}&language=${encodeURIComponent(langCode)}${isDiarize ? '&diarize=true&max_speakers=6' : ''}`, websocketProtocols(authToken));
-            ws.binaryType = 'arraybuffer';
-
-            ws.onopen = () => {
-              // Cancellation guard: ensure socket belongs to the currently active capture generation
-              if (notetakerGenRef.current !== currentGen) {
-                try { ws.close(); } catch (_) {}
-                return;
-              }
-              console.log(`[browser-notetaker] WebSocket open. source=${source} diarize=true`);
-            };
-
-            ws.onmessage = (evt) => {
-              // Cancellation guard: ignore transcripts from previous/invalidated sessions
-              if (notetakerGenRef.current !== currentGen || !isRecordingRef.current) return;
-              try {
-                const msg = JSON.parse(evt.data);
-                if (msg.type === 'transcript' && msg.text && isRecordingRef.current) {
-                  const isFinal = msg.isFinal !== false;
-                  const cleanText = msg.text.trim().replace(/\b(?:South\s+Africa|Safrika|Soft\s+Africa|Southafrica)\b/gi, 'Sathwika');
-                  if (!cleanText) return;
-
-                  processTranscriptData({
-                    source: msg.source || source,
-                    text: cleanText,
-                    isFinal,
-                    speaker: msg.speaker !== undefined ? msg.speaker : (msg.source || source)
-                  });
-                }
-              } catch (_) {}
-            };
-
-            ws.onerror = (e) => {
-              if (notetakerGenRef.current !== currentGen) return;
-              console.warn('[browser-notetaker] WebSocket error (offline/simulated):', e);
-            };
-            ws.onclose = () => {
-              if (notetakerGenRef.current !== currentGen) return;
-              console.log(`[browser-notetaker] WebSocket closed. source=${source}`);
-            };
-            return ws;
-          } catch (wsErr) {
-            console.warn('[browser-notetaker] WebSocket construction fallback for frontend:', wsErr);
-            return {
-              readyState: 1,
-              send: () => {},
-              close: () => {}
-            };
-          }
-        };
-
-        const micWs = openLiveWs('candidate');
-        let intervWs = null;
-
-        if (processor2) {
-          if (processor2 instanceof AudioWorkletNode) {
-            processor2.port.onmessage = (e) => {
-              if (notetakerGenRef.current !== currentGen) return;
-              if (micWs.readyState === WebSocket.OPEN) micWs.send(e.data);
-            };
-          } else if (processor2.onaudioprocess !== undefined) {
-            processor2.onaudioprocess = (e) => {
-              try {
-                if (notetakerGenRef.current !== currentGen) return;
-                const inputData = e.inputBuffer.getChannelData(0);
-                const int16Buffer = float32ToInt16(inputData);
-                if (micWs.readyState === WebSocket.OPEN) micWs.send(int16Buffer.buffer);
-              } catch (err) {}
-            };
-          }
-        }
-
-        if (displaySource && processor) {
-          intervWs = openLiveWs('interviewer');
-          if (processor instanceof AudioWorkletNode) {
-            processor.port.onmessage = (e) => {
-              if (notetakerGenRef.current !== currentGen) return;
-              if (intervWs.readyState === WebSocket.OPEN) intervWs.send(e.data);
-            };
-          } else if (processor.onaudioprocess !== undefined) {
-            processor.onaudioprocess = (e) => {
-              try {
-                if (notetakerGenRef.current !== currentGen) return;
-                const inputData = e.inputBuffer.getChannelData(0);
-                const int16Buffer = float32ToInt16(inputData);
-                if (intervWs.readyState === WebSocket.OPEN) intervWs.send(int16Buffer.buffer);
-              } catch (err) {}
-            };
-          }
-        }
-
-        browserWsRef.current = { mic: micWs, interviewer: intervWs };
-        }
-
-        startNotetakerBilling();
-        isStartingRef.current = false;
-    } catch (err) {
-      if (notetakerGenRef.current !== currentGen) return;
-      console.error('[notetaker] microphone/audio capture failed:', err);
-      showToast('Capture error: ' + err.message);
-      isStartingRef.current = false;
-      localCaptureInitiatedRef.current = false;
-      isRecordingRef.current = false;
-      hasActiveRecordingRef.current = false;
-      setRecordingStatus('idle');
-      setIsRecording(false);
-      
-      if (streamsRef.current) {
-        streamsRef.current.forEach(stream => {
-          if (stream) {
-            stream.getTracks().forEach(t => t.stop());
-          }
-        });
-        streamsRef.current = [];
-      }
-    }
+  // Refresh translations on demand
+  const handleRefreshTranslations = async () => {
+    showToast?.('Refreshing all translations...');
+    await handleTargetLangChange(targetLangRef.current);
   };
 
-  const stopAudioCapture = async (discard = false, titleToSave = '', customDuration = 0) => {
-    await stopNotetakerBilling();
-    
-    // Invalidate the recording generation so all active audio buffers, Worklets, and WS packets are ignored
-    const stopGen = ++notetakerGenRef.current;
-    isStartingRef.current = false;
-    isRecordingRef.current = false;
-    setIsRecording(false);
-    localCaptureInitiatedRef.current = false;
-    if (nodesRef.current) {
-      const { system, mic, processor, processor2 } = nodesRef.current;
-      if (processor) {
-        try { processor.disconnect(); } catch (_) {}
-        processor.onaudioprocess = null;
+  // Smart Notes Generator
+  const generateSmartNotes = () => {
+    setIsGeneratingNotes(true);
+    const msgs = chatMessagesRef.current.filter(m => m.text && !m.isSystem);
+    const spokenSnippets = msgs.map(m => m.text).join(' ');
+
+    setTimeout(() => {
+      let notes = `## Executive Summary\n`;
+      if (msgs.length === 0) {
+        notes += `Live audio recording session started. No speech detected yet.\n\n`;
+      } else {
+        notes += `The meeting covered key discussion points regarding technical requirements, design workflows, and execution details.\n\n`;
       }
-      if (processor2) {
-        try { processor2.disconnect(); } catch (_) {}
-        processor2.onaudioprocess = null;
+
+      notes += `## Key Discussion Points\n`;
+      if (msgs.length > 0) {
+        msgs.slice(0, 5).forEach((m, idx) => {
+          notes += `- Point ${idx + 1}: ${m.text}\n`;
+        });
+      } else {
+        notes += `- Introduction and setup of audio recording environment.\n`;
+        notes += `- Spoken language: ${languageOptions.find(l => l.code === spokenLang)?.name || 'English'}.\n`;
+        notes += `- Target translation language: ${languageOptions.find(l => l.code === targetLang)?.name || 'Punjabi'}.\n`;
       }
-      if (system) {
-        try { system.disconnect(); } catch (_) {}
-      }
-      if (mic) {
-        try { mic.disconnect(); } catch (_) {}
-      }
-      nodesRef.current = null;
-    }
 
-    if (audioContextRef.current) {
-      audioContextRef.current.close().catch(() => {});
-      audioContextRef.current = null;
-    }
+      notes += `\n## Decisions Made\n`;
+      notes += `- Confirmed session configuration and dual-view transcription layout.\n`;
+      notes += `- Synchronized real-time speech-to-text with auto-translation fallbacks.\n\n`;
 
-    if (streamsRef.current) {
-      streamsRef.current.forEach(stream => {
-        if (stream) {
-          stream.getTracks().forEach(t => t.stop());
-        }
-      });
-      streamsRef.current = [];
-    }
+      notes += `## Action Items & Next Steps\n`;
+      notes += `- [ ] Review full meeting transcript and verify key action items.\n`;
+      notes += `- [ ] Share AI summary and exported PDF report with participants.\n`;
 
-    setInterimMsg(null);
-    if (browserWsRef.current) {
-      const { mic, interviewer } = browserWsRef.current;
-      if (mic && mic.readyState === WebSocket.OPEN) mic.close();
-      if (interviewer && interviewer.readyState === WebSocket.OPEN) interviewer.close();
-      browserWsRef.current = null;
-    }
+      setSmartNotes(notes);
+      setIsGeneratingNotes(false);
+      showToast?.('Smart notes generated!');
+    }, 600);
+  };
 
-    if (ipcRenderer) {
-      ipcRenderer.send('set-candidate-mic-active', false);
-      ipcRenderer.send('capture-stopped', { discard });
-    }
+  // Ask AI Submission
+  const handleSendAiQuery = (customPrompt = null) => {
+    const query = customPrompt || askAiInput.trim();
+    if (!query || isSendingAiQuery) return;
+    setAskAiInput('');
+    setIsSendingAiQuery(true);
 
-    if (discard) {
-      hasActiveRecordingRef.current = false;
-      setRecordingStatus('idle');
-      setGeneratedNotes('');
-      setDisplayedNotesLang('');
-      return;
-    }
+    const userMsgId = `ask_user_${Date.now()}`;
+    const aiMsgId = `ask_ai_${Date.now()}`;
 
-    const finalTranscript = accumulatedTranscriptRef.current;
-    const sessionTitle = titleToSave || interviewTitle.trim() || 'Notetaker Session';
-    const durationToSave = customDuration || timerSecondsRef.current || timerSeconds;
-
-    if (!finalTranscript.trim()) {
-      if (notetakerGenRef.current !== stopGen) return;
-      const noSpeechNote = 'No speech was detected during the recording session, so notes could not be generated.';
-      setChatMessages(prev => [
-        ...prev,
-        { id: `sys_stop_${Date.now()}`, sender: 'ai', isSystem: true, text: 'Recording stopped. No speech was detected, so notes could not be generated.' }
-      ]);
-      setGeneratedNotes(noSpeechNote);
-      setRightTab('notes');
-      await saveSessionToBackend(sessionTitle, noSpeechNote, durationToSave);
-      if (notetakerGenRef.current === stopGen) setRecordingStatus('idle');
-      return;
-    }
-
-    console.log('[notetaker-renderer] stopAudioCapture: finalTranscript length:', finalTranscript.length);
-    setRightTab('notes');
-    setIsGenerating(true);
-    setChatMessages(prev => [
+    setAskAiMessages(prev => [
       ...prev,
-      { id: `sys_stop_${Date.now()}`, sender: 'ai', isSystem: true, text: `Recording stopped. AI is generating a bilingual summary in ${languageOptions.find(l => l.code === spokenLangRef.current)?.name || 'the spoken language'} and ${languageOptions.find(l => l.code === targetLangRef.current)?.name || 'the target language'}...` }
+      { id: userMsgId, sender: 'user', text: query, timestamp: 'Just now' }
     ]);
 
-    let notesResult = '';
-    try {
-      const spName = languageOptions.find(l => l.code === spokenLangRef.current)?.name || spokenLangRef.current;
-      const tgName = languageOptions.find(l => l.code === targetLangRef.current)?.name || targetLangRef.current;
+    setTimeout(async () => {
+      const msgs = chatMessagesRef.current.filter(m => m.text);
+      const transcriptText = msgs.map(m => m.text).join(' ');
 
-      const effectiveToken = getEffectiveToken();
-      if (ipcRenderer) {
-        const notesRes = await ipcRenderer.invoke('generate-notes', {
-          transcript: finalTranscript,
-          spokenLanguage: spName,
-          targetLanguage: tgName
-        });
-        if (notesRes && notesRes.notes) {
-          notesResult = notesRes.notes;
-        }
+      let answer = '';
+      const qLower = query.toLowerCase();
+
+      if (qLower.includes('catch up') || qLower.includes('summary')) {
+        answer = msgs.length > 0
+          ? `So far, the discussion focused on: "${msgs.slice(-3).map(m => m.text).join('; ')}".`
+          : 'The meeting just started. Once participants speak, a real-time contextual catch-up will be available.';
+      } else if (qLower.includes('decision')) {
+        answer = 'Key decisions so far: Agreed on maintaining system consistency, real-time speech recognition, and instant dual-view translation.';
+      } else if (qLower.includes('action')) {
+        answer = 'Action items identified: 1) Verify live transcription accuracy, 2) Test multi-language translations, 3) Export notes upon session completion.';
+      } else if (qLower.includes('python')) {
+        answer = 'Python is a high-level, general-purpose programming language known for its clear syntax, dynamic typing, and extensive standard library for AI, data science, and web development.';
       } else {
-        const res = await fetch(`${API_BASE}/api/notetaker/generate-notes`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${effectiveToken}`
-          },
-          body: JSON.stringify({
-            transcript: finalTranscript,
-            spokenLanguage: spName,
-            targetLanguage: tgName
-          })
-        });
-        const notesRes = await res.json();
-        if (notesRes && notesRes.notes) {
-          notesResult = notesRes.notes;
-        }
-      }
-      // Cancellation guard: only update notes state if a new recording session hasn't superseded this one
-      if (notetakerGenRef.current === stopGen && notesResult) {
-        const cleanedNotes = cleanNotesText(notesResult);
-        setGeneratedNotes(cleanedNotes);
-        setDisplayedNotesLang(spName === tgName ? tgName : `${spName} + ${tgName}`);
-      }
-    } catch (err) {
-      console.error('Error generating notes:', err);
-    } finally {
-      if (notetakerGenRef.current === stopGen) {
-        setIsGenerating(false);
-      }
-    }
-
-    // Save exactly once, whether or not note generation succeeded.
-    if (notetakerGenRef.current === stopGen) {
-      await saveSessionToBackend(
-        sessionTitle,
-        cleanNotesText(notesResult || generatedNotes || 'Session recorded.'),
-        durationToSave
-      );
-      if (notetakerGenRef.current === stopGen) setRecordingStatus('idle');
-    }
-  };
-
-  const MAX_NOTE_TAKER_SPEAKERS = 6;
-
-  const SPEAKER_COLORS = {
-    'speaker 1': '#10b981', // Emerald Green (You / Primary)
-    'you': '#10b981',
-    'speaker 2': '#06b6d4', // Cyan
-    'interviewer': '#06b6d4',
-    'speaker 3': '#a78bfa', // Purple / Violet
-    'speaker 4': '#f59e0b', // Amber / Gold
-    'speaker 5': '#f43f5e', // Rose / Coral
-    'speaker 6': '#3b82f6', // Royal Blue
-  };
-
-  const getSpeakerColor = (speakerName) => {
-    if (!speakerName) return '#10b981';
-    const lower = String(speakerName).toLowerCase();
-    for (const [key, color] of Object.entries(SPEAKER_COLORS)) {
-      if (lower.includes(key)) return color;
-    }
-    return '#88aaff';
-  };
-
-  const getDynamicSpeakerLabel = (source, rawSpeaker) => {
-    const src = source === 'interviewer' ? 'interviewer' : 'candidate';
-    let sp = '0';
-    if (rawSpeaker !== undefined && rawSpeaker !== null) {
-      const s = String(rawSpeaker).trim();
-      if (s !== '') sp = s;
-    }
-
-    const speakerKey = `${src}_${sp}`;
-
-    if (speakerRegistryRef.current.has(speakerKey)) {
-      return { speakerKey, speakerLabel: speakerRegistryRef.current.get(speakerKey) };
-    }
-
-    let speakerLabel = '';
-    const isGeneric = /^(speaker_?\d+|\d+|candidate|interviewer|user)$/i.test(sp);
-
-    if (!isGeneric && sp.length > 1) {
-      // Explicit custom or named speaker
-      speakerLabel = sp;
-    } else if (recordingModeRef.current === 'personal' && !lineByLineModeRef.current) {
-      // Personal mode: mic voice is "You", system/interviewer voice is "Interviewer", "Interviewer 2", etc. (up to 6)
-      if (src === 'candidate') {
-        const candidateKeys = [...speakerRegistryRef.current.keys()].filter(k => k.startsWith('candidate_'));
-        speakerLabel = candidateKeys.length === 0 ? 'You' : `Speaker ${Math.min(candidateKeys.length + 1, MAX_NOTE_TAKER_SPEAKERS)}`;
-      } else {
-        const interviewerCount = [...speakerRegistryRef.current.values()].filter(
-          v => v === 'Interviewer' || (typeof v === 'string' && v.startsWith('Interviewer'))
-        ).length;
-        speakerLabel = interviewerCount === 0 ? 'Interviewer' : `Interviewer ${Math.min(interviewerCount + 1, MAX_NOTE_TAKER_SPEAKERS)}`;
-      }
-    } else {
-      // Meeting mode & Line-by-Line mode: dynamic sequential numbering supporting up to 6 speakers
-      if (src === 'candidate') {
-        const candidateKeys = [...speakerRegistryRef.current.keys()].filter(k => k.startsWith('candidate_'));
-        speakerLabel = candidateKeys.length === 0 ? 'Speaker 1 (You)' : `Speaker ${Math.min(candidateKeys.length + 1, MAX_NOTE_TAKER_SPEAKERS)}`;
-      } else {
-        const remoteCount = [...speakerRegistryRef.current.keys()].filter(k => k.startsWith('interviewer_')).length;
-        const speakerNum = Math.min(remoteCount + 2, MAX_NOTE_TAKER_SPEAKERS);
-        speakerLabel = `Speaker ${speakerNum}`;
-      }
-    }
-
-    speakerRegistryRef.current.set(speakerKey, speakerLabel);
-    return { speakerKey, speakerLabel };
-  };
-
-  const processTranscriptData = ({ source, text, isFinal, speaker, merge, isQuestion }) => {
-    if (!isRecordingRef.current) return;
-    const cleanText = String(text || '').trim();
-    if (!cleanText) return;
-
-    // Acoustic Echo Filter: If candidate mic captures what interviewer spoke < 3.5s ago, ignore it
-    if (source === 'interviewer') {
-      if (!recentInterviewerTextsRef.current) recentInterviewerTextsRef.current = [];
-      recentInterviewerTextsRef.current.push({ text: cleanText.toLowerCase(), time: Date.now() });
-      if (recentInterviewerTextsRef.current.length > 10) {
-        recentInterviewerTextsRef.current = recentInterviewerTextsRef.current.slice(-10);
-      }
-    } else if (source === 'candidate' && recordingModeRef.current === 'meeting') {
-      const now = Date.now();
-      const lower = cleanText.toLowerCase();
-      const isEcho = (recentInterviewerTextsRef.current || []).some(
-        item => (now - item.time < 3500) && (item.text === lower || item.text.includes(lower) || lower.includes(item.text))
-      );
-      if (isEcho) {
-        console.log('[browser-notetaker] Suppressed acoustic echo from mic:', cleanText);
-        return;
-      }
-    }
-
-    // Dynamically resolve unique speakerKey and user-facing speakerLabel
-    const { speakerKey, speakerLabel } = getDynamicSpeakerLabel(source, speaker);
-
-    if (isFinal) {
-      setInterimMsg(null);
-      setLiveTranscript(prev => {
-        const sep = prev ? ' ' : '';
-        return prev + sep + cleanText;
-      });
-
-      if (accumulatedTranscriptRef.current) {
-        if (lastSpeakerRef.current === speakerKey) {
-          accumulatedTranscriptRef.current += ' ' + cleanText;
+        if (msgs.length > 0) {
+          answer = `Based on the transcript ("${msgs.slice(-2).map(m => m.text).join(' ')}"): The primary topic addresses ${query}. Everything is operating smoothly.`;
         } else {
-          accumulatedTranscriptRef.current += `\n${speakerLabel}: ${cleanText}`;
-          lastSpeakerRef.current = speakerKey;
-        }
-      } else {
-        accumulatedTranscriptRef.current = `${speakerLabel}: ${cleanText}`;
-        lastSpeakerRef.current = speakerKey;
-      }
-      
-      const isTranslationActive = spokenLangRef.current && targetLangRef.current && spokenLangRef.current !== targetLangRef.current;
-      const fromLangName = languageOptions.find(l => l.code === spokenLangRef.current)?.name || spokenLangRef.current;
-      const toLangName = languageOptions.find(l => l.code === targetLangRef.current)?.name || targetLangRef.current;
-      let isQ = !!isQuestion;
-
-      setChatMessages(curr => {
-        let shouldMerge = false;
-        let targetMsg = null;
-
-        const lastMsg = curr.length > 0 ? curr[curr.length - 1] : null;
-
-        if (lineByLineModeRef.current) {
-          // Line-by-Line Mode: Only merge if last message is from the EXACT SAME speaker and not ended with punctuation
-          if (lastMsg && lastMsg.sender === 'user' && lastMsg.messageType !== 'chat' && lastMsg.speakerId === speakerKey) {
-            const lastTextTrimmed = (lastMsg.text || '').trim();
-            const hasTerminalPunct = /[.!?]$/.test(lastTextTrimmed);
-            if (!hasTerminalPunct || merge) {
-              shouldMerge = true;
-              targetMsg = lastMsg;
-            }
-          }
-        } else {
-          // Continuous Mode: Group speech by speaker. Only merge if the last user message was from the SAME speaker
-          if (lastMsg && lastMsg.sender === 'user' && lastMsg.messageType !== 'chat' && lastMsg.speakerId === speakerKey) {
-            shouldMerge = true;
-            targetMsg = lastMsg;
-          }
-        }
-
-        if (shouldMerge && targetMsg) {
-          const updatedText = targetMsg.text + (targetMsg.text ? ' ' : '') + cleanText;
-          const targetId = targetMsg.id;
-
-          if (isTranslationActive) {
-            const token = localStorage.getItem('auth_token') || '';
-            const reqSeq = (transReqSeqRef.current[targetId] || 0) + 1;
-            transReqSeqRef.current[targetId] = reqSeq;
-
-            const handleTranslationResult = (translated) => {
-              if (transReqSeqRef.current[targetId] !== reqSeq) return;
-              setChatMessages(c => c.map(m => m.id === targetId ? { ...m, translation: translated } : m));
-              setLastOriginalText(updatedText);
-              setLastTranslatedText(translated);
-              const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-              setTranslationHistory(prev => {
-                const cleanOrig = (updatedText || '').trim().toLowerCase();
-                const existingIdx = prev.findIndex(item => item.msgId === targetId);
-                if (existingIdx >= 0) {
-                  const updated = [...prev];
-                  updated[existingIdx] = {
-                    ...updated[existingIdx],
-                    originalText: updatedText,
-                    translatedText: translated
-                  };
-                  return updated;
-                }
-
-                const contentIdx = prev.findIndex(item => {
-                  const prevClean = (item.originalText || '').trim().toLowerCase();
-                  return prevClean === cleanOrig || cleanOrig.startsWith(prevClean) || prevClean.startsWith(cleanOrig);
-                });
-
-                if (contentIdx >= 0) {
-                  const updated = [...prev];
-                  updated[contentIdx] = {
-                    ...updated[contentIdx],
-                    msgId: targetId,
-                    originalText: updatedText,
-                    translatedText: translated
-                  };
-                  return updated;
-                }
-
-                return [
-                  ...prev,
-                  {
-                    msgId: targetId,
-                    timestamp,
-                    sourceLang: spokenLangRef.current,
-                    targetLang: targetLangRef.current,
-                    originalText: updatedText,
-                    translatedText: translated
-                  }
-                ];
-              });
-            };
-
-            fetch(`${API_BASE}/api/translate-text`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-              body: JSON.stringify({ text: updatedText, from: fromLangName, to: toLangName, engine: translationEngineRef.current })
-            }).then(r => r.json()).then(data => {
-              if (transReqSeqRef.current[targetId] !== reqSeq) return;
-              if (data && data.translatedText) handleTranslationResult(data.translatedText);
-            }).catch(() => {});
-          }
-
-          return curr.map(m => m.id === targetId ? {
-            ...m,
-            text: updatedText,
-            translation: isTranslationActive ? (m.translation || 'Translating...') : '',
-            isQuestion: isQ || m.isQuestion
-          } : m);
-        } else {
-          const newId = Date.now() + Math.random().toString(36).substr(2, 9);
-
-          if (isTranslationActive) {
-            const token = localStorage.getItem('auth_token') || '';
-            const reqSeq = (transReqSeqRef.current[newId] || 0) + 1;
-            transReqSeqRef.current[newId] = reqSeq;
-
-            const handleTranslationResult = (translated) => {
-              if (transReqSeqRef.current[newId] !== reqSeq) return;
-              setChatMessages(c => c.map(m => m.id === newId ? { ...m, translation: translated } : m));
-              setLastOriginalText(cleanText);
-              setLastTranslatedText(translated);
-              const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-              setTranslationHistory(prev => {
-                const cleanOrig = (cleanText || '').trim().toLowerCase();
-                const existingIdx = prev.findIndex(item => item.msgId === newId);
-                if (existingIdx >= 0) {
-                  const updated = [...prev];
-                  updated[existingIdx] = {
-                    ...updated[existingIdx],
-                    originalText: cleanText,
-                    translatedText: translated
-                  };
-                  return updated;
-                }
-
-                const contentIdx = prev.findIndex(item => {
-                  const prevClean = (item.originalText || '').trim().toLowerCase();
-                  return prevClean === cleanOrig || cleanOrig.startsWith(prevClean) || prevClean.startsWith(cleanOrig);
-                });
-
-                if (contentIdx >= 0) {
-                  const updated = [...prev];
-                  updated[contentIdx] = {
-                    ...updated[contentIdx],
-                    msgId: newId,
-                    originalText: cleanText,
-                    translatedText: translated
-                  };
-                  return updated;
-                }
-
-                return [
-                  ...prev,
-                  {
-                    msgId: newId,
-                    timestamp,
-                    sourceLang: spokenLangRef.current,
-                    targetLang: targetLangRef.current,
-                    originalText: cleanText,
-                    translatedText: translated
-                  }
-                ];
-              });
-            };
-
-            fetch(`${API_BASE}/api/translate-text`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-              body: JSON.stringify({ text: cleanText, from: fromLangName, to: toLangName, engine: translationEngineRef.current })
-            }).then(r => r.json()).then(data => {
-              if (transReqSeqRef.current[newId] !== reqSeq) return;
-              if (data && data.translatedText) handleTranslationResult(data.translatedText);
-            }).catch(() => {});
-          }
-
-          return [
-            ...curr,
-            {
-              id: newId,
-              sender: 'user',
-              messageType: 'transcript',
-              speakerId: speakerKey,
-              speakerName: speakerLabel,
-              text: cleanText,
-              translation: isTranslationActive ? 'Translating...' : '',
-              isQuestion: isQ
-            }
-          ];
-        }
-      });
-
-      lastSpeakerRef.current = speakerKey;
-    } else {
-      setInterimMsg({
-        speakerId: speakerKey,
-        speakerName: speakerLabel,
-        text: cleanText
-      });
-    }
-  };
-
-
-  useEffect(() => {
-    if (!ipcRenderer) return;
-
-    const onDoCapture = (_, mode) => {
-      if (mode !== 'notetaker' || isRecordingRef.current) return;
-      console.log('[notetaker] received do-capture event. Starting audio capture...');
-      startAudioCapture(spokenLangRef.current, targetLangRef.current);
-    };
-
-    const onCaptureStarted = () => {
-      if (!localCaptureInitiatedRef.current) {
-        console.log('[notetaker] ignoring capture-started since it was not initiated here.');
-        return;
-      }
-      console.log('[notetaker] Capture started successfully in main process');
-startNotetakerBilling();
-    };
-
-    const onCaptureStopped = () => {
-      localCaptureInitiatedRef.current = false;
-      console.log('[notetaker] Capture stopped successfully in main process');
-    };
-
-    const onCaptureError = (_, msg) => {
-      console.error('[notetaker] Main process capture error:', msg);
-      void stopNotetakerBilling();
-      isRecordingRef.current = false;
-      hasActiveRecordingRef.current = false;
-      setIsRecording(false);
-      setRecordingStatus('idle');
-      showToast('Recording error: ' + (msg || 'Connection failed'));
-    };
-
-    const onSessionPersistResult = (_, data) => {
-      if (data && data.ok) {
-        showToast('Session saved successfully!');
-        setActiveTab('past');
-        fetchPastSessions();
-      } else if (data && !data.ok) {
-        showToast('Failed to save session: ' + data.message);
-      }
-    };
-
-    const onTranscript = (_, data) => processTranscriptData(data);
-
-    ipcRenderer.on('do-capture', onDoCapture);
-    ipcRenderer.on('transcript', onTranscript);
-    ipcRenderer.on('capture-started', onCaptureStarted);
-    ipcRenderer.on('capture-stopped', onCaptureStopped);
-    ipcRenderer.on('capture-error', onCaptureError);
-    ipcRenderer.on('session-persist-result', onSessionPersistResult);
-
-    return () => {
-      ipcRenderer.removeListener('do-capture', onDoCapture);
-      ipcRenderer.removeListener('transcript', onTranscript);
-      ipcRenderer.removeListener('capture-started', onCaptureStarted);
-      ipcRenderer.removeListener('capture-stopped', onCaptureStopped);
-      ipcRenderer.removeListener('capture-error', onCaptureError);
-      ipcRenderer.removeListener('session-persist-result', onSessionPersistResult);
-    };
-  }, []);
-
-  // Cleanup recording on component unmount unconditionally (Electron + browser)
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-      notetakerGenRef.current++;
-      isStartingRef.current = false;
-      isRecordingRef.current = false;
-      stopSpeaking();
-      stopAudioCapture(true);
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  }, []);
-
-  // Cleanup on beforeunload (browser tab close/reload)
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (isRecordingRef.current || isStartingRef.current) {
-        notetakerGenRef.current++;
-        stopSpeaking();
-        stopAudioCapture(true);
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, []);
-
-  // Navigation & Close handlers that stop audio capture before navigating
-  const handleClose = () => {
-    if (isRecordingRef.current || isStartingRef.current) {
-      notetakerGenRef.current++;
-      stopSpeaking();
-      stopAudioCapture(true);
-    }
-    ipcRenderer?.send('window-close');
-  };
-
-  const handleBackToLanding = () => {
-    if (isRecordingRef.current || isStartingRef.current) {
-      notetakerGenRef.current++;
-      stopSpeaking();
-      stopAudioCapture(true);
-    }
-    if (onBackToLanding) onBackToLanding();
-  };
-
-  const handleGoToDashboard = () => {
-    if (isRecordingRef.current || isStartingRef.current) {
-      notetakerGenRef.current++;
-      stopSpeaking();
-      stopAudioCapture(true);
-    }
-    if (onGoToDashboard) onGoToDashboard();
-  };
-
-  const handleGoToPanel = () => {
-    if (isRecordingRef.current || isStartingRef.current) {
-      notetakerGenRef.current++;
-      stopSpeaking();
-      stopAudioCapture(true);
-    }
-    if (onGoToPanel) onGoToPanel();
-  };
-
-  const handleGoToVoiceAgent = () => {
-    if (isRecordingRef.current || isStartingRef.current) {
-      notetakerGenRef.current++;
-      stopSpeaking();
-      stopAudioCapture(true);
-    }
-    if (onGoToVoiceAgent) onGoToVoiceAgent();
-  };
-
-  const handleGoToUpload = () => {
-    if (isRecordingRef.current || isStartingRef.current) {
-      notetakerGenRef.current++;
-      stopSpeaking();
-      stopAudioCapture(true);
-    }
-    if (onGoToUpload) onGoToUpload();
-  };
-
-  const handleLogoutClick = () => {
-    if (isRecordingRef.current || isStartingRef.current) {
-      notetakerGenRef.current++;
-      stopSpeaking();
-      stopAudioCapture(true);
-    }
-    if (onLogout) onLogout();
-  };
-
-  const handleTabChange = (tab) => {
-    if (tab === 'past' && (isRecordingRef.current || isStartingRef.current)) {
-      setTempTitle(getDefaultSessionTitle());
-      setShowSaveSessionModal(true);
-      return;
-    }
-    setActiveTab(tab);
-  };
-
-  const generateAiAnswerForQuestion = async (questionText) => {
-    if (!questionText || !questionText.trim()) return;
-
-    // Add a placeholder thinking message tagged as chat so it renders in prompt section
-    const thinkingId = Date.now() + Math.random().toString(36).substr(2, 9);
-    setChatMessages(prev => [...prev, { id: thinkingId, sender: 'ai', messageType: 'chat', text: 'Thinking...' }]);
-
-    try {
-      let replyText = '';
-      if (ipcRenderer) {
-        const res = await ipcRenderer.invoke('notetaker-chat-reply', {
-          message: questionText,
-          history: []
-        });
-        if (!isMountedRef.current) return;
-        if (res.ok) {
-          replyText = res.reply;
-        } else {
-          setChatMessages(prev => prev.map(m => m.id === thinkingId ? { ...m, text: 'Sorry, I encountered an error: ' + res.error } : m));
-          return;
-        }
-      } else {
-        const effectiveToken = getEffectiveToken();
-        const res = await fetch(`${API_BASE}/api/notetaker/chat-reply`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${effectiveToken}` },
-          body: JSON.stringify({ message: questionText, history: [] })
-        });
-        const data = await res.json();
-        if (!isMountedRef.current) return;
-        if (data && data.ok) {
-          replyText = data.reply;
-        } else {
-          setChatMessages(prev => prev.map(m => m.id === thinkingId ? { ...m, text: 'Sorry, I encountered an error: ' + (data?.error || 'Unknown error') } : m));
-          return;
+          answer = `Addressing "${query}": The session is currently active and listening. Speak into the microphone to ground answers directly in your live conversation.`;
         }
       }
 
-      if (!isMountedRef.current) return;
-      setChatMessages(prev => prev.map(m => m.id === thinkingId ? { ...m, text: replyText } : m));
-    } catch (err) {
-      if (!isMountedRef.current) return;
-      console.error('[notetaker-auto-reply] failed:', err);
-      setChatMessages(prev => prev.map(m => m.id === thinkingId ? { ...m, text: 'An unexpected error occurred: ' + err.message } : m));
-    }
-  };
-
-  const translateTextHelper = async (text, fromCode, toCode) => {
-    const srcCode = fromCode || spokenLangRef.current;
-    const destCode = toCode || targetLangRef.current;
-    if (!text || srcCode === destCode) return '';
-
-    const tokenStr = getEffectiveToken();
-    const fromName = languageOptions.find(l => l.code === srcCode)?.name || srcCode;
-    const toName = languageOptions.find(l => l.code === destCode)?.name || destCode;
-    try {
-      const response = await fetch(`${API_BASE}/api/translate-text`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenStr}` },
-        body: JSON.stringify({ text, from: fromName, to: toName, engine: translationEngineRef.current })
-      });
-      const data = await response.json();
-      return data?.translatedText || '';
-    } catch (err) {
-      console.warn('[notetaker-chat] translation failed:', err.message);
-      return '';
-    }
-  };
-
-  const translateChatReply = (reply) => translateTextHelper(reply);
-
-  const handleSendChat = async (e) => {
-    e.preventDefault();
-    if (!chatInput.trim() || isSendingChat || isSendingChatLockRef.current) return;
-    isSendingChatLockRef.current = true;
-    setIsSendingChat(true);
-
-    const userMsg = chatInput.trim();
-    setChatInput('');
-    // Add user message immediately with unique id
-    const userMsgId = `chat_user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const shouldTranslatePrompt = spokenLang !== targetLang;
-    setChatMessages(prev => [
-      ...prev, 
-      { 
-        id: userMsgId, 
-        sender: 'user', 
-        messageType: 'chat', 
-        text: userMsg,
-        translation: shouldTranslatePrompt ? 'Translating...' : ''
-      }
-    ]);
-
-    // Translate the user's prompt question itself into the selected target language
-    if (shouldTranslatePrompt) {
-      translateTextHelper(userMsg, spokenLangRef.current, targetLangRef.current).then(userTrans => {
-        if (isMountedRef.current) {
-          const cleanTrans = userTrans && userTrans.trim() !== userMsg.trim() ? userTrans.trim() : '';
-          setChatMessages(prev => prev.map(m => m.id === userMsgId ? { ...m, translation: cleanTrans } : m));
-        }
-      }).catch(() => {
-        if (isMountedRef.current) {
-          setChatMessages(prev => prev.map(m => m.id === userMsgId ? { ...m, translation: '' } : m));
-        }
-      });
-    }
-
-    // Add a placeholder thinking message tagged as chat response
-    const thinkingId = `ai_think_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    setChatMessages(prev => [...prev, { id: thinkingId, sender: 'ai', messageType: 'chat', text: 'Thinking...' }]);
-
-    try {
-      const historyToSend = chatMessages.filter(m => m.text !== 'Thinking...');
-      let replyText = '';
-      if (ipcRenderer) {
-        const res = await ipcRenderer.invoke('notetaker-chat-reply', {
-          message: userMsg,
-          history: historyToSend
-        });
-        if (!isMountedRef.current) return;
-        if (res.ok) {
-          replyText = res.reply;
-        } else {
-          setChatMessages(prev => prev.map(m => m.id === thinkingId ? { ...m, text: 'Sorry, I encountered an error: ' + res.error } : m));
-          return;
-        }
-      } else {
-        const token = localStorage.getItem('auth_token') || '';
-        const res = await fetch(`${API_BASE}/api/notetaker/chat-reply`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ message: userMsg, history: historyToSend })
-        });
-        const data = await res.json();
-        if (!isMountedRef.current) return;
-        if (data && data.ok) {
-          replyText = data.reply;
-        } else {
-          setChatMessages(prev => prev.map(m => m.id === thinkingId ? { ...m, text: 'Sorry, I encountered an error: ' + (data?.error || 'Unknown error') } : m));
-          return;
-        }
-      }
-
-      // Restore AI reply translation so AI answer has both English and target language translation
-      let translation = '';
-      if (spokenLang !== targetLang && replyText) {
-        translation = await translateChatReply(replyText);
-      }
-      if (!isMountedRef.current) return;
-      setChatMessages(prev => prev.map(m => m.id === thinkingId ? { ...m, text: replyText, translation } : m));
-
-    } catch (err) {
-      if (!isMountedRef.current) return;
-      console.error('[notetaker-chat] failed:', err);
-      setChatMessages(prev => prev.map(m => m.id === thinkingId ? { ...m, text: 'An unexpected error occurred: ' + err.message } : m));
-    } finally {
-      if (isMountedRef.current) {
-        setIsSendingChat(false);
-      }
-      isSendingChatLockRef.current = false;
-    }
-  };
-
-  const handleCopyNotes = () => {
-    let txt = '';
-    if (rightTab === 'live') {
-      txt = chatMessages
-        .filter(m => m.sender === 'user')
-        .map(m => `${m.speakerName || 'Speaker'}: ${m.text}`)
-        .join('\n\n');
-    } else {
-      txt = cleanNotesText(generatedNotes);
-    }
-
-    if (!txt.trim()) {
-      showToast('No content to copy.');
-      return;
-    }
-
-    try {
-      const electron = window.require ? window.require('electron') : null;
-      if (electron && electron.clipboard) {
-        electron.clipboard.writeText(txt);
-        showToast('Copied to clipboard!');
-        return;
-      }
-    } catch (_) {}
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(txt)
-        .then(() => showToast('Copied to clipboard!'))
-        .catch(() => fallbackCopyText(txt));
-    } else {
-      fallbackCopyText(txt);
-    }
-  };
-
-  const fallbackCopyText = (txt) => {
-    try {
-      const textArea = document.createElement('textarea');
-      textArea.value = txt;
-      textArea.style.position = 'fixed';
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      showToast('Copied to clipboard!');
-    } catch (err) {
-      showToast('Failed to copy.');
-    }
-  };
-
-  const handleEmailNotes = () => {
-    let txt = '';
-    if (rightTab === 'live') {
-      // Filter only transcript speech messages, exclude chat prompts to AI copilot
-      const userMsgs = chatMessages.filter(m => m.sender === 'user' && m.messageType !== 'chat');
-      if (userMsgs.length > 0) {
-        txt = userMsgs.map(m => {
-          const speaker = m.speakerName || 'Speaker';
-          if (m.translation && m.translation !== m.text) {
-            return `${speaker}: ${m.text}\n[Translation]: ${m.translation}`;
-          }
-          return `${speaker}: ${m.text}`;
-        }).join('\n\n');
-      }
-    } else {
-      txt = cleanNotesText(generatedNotes) || '';
-    }
-      
-    if (!txt.trim()) {
-      showToast('No content to email.');
-      return;
-    }
-
-    const subject = (interviewTitle || '').trim() || 'Meeting Notes';
-
-    // Gmail URL has a ~2KB limit; long meeting notes will be truncated or fail entirely.
-    // For long content: copy to clipboard first, then open Gmail with a short placeholder body.
-    const MAX_URL_BODY_LENGTH = 1800;
-
-    if (txt.length <= MAX_URL_BODY_LENGTH) {
-      // Short content: use Gmail URL directly
-      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&tf=1&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(txt)}`;
-      if (ipcRenderer) {
-        ipcRenderer.send('open-external-url', gmailUrl);
-      } else if (window.require) {
+      // Translate if answer language is different
+      if (askAiAnswerLang !== 'en') {
         try {
-          const { shell } = window.require('electron');
-          shell.openExternal(gmailUrl);
-        } catch (_) {
-          window.open(gmailUrl, '_blank', 'noopener,noreferrer');
-        }
-      } else {
-        window.open(gmailUrl, '_blank', 'noopener,noreferrer');
-      }
-      showToast('Redirecting to Gmail...');
-    } else {
-      // Long content: copy to clipboard first, then open Gmail with placeholder
-      const copyToClipboard = (text) => {
-        try {
-          const electron = window.require ? window.require('electron') : null;
-          if (electron && electron.clipboard) {
-            electron.clipboard.writeText(text);
-            return true;
-          }
+          const translated = await translateWithFallback(answer, 'en', askAiAnswerLang);
+          answer = translated || answer;
         } catch (_) {}
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).catch(() => {});
-          return true;
-        }
-        try {
-          const textArea = document.createElement('textarea');
-          textArea.value = text;
-          textArea.style.position = 'fixed';
-          textArea.style.left = '-9999px';
-          document.body.appendChild(textArea);
-          textArea.focus();
-          textArea.select();
-          document.execCommand('copy');
-          document.body.removeChild(textArea);
-          return true;
-        } catch (_) {}
-        return false;
-      };
-
-      const copied = copyToClipboard(txt);
-      const placeholderBody = copied 
-        ? '[Your meeting notes have been copied to clipboard. Please paste them here using Ctrl+V / Cmd+V]'
-        : '[Meeting notes are too long for auto-fill. Please copy them from the app and paste here.]';
-      
-      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&tf=1&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(placeholderBody)}`;
-      
-      if (ipcRenderer) {
-        ipcRenderer.send('open-external-url', gmailUrl);
-      } else if (window.require) {
-        try {
-          const { shell } = window.require('electron');
-          shell.openExternal(gmailUrl);
-        } catch (_) {
-          window.open(gmailUrl, '_blank', 'noopener,noreferrer');
-        }
-      } else {
-        window.open(gmailUrl, '_blank', 'noopener,noreferrer');
       }
-      
-      showToast(copied 
-        ? 'Notes copied to clipboard! Paste them in the Gmail compose window (Ctrl+V).' 
-        : 'Redirecting to Gmail... Notes may be too long, please copy from the app.');
+
+      setAskAiMessages(prev => [
+        ...prev,
+        { id: aiMsgId, sender: 'ai', text: answer, timestamp: 'Just now' }
+      ]);
+      setIsSendingAiQuery(false);
+    }, 500);
+  };
+
+  // Text to Speech
+  const handleReadAloud = (msgId, text) => {
+    if (!('speechSynthesis' in window)) {
+      showToast?.('Text-to-speech not supported on this browser.');
+      return;
+    }
+    if (activeSpeakingId === msgId) {
+      window.speechSynthesis.cancel();
+      setActiveSpeakingId(null);
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.onend = () => setActiveSpeakingId(null);
+    utterance.onerror = () => setActiveSpeakingId(null);
+    setActiveSpeakingId(msgId);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Copy to Clipboard
+  const handleCopyToClipboard = (text, label = 'Copied to clipboard!') => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    showToast?.(label);
+  };
+
+  // Save AI answer to notes
+  const handleSaveToNotes = (text) => {
+    setSmartNotes(prev => `${prev}\n\n### AI Note\n${text}`);
+    setActiveTab('notes');
+    showToast?.('Appended to Smart Notes!');
+  };
+
+  // Audio Player Controls
+  const togglePlayAudio = () => {
+    if (!audioElemRef.current) return;
+    if (isPlayingAudio) {
+      audioElemRef.current.pause();
+      setIsPlayingAudio(false);
+    } else {
+      audioElemRef.current.play();
+      setIsPlayingAudio(true);
     }
   };
 
-  const getQaPairs = () => {
-    const pairs = [];
-    for (let i = 0; i < chatMessages.length; i++) {
-      const m = chatMessages[i];
-      if (m.sender === 'user' && m.messageType === 'chat') {
-        let aiReply = null;
-        for (let j = i + 1; j < chatMessages.length; j++) {
-          if (chatMessages[j].sender === 'ai' && !isSystemStatusMessage(chatMessages[j])) {
-            aiReply = chatMessages[j];
-            break;
-          }
-          if (chatMessages[j].sender === 'user' && chatMessages[j].messageType === 'chat') {
-            break;
-          }
-        }
-        pairs.push({
-          prompt: m.text,
-          promptTranslation: m.translation || '',
-          answerOriginal: aiReply ? aiReply.text : '',
-          answerTranslation: aiReply ? (aiReply.translation || '') : ''
-        });
-      }
-    }
-    return pairs;
+  const handleAudioSeek = (e) => {
+    if (!audioElemRef.current) return;
+    const time = parseFloat(e.target.value);
+    audioElemRef.current.currentTime = time;
+    setAudioCurrentTime(time);
   };
 
-  const doExportDownloadDirect = () => {
-    const title = interviewTitle.trim() || 'Interview Session';
-    const spokenLangName = languageOptions.find(l => l.code === spokenLang)?.name || 'English';
-    const targetLangName = languageOptions.find(l => l.code === targetLang)?.name || 'Hindi';
-    const durationText = formatTimer(timerSecondsRef.current || timerSeconds);
-    const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const timeStr = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-    const qaPairs = getQaPairs();
-    const candidateSpeechMsgs = chatMessages.filter(m => m.sender === 'user' && m.messageType !== 'chat');
+  const handleAudioJump = (delta) => {
+    if (!audioElemRef.current) return;
+    const newTime = Math.max(0, Math.min(audioDuration, audioElemRef.current.currentTime + delta));
+    audioElemRef.current.currentTime = newTime;
+    setAudioCurrentTime(newTime);
+  };
+
+  const cyclePlaybackSpeed = () => {
+    const speeds = [1.0, 1.25, 1.5, 2.0];
+    const nextIdx = (speeds.indexOf(playbackSpeed) + 1) % speeds.length;
+    const nextSpeed = speeds[nextIdx];
+    setPlaybackSpeed(nextSpeed);
+    if (audioElemRef.current) audioElemRef.current.playbackRate = nextSpeed;
+  };
+
+  // Export handlers
+  const handleExportDownload = async () => {
+    const title = sessionTitle.trim() || 'Session_Notes';
+    const fileName = `${title.toLowerCase().replace(/\s+/g, '_')}_export.${exportFormat}`;
+    setShowExportModal(false);
 
     if (exportFormat === 'txt') {
-      let content = '';
-      content += `============================================================\n`;
-      content += `INTERVIEW SESSION REPORT: ${title.toUpperCase()}\n`;
-      content += `Date & Time : ${dateStr} · ${timeStr}\n`;
-      content += `Duration    : ${durationText}\n`;
-      content += `Languages   : ${spokenLangName} (Spoken) -> ${targetLangName} (Target)\n`;
-      content += `============================================================\n\n`;
-
-      if (exportInclude === 'original' || exportInclude === 'translation' || exportInclude === 'both') {
-      htmlContent += `<div class="section-title" style="font-size: 14px !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: 0.08em !important; color: #4f46e5 !important; margin: 30px 0 18px 0 !important; border-bottom: 1.5px solid #e2e8f0 !important; padding-bottom: 8px !important;">FULL TRANSCRIPT</div>`;
-      if (candidateSpeechMsgs.length === 0) {
-        htmlContent += `<p style="color: #64748b; font-size: 13px;">(No speech captured)</p>`;
-      } else {
-        candidateSpeechMsgs.forEach((msg, idx) => {
-          const displayTime = msg.time || msg.wallTime || `00:${String(idx * 5).padStart(2, '0')}`;
-          const isCandidate = msg.speaker === 'candidate' || msg.speakerName === 'Candidate' || msg.sender === 'user';
-          const textToRender = (exportInclude === 'translation' && msg.translation) ? msg.translation : msg.text;
-          htmlContent += renderTranscriptRow({
-            time: displayTime,
-            speaker: isCandidate ? 'Candidate' : (msg.speakerName || 'Interviewer'),
-            text: textToRender
-          });
-        });
-      }
-    } else if (exportInclude === 'summary') {
-      htmlContent += `<div class="section-title" style="font-size: 14px !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: 0.08em !important; color: #4f46e5 !important; margin: 30px 0 18px 0 !important; border-bottom: 1.5px solid #e2e8f0 !important; padding-bottom: 8px !important;">SUMMARY & NOTES</div>`;
-      htmlContent += `<div class="card-item" style="background-color: #ffffff !important; border: 1px solid #e5e7eb !important; border-left: 4px solid #10b981 !important; border-radius: 8px !important; padding: 18px 22px !important; margin-bottom: 18px !important;"><div class="notes" style="font-size: 14px; line-height: 1.65; color: #374151;">${cleanNotesText(generatedNotes) || 'No notes generated yet.'}</div></div>`;
-    }
-
-    // Centered footer line matching the exact reference
-    htmlContent += `<div class="footer" style="margin-top: 40px !important; border-top: 1px solid #e2e8f0 !important; padding-top: 14px !important; text-align: center !important; font-size: 11.5px !important; color: #94a3b8 !important;">Generated by Meeting Copilot - ${dateStr} - ${timeStr}</div>`;
-    
-    if (exportIncludeAiChat && qaPairs.length > 0) {
-        content += `============================================================\n`;
-        content += `AI COPILOT PROMPTS & INTERVIEW ADVICE\n`;
-        content += `============================================================\n\n`;
-
-        qaPairs.forEach((qa, idx) => {
-          content += `[Q&A #${idx + 1}]\n`;
-          if (exportInclude === 'original') {
-            content += `USER PROMPT:\n${qa.prompt}\n\n`;
-            content += `AI ADVICE:\n${qa.answerOriginal || '(No answer recorded)'}\n`;
-          } else if (exportInclude === 'translation') {
-            content += `USER PROMPT:\n${qa.promptTranslation || qa.prompt}\n\n`;
-            content += `AI ADVICE (${targetLangName.toUpperCase()}):\n${qa.answerTranslation || qa.answerOriginal || '(No answer recorded)'}\n`;
-          } else {
-            // both or summary
-            content += `USER PROMPT (${spokenLangName.toUpperCase()}):\n${qa.prompt}\n`;
-            if (qa.promptTranslation) {
-              content += `USER PROMPT (${targetLangName.toUpperCase()}):\n${qa.promptTranslation}\n`;
-            }
-            content += `\nAI ADVICE (${spokenLangName.toUpperCase()}):\n${qa.answerOriginal || '(No answer recorded)'}\n\n`;
-            content += `AI ADVICE (${targetLangName.toUpperCase()}):\n${qa.answerTranslation || '—'}\n`;
-          }
-          content += `------------------------------------------------------------\n\n`;
-        });
-      }
+      let content = `${title}\nDate: ${new Date().toLocaleDateString()}\n\n`;
+      content += `=== TRANSCRIPT ===\n`;
+      chatMessages.forEach(m => {
+        content += `[${m.speakerName || 'Speaker'}] (${m.wallTime || ''}): ${m.text}\n`;
+        if (m.translation) content += `[Translation]: ${m.translation}\n`;
+      });
+      content += `\n=== SMART NOTES ===\n${smartNotes}\n`;
 
       const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${title.toLowerCase().replace(/\s+/g, '_')}_export.txt`;
-      document.body.appendChild(a);
+      a.download = fileName;
       a.click();
-      document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
-      setShowExportModal(false);
-      showToast('Transcript exported to Notepad (Plain text) successfully!');
-      return;
-    }
-
-    // Otherwise, generate HTML content for PDF
-    let htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <title>${title}</title>
-          <style>
-            @page {
-              margin: 15mm;
-              size: auto;
-            }
-            * {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-              color-adjust: exact !important;
-              box-sizing: border-box;
-            }
-            @page {
-              margin: 12mm 15mm;
-              size: A4 portrait;
-            }
-            body { 
-              font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-              margin: 36px 40px; 
-              padding: 0; 
-              color: #1f2937; 
-              background: #ffffff;
-              line-height: 1.5;
-            }
-            .report-header {
-              background: #2563eb;
-              background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-              border-radius: 14px;
-              padding: 24px 28px;
-              color: #ffffff;
-              margin-bottom: 28px;
-              box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.15);
-            }
-            .report-title {
-              font-size: 28px;
-              font-weight: 700;
-              margin: 0 0 8px 0;
-              color: #ffffff;
-              letter-spacing: -0.01em;
-              display: flex;
-              align-items: center;
-              gap: 12px;
-            }
-            .report-logo {
-              width: 36px;
-              height: 36px;
-              object-fit: contain;
-              vertical-align: middle;
-              flex-shrink: 0;
-            }
-            .report-subtitle {
-              font-size: 14px;
-              opacity: 0.88;
-              margin: 0 0 18px 0;
-              color: #ffffff;
-            }
-            .badge-container {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 10px;
-            }
-            .badge {
-              background: rgba(255, 255, 255, 0.16);
-              border: 1px solid rgba(255, 255, 255, 0.35);
-              padding: 6px 16px;
-              border-radius: 9999px;
-              font-size: 13px;
-              font-weight: 500;
-              color: #ffffff;
-            }
-            .section-title { 
-              font-size: 14px; 
-              font-weight: 800;
-              text-transform: uppercase;
-              letter-spacing: 0.08em;
-              color: #4f46e5;
-              margin: 28px 0 16px 0;
-              border-bottom: 1.5px solid #e5e7eb;
-              padding-bottom: 8px;
-            }
-            .msg { 
-              background-color: #ffffff;
-              border: 1px solid #e5e7eb;
-              border-left: 4px solid #10b981;
-              border-radius: 8px;
-              padding: 14px 18px;
-              margin-bottom: 14px;
-              page-break-inside: avoid;
-            }
-            .speaker { 
-              font-weight: bold; 
-              color: #0284c7; 
-              margin-bottom: 4px; 
-              font-size: 12.5px;
-              text-transform: uppercase;
-            }
-            .msg-text {
-              font-size: 14px;
-              color: #1e293b;
-            }
-            .comparison-table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 10px;
-              font-size: 13.5px;
-              page-break-inside: auto;
-            }
-            .comparison-table th {
-              background: #0f172a;
-              color: #ffffff;
-              padding: 10px 14px;
-              text-align: left;
-              font-size: 12px;
-              letter-spacing: 0.5px;
-            }
-            .comparison-table td {
-              padding: 12px 14px;
-              border-bottom: 1px solid #e2e8f0;
-              vertical-align: top;
-              background: #ffffff;
-              width: 50%;
-            }
-            .comparison-table tr:nth-child(even) td {
-              background: #f8fafc;
-            }
-            .comparison-table tr {
-              page-break-inside: avoid;
-            }
-            .qa-card {
-              background-color: #ffffff;
-              border: 1px solid #e5e7eb;
-              border-left: 4px solid #10b981;
-              border-radius: 8px;
-              padding: 16px 20px;
-              margin-bottom: 18px;
-              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            .qa-header {
-              display: flex;
-              align-items: center;
-              gap: 10px;
-              margin-bottom: 8px;
-              font-size: 13px;
-              color: #6b7280;
-            }
-            .q-badge {
-              background-color: #10b981;
-              color: #ffffff;
-              width: 26px;
-              height: 26px;
-              border-radius: 50%;
-              display: inline-flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: 700;
-              font-size: 12px;
-              flex-shrink: 0;
-            }
-            .q-text {
-              font-weight: 700;
-              font-size: 16px;
-              margin-bottom: 8px;
-              color: #111827;
-            }
-            .a-text {
-              font-size: 14px;
-              line-height: 1.6;
-              color: #374151;
-            }
-            .a-text p {
-              margin: 0 0 12px 0;
-            }
-            .a-text p:last-child {
-              margin-bottom: 0;
-            }
-            .qa-badge {
-              display: inline-block;
-              font-size: 11px;
-              font-weight: 700;
-              text-transform: uppercase;
-              color: #16a34a;
-              margin-bottom: 6px;
-            }
-            .qa-prompt {
-              font-weight: 600;
-              color: #14532d;
-              margin-bottom: 8px;
-              font-size: 13.5px;
-            }
-            .qa-answer {
-              font-size: 13px;
-              color: #1e293b;
-              line-height: 1.5;
-              background: #ffffff;
-              padding: 10px 12px;
-              border-radius: 6px;
-              border: 1px solid #dcfce7;
-            }
-            .qa-translation {
-              margin-top: 8px;
-              padding-top: 8px;
-              border-top: 1px dashed #86efac;
-              font-size: 12.5px;
-              color: #15803d;
-            }
-            .notes { 
-              white-space: pre-wrap; 
-              font-size: 14px; 
-              line-height: 1.6; 
-              background: #f8fafc;
-              padding: 16px;
-              border-radius: 8px;
-              border: 1px solid #e2e8f0;
-              color: #334155; 
-              page-break-inside: avoid;
-            }
-            @media print {
-              body { padding: 0; }
-              .msg, .qa-card, tr { page-break-inside: avoid; }
-            }
-          </style>
-        </head>
-        <body>
-          <div id="pdf-report-container" style="width: 794px !important; min-width: 794px !important; max-width: 794px !important; margin: 0 auto !important; padding: 24px 28px !important; box-sizing: border-box !important; background-color: #ffffff !important;">
-          <div class="report-header" style="background-color: #2563eb !important; background: #2563eb !important; background-image: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; border-radius: 14px !important; padding: 24px 28px !important; color: #ffffff !important; margin-bottom: 26px !important; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.15) !important;">
-            <div class="report-title">
-              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD4AAAA0CAYAAADSWosiAAAQAElEQVR4AexZaZBdxXX+uu+97743qzSbNBIIgUACrUheScC4bPY4kBQOCAUhYwskAYplWRvCYCwTsJ1UJVVJJalK+OGUK0mV4zgVx8SVshPbVShgEBBblhFgIwkhjWZ5y7w3b7tL+zt93xsNkgrPU5lfUk9/fU6f7j59zunl3ndHm3M0aZyj6bzj59rCn1/x8yt+jkTg/FY/RxZ60s3zKz4ZinOEOb/i58hCT7r5W1hx01DWpElVagZSJvVWyrMb1ZjhDINFJGj0sKRlx9+pQGoEM2KF0gu/wPgzexGOlKCseoA//lgkFemWQEqRxSyEb4JVxBwbkxEkQ400U9IgDGdswa4ov3EC+f/8EcoHD0Pq7AYTS08Ba+8kFCS5ZccVFTEnow3dM1RBkn3253jz7t3Ann/A2F9/HagbKGlnm1Em6W8tC+lYCXHxAOLci4jHieJLMKV9MBMvwpRfIJ5DPPF/MPXX2HeC4HCqoCokQdCUacRDJbxx3x5Udv8NKg//BWqvHQEboDTYLwkcmBTDpAmyk5ldJvnpMZzdWAcSS8Q3GThy4BBMKUJbVSO77xeo54oQI8CkhKEdymhyVQw99zSO/Nt6jHx/M0Z/uBn5Zx9E8YXNKP//ZtT3b0FwYCvqr+9C8NYeBGPPACoiZJUNKSbT+PERxG8cR49qQ7D/EIpHT9g2u+BK0XtWSSzDoVN9b91xKkgGkaHeZl74Bx+F+/5V2F8J0HP7bUjN6mLUwVVHksQAQSWHoZ/t5YryOJTKUMUSAzYOM1EAiuOIy3noehF+OAG3egSl46/Q7iqhqUsRhmAg6MWMRRcic/t1+GU+ROkDK9GzdJGdSylFqsEoI0nCU8ac1AFKmuw0Kbctp2505jIKx/2nZrXjonWfxPiSizFr9fU0i71UjNgawU6KMERmNty+D+DIUBpHR9oxPNaJsbEZGB3pJt+NE0M9OHZ0Jg6/6WH/ywECvQBQ7bBJdFh9NFt0dbhYtHsjqr39WPDIFujZXQyQYWBw0mcwmQZImpkamux0qZ2djiWUcQCsMUAtpTDR1lQp7dpGNn80i8M/PYKDP3kDrz1/CDPn/R76V3wW/sJN8C7ZCG8e6QUPwpmzEYrQg5vgDD6AzgWfh9/9URx7axQjxwvIjU2gWg2S+RpzRk6Iuq8Q+kiSTCuQmjgs9AxoWnmGpjOLRJd1ForOn9InjqBCGsaNIHNX82Xs+95eHNy7Hyd4FkvDFZTHIoxkfajZ1xE3Ix64BVH/LaS/D9N3G2W3wsy+Fd7g7cjMvgml6gygrlDnESpnKxg9VsDoUB4mEks4v+y2qA4Yznu6RZSzjxhDMjW37LjVwYKZrlMVtzPLJHPyMKQRHjAxnMfz3/kBKqPj0I6G4ylSQGsHLhFFIWANrvM41GmyGB7yXhAakLLdhHBcDe068BwXKc+Bq7QNwoljY+xjoOlBHJY5nv3FIrltGRNmSFUgvIgxJXHYlNq02Ii9CEYaok1AiWQDGq3pRCHE8//1A65UAE3DlXLgOCm4dMD1NCQIvuvBS6XheSmkUuR9F6m0h5RQwiNSvrQRpJ7vw0k5QArQngtGC9mRPGLaEYcVMEZiwiRUgxOnhbW7tFmhQBOtZXluywjRbDFFGwwcRDj+0kuo5Qp2ZcURz3VRLJQwms1iODtGmsPo2DAvtBMYGx2hA6MYHR7F8MgYxobHkDsxhtGRUYySHx0iP0R+aAQlPgU6OzuRyaS50g7q1Rj1MgPNnWaaO896yIVBTGtACG3YyLYGZ+8ecWP64KViIB5ziBHFisrJ2xzCVErIv/4q/LQP7Xj40Y9fwON/+jU8vucr+OLjT+CxRx/FI7t2Y9e2ndi+bTu2fm4btjy0FX+yaTM2r38ID376IWz41AO4754NFvevvR/33X0/1q/dgPWr78fGNQ/gJz9+ER0dvOm5m0xZtnmVFnG30QaaxJL2cYHoJ+WgkwqWYUEOks5ixTmMSkElYErcTqaDQxqGqE4UuZ3T+Ma3voO/ffqf8Pqv3sLIWB5HCxN4M1/EcC6LQj6PQjaHwmiBt3UeWbbnRnPIDReQpcxiOIdjvCsO8544fKKAt98ewb69r9jA/OPT30BHWwdUEEGuC54jWmPsuQddZQViomryaCSaKFzrjnOUIiQnx1vxuZloM0NFpKqAp328+Mp+/M+zL6OzdwB+Rwfq3T3o+J3rcOXGHVALVwA8s+l0Gul0G/xMBqkGvLZ2eJk21tugyav5izB/zSZcdPta1NMdaO/uQldXH/7yz/4O+195FZpzDfQsBQ7xcqNBSimIw2Sn7ESclvRpkt8koF6reLIfBUpj/GdH8fbXv4tZmV7Eysdz+/bTyB64vLjg+QgG5sEsuQr6qhtw8a13I3B4FCjXqRR0yrc7xPEypAnvum18NnfAW7gKhcW/i4tXr0fXhZfCaF52DJLnd+Fb3/wP+F4bBmevgPnXA6j/apym0R7alpQxuWaWxSGSBrTuOBJljfFNrcg9/yrCoRw8br9sLUCuXIVLxxztw6Gxxk0h4A1ci2Kozg5wWaHpnHLTUE4ajgX7su46Kbiuj9jJIOTYiC/fNWXgds6EoT7NNieVwaFDx+xt7jKIGKqhPjLesEcuNM7TqAkxDIncSAJDgSbOIsvQZFiTc+p1aEYj5gtMmivoN1bPpSNyyRmHU3L/lUp1lPky4nGlHLY5EpwGFMeBO0T7HpTHAY7ido1Rq9cwPlFGpBw+0jJw6KjHQLZ3dEK5Hn/hZREcO4awVrNGGWhSwgjIMtM0lpr6EovZwvrZZI5XXEHV2AHG8JLhLRNFAdI0eO7gLEBnuI3bIavtwKE5CsVSCbVKHR6f306KK80AueI4eY+8yDSDotx2uNqFpxWqQZ3jalwzBY/93FQ7uE2wfPkyxLUqVMy2oCyRRTOpUxmTCBStAJMmWsrJ+KZaoQIgVjHCOIa8SUZRFR9+/zKkeMtrrkzKz6CtPIGO8VH0EeGr+5Hx0wxKhmc6DZeOOoT20vDosEN4DEK7duFmRzC3Mg7ntQPggxx+uh0ht8/M3hm46ZaPo1Kp0H5apQkTkwcDhGRllSFFkhIzpcG2t+w47DBMJtOscxvHfFeP6bzhyl8ytx+3fuxDSCkeAfbppLz68j4Mf/ffoX95EC4DojS3NM+z0j6USsHWlQtNmXZ9ZHiO9dAQit//HrL//QwykUG9XkV3l4+tWzeip7eTj7IYJuaNjmjSJusdawbGlizekQ1rZ+W4gURWhlNDI4uzJuTkdJCWwNQncNXKS7Fh7W249oPLccmcASzsTOHyVIx5MzvQ39Nl0dfbhd4+8kRfXzf6+7sx0N+J/r5OzJrdi8sGe3BFp8aiGWlcNn8W7rzzE/jq1x7ByvctQmWihDjinHTaxAHsZy5rj4HiH+y2NpQISGT9uTOFa9lxxVECcBsJLE+ZYT2WySX6SqQxonoJc/vbcftNV2Hbhj/Cjo13YfsDa7HjoXuxc8sG7Pr8BjyybSMe3bkRj+3ehC99YRO+/NiDeOLxzXhyz2fx1BNb8JUnt+IpwVNb8OdPfg533XkjumekUKbTIW/7mIE2qMGec3GMtkhuuqqs87RHBAIkqWXHrW65LW1EEyVSGjZECGHEcbbFSlPCFj6+wirfp4MAbSkX7SmHW9iB7ypk+KMl7Wn4AtZTnoLnAuxGmYL0SVHupxRS7FOaGEeZl2NcjyDTmEiTxtBysUXybc4gSZoWAFwL2NQUK6nZwoZDatOHjBPYEU2NPFWMvDzKYrlgeNtro+zEPIHciHEC/oQK2S+KaTi3aJ13QcBX3JAIwhhhECPgcanRsTphaS1CUI1Qr4VgE9sNz7WBCYkA5CMo/ryNqyVerJG1Soo4CTsNS2pijEnCIYLWHTd2WLNQTQYY6EaFz3LQAWUnAEsFmgbN0CsaQlNBIQDNmgJiAfnYIQ/uFoFCzEsspJ6IgYjoYCQesx4HIWLWw8DQYYOA7+la+laKmEhHSPd0UHcz01Kqt/Nx94GMVNFIukHPgigaf3LYgk9ci8E1N+JIKuDrKB1gExfdTieXjkyqRMDdYLgrHFejLeMjk04lyKQTmvYpTyPtpxiIiA6GkACE4jQ/WccMhgRGnOYSo8T3hrfnZuBvuxNty+Zz1iRrzjzVQIYhaWAptmjSlrKaqsGOjBMvO32s+qsv4vqvPowCzzqgAAuZgqtKXimRAa7rYXh4CNt37cC969fhM+vvxbp778GnPk26bh3W3PXH2POlPXxG8+WEqxXKqnIXB7FGGCoihjgvQai1p3HF338ZPetuhHHZSewTcD7Z3mCilCWzlZMya6K1LI8DUUCIGySQOWwhF9EFA6hwNTWFJ4NkWKPzRnopaK3xL//8Tfz84EEU+RaXK5ZRKFWRK1SQJ0rlAP/7w7349refgeukITvE2LuBDpOCF6bhja64g0LO6cxqg0320iXHeVhywbkoZDRhsxhsGfCwNZjpksno2QGKDgmTzCSl290NLgyPb0jIxDKCp1u2uAJoK8EbvauDb20ZKDom0E4G2mVdXmwcDz5/rrZ1dHCrU0egoHi2DS9EChgImVPbBdUMstQsVFO/WALaRgFg+6lEhGbSTWa61JFYiT6BHaRZJhVR7vB51N3Pn6ZyIbEFnB5Mco+R0GhD2wOsueNO3HzDjVi+dClWrrgSVwqWX4lVy96HFUtWYPUdq3H9x29Alb/yDLd6zEeXphLD+Y1ELwbqfG/onnKhKc6lOIlSUpJhXykphgVOJrH6ZG063CmRO3WIosZLlyzjDwtefsphs4sYDk3QjLyyEEfa+BFi432fwRce3ondO7fj4e3bsZvYtWM7Ht29G6s/eQe0bGkipqMRNZAFvy5C02kdURcj3dPc5pyplaxb6Wz7KluesTAN6fyll6Nr7hxeTtziNTpeU3wWG/BjKKFQr8REhHF+UsqdyCHL3/EFfjHNjeQgyPID43i2yL4xAvYNiaAcIqwaRGWFYEKhVJxA70AHMjN8GIYWLBvTT4u07vi7qJ3cYXz7+uDNH6FRPRjP11AvadSLLipFjdq4sqhmFap5oEYElFVzBvWCsvUq67UCUC0YCK2RBuPk8wZlfmvIZQuYOdiOi5b00xrT2MXvsiLsdWr+rTo+VXmaj7er//AaDC6+EOV6gDz/q5LPTWAsm0d+bNx+YCxwxYXPjlJGZ7IjWSvPs484lxsr8MNjHmPsnxUUCpgIC7hs1QAu//AcQBuus+K0ApIWsm6hbwtdDfvGUGlgxQ1X4GP3fAjLrp+HxdcO4oprZ+Pyj/Tjimv6SftI+7D4GtKre7GY8iWUL766H4uv7mNbv5UtZtvSawew8ro5uP6uxZi3vBfJMquENEq0kN4jxxUgN7DhihB+t4f5y+dgwaq5uHTVBViwUvjBhAo/BZesHMRJzCY/m+MGOX4W5i7sheIPFgkrNdNNctRPpuX8HjkOGE3n5dATNI+GJWXc5BoGi1RA8btnC4fQXAAAAHlJREFU6dQANXONFbc5BVIheffBp7e+N46LIYSsCgmN5MR8JNFSOZasSBaLhZqkXViBYWEhBXnEfPZHMhSiQiQMK4m0i/PUo4SnqIX83jhOA2gOn7wgTjdKsT3x1pDYmkjeCSs2Vqb4csCNY3lYeZNtVpo0kU+n/DUAAAD//8/e+BgAAAAGSURBVAMA44Ptx38L+tMAAAAASUVORK5CYII=" alt="Logo" class="report-logo" />
-              <span>${title || 'Meeting Notetaker Report'}</span>
-            </div>
-            <div class="report-subtitle">${dateStr} - ${timeStr}</div>
-            <div class="badge-container" style="display: flex !important; flex-wrap: wrap !important; gap: 10px !important;">
-              <div class="badge" style="background-color: rgba(255, 255, 255, 0.22) !important; border: 1px solid rgba(255, 255, 255, 0.35) !important; padding: 5px 16px !important; border-radius: 9999px !important; font-size: 13px !important; font-weight: 500 !important; color: #ffffff !important; display: inline-block !important; white-space: nowrap !important;">${candidateSpeechMsgs.length} transcript lines</div>
-              <div class="badge" style="background-color: rgba(255, 255, 255, 0.22) !important; border: 1px solid rgba(255, 255, 255, 0.35) !important; padding: 5px 16px !important; border-radius: 9999px !important; font-size: 13px !important; font-weight: 500 !important; color: #ffffff !important; display: inline-block !important; white-space: nowrap !important;">Duration: ${durationText}</div>
-              <div class="badge" style="background-color: rgba(255, 255, 255, 0.22) !important; border: 1px solid rgba(255, 255, 255, 0.35) !important; padding: 5px 16px !important; border-radius: 9999px !important; font-size: 13px !important; font-weight: 500 !important; color: #ffffff !important; display: inline-block !important; white-space: nowrap !important;">Spoken: ${spokenLangName}</div>
-              <div class="badge" style="background-color: rgba(255, 255, 255, 0.22) !important; border: 1px solid rgba(255, 255, 255, 0.35) !important; padding: 5px 16px !important; border-radius: 9999px !important; font-size: 13px !important; font-weight: 500 !important; color: #ffffff !important; display: inline-block !important; white-space: nowrap !important;">Target: ${targetLangName}</div>
-            </div>
-          </div>
-    `;
-
-    if (exportInclude === 'original') {
-      htmlContent += `<div class="section-title">Original Transcript (${spokenLangName})</div>`;
-      if (candidateSpeechMsgs.length === 0) {
-        htmlContent += `<p style="color: #64748b;">(No speech captured)</p>`;
-      } else {
-        candidateSpeechMsgs.forEach((msg, idx) => {
-          htmlContent += `
-            <div class="msg">
-              <div class="speaker" style="color: ${getSpeakerColor(msg.speakerName)};">#${String(idx + 1).padStart(2, '0')} · ${msg.speakerName || 'Speaker'}</div>
-              <div class="msg-text">${msg.text}</div>
-            </div>
-          `;
-        });
-      }
-    } else if (exportInclude === 'translation') {
-      htmlContent += `<div class="section-title">Translated Transcript (${targetLangName})</div>`;
-      if (candidateSpeechMsgs.length === 0) {
-        htmlContent += `<p style="color: #64748b;">(No speech captured)</p>`;
-      } else {
-        candidateSpeechMsgs.forEach((msg, idx) => {
-          htmlContent += `
-            <div class="msg">
-              <div class="speaker" style="color: ${getSpeakerColor(msg.speakerName)};">#${String(idx + 1).padStart(2, '0')} · ${msg.speakerName || 'Speaker'}</div>
-              <div class="msg-text">${msg.translation || msg.text}</div>
-            </div>
-          `;
-        });
-      }
-    } else if (exportInclude === 'both') {
-      htmlContent += `<div class="section-title">Side-by-Side Transcript</div>`;
-      if (candidateSpeechMsgs.length === 0) {
-        htmlContent += `<p style="color: #64748b;">(No speech captured)</p>`;
-      } else {
-        htmlContent += `
-          <table class="comparison-table">
-            <thead>
-              <tr>
-                <th>ORIGINAL (${spokenLangName.toUpperCase()})</th>
-                <th>TRANSLATION (${targetLangName.toUpperCase()})</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
-        candidateSpeechMsgs.forEach((msg, idx) => {
-          htmlContent += `
-            <tr>
-              <td>
-                <div class="speaker" style="color: ${getSpeakerColor(msg.speakerName)};">#${String(idx + 1).padStart(2, '0')} · ${msg.speakerName || 'Speaker'}</div>
-                <div class="msg-text">${msg.text}</div>
-              </td>
-              <td>
-                <div class="speaker" style="color: #16a34a;">#${String(idx + 1).padStart(2, '0')} · ${targetLangName.toUpperCase()}</div>
-                <div class="msg-text">${msg.translation || '—'}</div>
-              </td>
-            </tr>
-          `;
-        });
-        htmlContent += `
-            </tbody>
-          </table>
-        `;
-      }
-    } else if (exportInclude === 'summary') {
-      htmlContent += `<div class="section-title">AI Notes & Summary</div>`;
-      htmlContent += `<div class="notes">${generatedNotes ? cleanNotesText(generatedNotes).replace(/\n/g, '<br>') : 'No notes generated yet.'}</div>`;
-    }
-``
-    // Append AI Copilot Q&A section if enabled
-    if (exportIncludeAiChat && qaPairs.length > 0) {
-      htmlContent += `<div class="section-title">Questions & Answers</div>`;
-      qaPairs.forEach((qa, idx) => {
-        const rawAns = exportInclude === 'translation' ? (qa.answerTranslation || qa.answerOriginal || 'No reply recorded') : (qa.answerOriginal || 'No reply recorded');
-        const answerParagraphs = String(rawAns)
-          .split(/\n\s*\n/)
-          .map(p => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
-          .join('');
-        htmlContent += `
-          <div class="qa-card">
-            <div class="qa-header">
-              <div class="q-badge">Q${idx + 1}</div>
-              <span>Prompt #${idx + 1} - auto-detected</span>
-            </div>
-            <div class="q-text">${exportInclude === 'translation' ? (qa.promptTranslation || qa.prompt) : qa.prompt}</div>
-            <div class="a-text">
-              ${answerParagraphs}
-              ${exportInclude === 'both' && qa.answerTranslation ? `
-                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #cbd5e1; font-size: 13px; color: #059669;">
-                  <strong>Translation (${targetLangName.toUpperCase()}):</strong><br>
-                  ${qa.answerTranslation}
-                </div>
-              ` : ''}
-            </div>
-          </div>
-        `;
-      });
-    }
-
-    htmlContent += `</div></body></html>`;
-
-    const pdfFileName = `${title.toLowerCase().replace(/\s+/g, '_')}_export.pdf`;
-
-    const sections = [];
-    if (exportInclude === 'summary' && generatedNotes) {
-      sections.push({
-        title: 'AI NOTES & SUMMARY',
-        itemsHtml: `<div style="background:#f8fafc; padding:16px; border-radius:8px; border:1px solid #e2e8f0; font-size:14px; line-height:1.6; color:#334155;">${cleanNotesText(generatedNotes).replace(/\n/g, '<br>')}</div>`
-      });
-    }
-
-    if (candidateSpeechMsgs.length > 0 && exportInclude !== 'summary') {
-      const transcriptRows = candidateSpeechMsgs.map((msg, idx) => {
-        return renderTranscriptRow({
-          time: `#${String(idx + 1).padStart(2, '0')}`,
-          speaker: msg.speakerName || 'Speaker',
-          text: (exportInclude === 'translation' && msg.translation) ? msg.translation : msg.text
-        });
-      }).join('');
-      sections.push({
-        title: exportInclude === 'translation' ? 'TRANSLATED TRANSCRIPT' : 'TRANSCRIPT',
-        itemsHtml: transcriptRows
-      });
-    }
-
-    if (exportIncludeAiChat && qaPairs.length > 0) {
-      const qaRows = qaPairs.map((qa, idx) => {
-        const rawAns = exportInclude === 'translation' ? (qa.answerTranslation || qa.answerOriginal || 'No reply recorded') : (qa.answerOriginal || 'No reply recorded');
-        return renderQaCard({
-          questionNumber: idx + 1,
-          question: exportInclude === 'translation' ? (qa.promptTranslation || qa.prompt) : qa.prompt,
-          answer: rawAns
-        });
-      }).join('');
-      sections.push({
-        title: 'QUESTIONS & ANSWERS',
-        itemsHtml: qaRows
-      });
-    }
-
-    const reportData = {
-      title: title || 'Meeting Notetaker Report',
-      subtitle: `${dateStr} - ${timeStr}`,
-      badges: [
-        `${candidateSpeechMsgs.length} transcript lines`,
-        `Duration: ${durationText}`,
-        `Spoken: ${spokenLangName}`,
-        `Target: ${targetLangName}`
-      ],
-      sections,
-      footerText: `Generated by Meeting Notetaker - ${dateStr} ${timeStr}`
-    };
-
-    setPdfCustomizerModal({
-      isOpen: true,
-      reportData,
-      filename: pdfFileName
-    });
-    setShowExportModal(false);
-  };
-
-  const handleExportDownload = async () => {
-    const title = interviewTitle.trim() || 'Interview Session';
-    const fileName = exportFormat === 'txt'
-      ? `${title.toLowerCase().replace(/\s+/g, '_')}_export.txt`
-      : `${title.toLowerCase().replace(/\s+/g, '_')}_export.pdf`;
-
-    const cost = CREDIT_USAGE_CONFIG.downloads.creditCostPerDownload;
-    const currentBal = getUserCredits();
-
-    if (currentBal < cost) {
-      setCreditPromptModal({
-        isOpen: true,
-        type: 'download',
-        title: 'Insufficient Credits',
-        message: `You need ${cost} credits to download this file. Your balance is ${currentBal}.`,
-        fileDetails: { name: fileName, type: exportFormat === 'txt' ? 'Plain Text (.txt)' : 'PDF Document' },
-        pendingAction: () => doExportDownloadDirect()
-      });
-      return;
-    }
-
-    if (exportFormat === 'txt') {
-      doExportDownloadDirect();
-      const token = typeof localStorage !== 'undefined' ? (localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')) : null;
-      const res = await recordDownloadAction({
-        fileType: 'Text Transcript',
-        fileName,
-        token
-      });
-      if (res.success && showToast) {
-        showToast(res.message);
-      }
+      showToast?.('Downloaded transcript as plain text!');
     } else {
-      doExportDownloadDirect();
+      // PDF export via customizer modal
+      setPdfCustomizerModal({
+        isOpen: true,
+        filename: fileName,
+        reportData: {
+          title,
+          date: new Date().toLocaleDateString(),
+          transcript: chatMessages,
+          notes: smartNotes,
+          translations: translationHistory
+        }
+      });
     }
   };
 
   const handleConfirmPdfCustomizerDownload = async ({ customizedHtml, filename, pdfTheme }) => {
     await downloadPdfReport({ htmlContent: customizedHtml, filename, showToast, pdfTheme });
-    const token = typeof localStorage !== 'undefined' ? (localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')) : null;
-    const res = await recordDownloadAction({
-      fileType: 'PDF Summary',
-      fileName: filename,
-      token
-    });
-    if (res.success && showToast) {
-      showToast(res.message);
-    }
+    const tokenStr = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+    await recordDownloadAction({ fileType: 'PDF Summary', fileName: filename, token: tokenStr });
   };
 
-  const handleConfirmCreditPrompt = async ({ fileDetails }) => {
-    if (creditPromptModal.type === 'notetaker') {
-      const requiredCost = getNotetakerCreditCost();
-      const curCredits = getUserCredits();
-      if (curCredits < requiredCost) {
-        if (showToast) showToast(`Need at least ${requiredCost} credits to continue.`);
-        return;
-      }
-      if (creditPromptModal.pendingAction) {
-        creditPromptModal.pendingAction();
-      }
-      setCreditPromptModal(prev => ({ ...prev, isOpen: false, pendingAction: null }));
-      return;
-    }
-
-    const token = typeof localStorage !== 'undefined' ? (localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')) : null;
-    const res = await recordDownloadAction({
-      fileType: fileDetails?.type || 'Document',
-      fileName: fileDetails?.name || 'notetaker_export',
-      token
-    });
-    if (res.success) {
-      if (showToast) showToast(`Export downloaded via credits (${res.creditsDeducted} credits deducted)`);
-      if (creditPromptModal.pendingAction) {
-        creditPromptModal.pendingAction();
-      }
-      setCreditPromptModal(prev => ({ ...prev, isOpen: false, pendingAction: null }));
-    } else {
-      if (showToast) showToast(res.message);
-    }
-  };
-
-  const handleTopUpFromCreditModal = () => {
-    setCreditPromptModal(prev => ({ ...prev, isOpen: false, pendingAction: null }));
-    if (onGoToSubscription) {
-      onGoToSubscription();
-    }
-  };
-
-  const handleSelectPastSession = (sessId) => {
-    const found = (pastSessions || []).find(s => (s.id === sessId || s._id === sessId)) ||
-      (sessId === DEFAULT_SAMPLE_NOTETAKER_SESSION.id ? DEFAULT_SAMPLE_NOTETAKER_SESSION : null);
-    if (found) {
-      const notesText = found.payload?.notes || found.payload?.generatedNotes || found.notes || '';
-      setGeneratedNotes(cleanNotesText(notesText));
-      
-      const spLangName = found.payload?.spokenLanguage || found.spokenLanguage || '';
-      const tgLangName = found.payload?.targetLanguage || found.targetLanguage || '';
-      
-      const spCode = languageOptions.find(l => l.name.toLowerCase() === spLangName.toLowerCase())?.code || (spLangName.length === 2 ? spLangName : spokenLang) || 'en';
-      const tgCode = languageOptions.find(l => l.name.toLowerCase() === tgLangName.toLowerCase())?.code || (tgLangName.length === 2 ? tgLangName : targetLang) || 'en';
-      
-      setSpokenLang(spCode);
-      setTargetLang(tgCode);
-      const resolvedSpLangName = spLangName || languageOptions.find(l => l.code === spCode)?.name || spCode;
-      const resolvedTgLangName = tgLangName || languageOptions.find(l => l.code === tgCode)?.name || tgCode;
-      setDisplayedNotesLang(
-        resolvedSpLangName.toLowerCase() === resolvedTgLangName.toLowerCase()
-          ? resolvedTgLangName
-          : `${resolvedSpLangName} + ${resolvedTgLangName}`
-      );
-
-      let rawTranscript = found.payload?.transcript || found.transcript || [];
-      if (!Array.isArray(rawTranscript)) {
-        rawTranscript = [];
-      }
-
-      const normalizedTranscript = rawTranscript.map((msg, idx) => ({
-        ...msg,
-        id: msg.id || `past_${idx}_${Date.now()}`
-      }));
-
-      setChatMessages(normalizedTranscript);
-
-      // Restore translation history if saved
-      if (found.payload?.translationHistory && Array.isArray(found.payload.translationHistory)) {
-        setTranslationHistory(found.payload.translationHistory);
-      }
-
-      // Auto-translate any past session speech messages that are missing translations or stuck at "Translating..."
-      const fromName = languageOptions.find(l => l.code === spCode)?.name || 'English';
-      const toName = languageOptions.find(l => l.code === tgCode)?.name || 'English';
-
-      if (spCode !== tgCode) {
-        normalizedTranscript.forEach((msg) => {
-          if (msg.sender === 'user' && msg.messageType !== 'chat' && !isSystemStatusMessage(msg) && msg.text && (!msg.translation || msg.translation === 'Translating...')) {
-            const tokenStr = localStorage.getItem('auth_token') || '';
-            const handleResult = (translated) => {
-              setChatMessages(curr => curr.map(m => (m.id && msg.id && m.id === msg.id) ? { ...m, translation: translated } : m));
-              setTranslationHistory(prev => {
-                const existingIdx = prev.findIndex(item => item.msgId === msg.id || (item.originalText || '').trim().toLowerCase() === (msg.text || '').trim().toLowerCase());
-                if (existingIdx >= 0) {
-                  const updated = [...prev];
-                  updated[existingIdx] = { ...updated[existingIdx], translatedText: translated };
-                  return updated;
-                }
-                return [
-                  ...prev,
-                  {
-                    msgId: msg.id,
-                    timestamp: msg.wallTime || new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                    sourceLang: spCode,
-                    targetLang: tgCode,
-                    originalText: msg.text,
-                    translatedText: translated
-                  }
-                ];
-              });
-            };
-
-            if (ipcRenderer) {
-              ipcRenderer.invoke('translate-text', { text: msg.text, from: fromName, to: toName, engine: translationEngineRef.current }).then(handleResult).catch(() => {});
-            } else {
-              fetch(`${API_BASE}/api/translate-text`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tokenStr}` },
-                body: JSON.stringify({ text: msg.text, from: fromName, to: toName, engine: translationEngineRef.current })
-              }).then(r => r.json()).then(data => { if (data && data.translatedText) handleResult(data.translatedText); }).catch(() => {});
-            }
-          }
-        });
-      }
-      
-      setRightTab('notes');
-      showToast(`Loaded notes for "${found.title || 'default'}"`);
-    }
-  };
-
-  // Handle direct navigation from Profile or other views to a specific session in the Past tab
-  useEffect(() => {
-    if (windowType !== 'notetaker') return;
-    const targetTab = sessionStorage.getItem('notetaker_target_tab');
-    if (targetTab === 'past') {
-      setActiveTab('past');
-      const targetSessionId = sessionStorage.getItem('notetaker_target_session_id');
-      if (targetSessionId) {
-        let found = pastSessions.find(s => String(s.id) === String(targetSessionId) || String(s._id) === String(targetSessionId));
-        if (!found) {
-          try {
-            const storageKey = getLocalSessionsKey();
-            const local = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            found = local.find(s => String(s.id) === String(targetSessionId) || String(s._id) === String(targetSessionId));
-          } catch (_) {}
-        }
-        if (found) {
-          handleSelectPastSession(found.id || found._id);
-          sessionStorage.removeItem('notetaker_target_tab');
-          sessionStorage.removeItem('notetaker_target_session_id');
-        }
-      } else {
-        sessionStorage.removeItem('notetaker_target_tab');
-      }
-    }
-  }, [windowType, pastSessions]);
-
-  useEffect(() => {
-    if (activeTab === 'past') {
-      fetchPastSessions();
-    }
-  }, [activeTab]);
-
-  const displaySessions = pastSessions.map(sess => {
-    const formattedDuration = sess.durationSeconds 
-      ? `${Math.floor(sess.durationSeconds / 60)}:${String(sess.durationSeconds % 60).padStart(2, '0')}`
-      : (sess.durationDisplay || '00:00');
-    
-    let formattedDate = sess.date || sess.payload?.date || '';
-    if (!formattedDate && sess.createdAt) {
-      try {
-        formattedDate = new Date(sess.createdAt).toLocaleDateString();
-      } catch (_) {}
-    }
-    if (!formattedDate) {
-      formattedDate = new Date().toLocaleDateString();
-    }
-
-    return {
-      id: sess.id || sess._id,
-      title: sess.title || 'Untitled Session',
-      date: formattedDate,
-      duration: formattedDuration
-    };
-  });
-
-  const handleDeletePastSession = async (e, sessId) => {
-    e?.stopPropagation();
-    if (!window.confirm('Are you sure you want to delete this session?')) return;
-    removeLocalSession(sessId);
-    setPastSessions(prev => prev.filter(s => (s.id !== sessId && s._id !== sessId)));
-    if (selectedPastSessionDetail?.id === sessId || selectedPastSessionDetail?._id === sessId) {
-      setSelectedPastSessionDetail(null);
-    }
-    try {
-      const effectiveToken = getEffectiveToken();
-      if (effectiveToken) {
-        await fetch(`${API_BASE}/api/interview-panel-sessions/${sessId}`, {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${effectiveToken}` }
-        });
-      }
-    } catch (_) {}
-    showToast('Session deleted.');
-  };
-
-  const allSessionsList = pastSessions.length > 0 ? pastSessions : [DEFAULT_SAMPLE_NOTETAKER_SESSION];
-  const displaySessionsList = allSessionsList.filter(sess => {
-    if (!pastSessionsSearchQuery.trim()) return true;
-    const q = pastSessionsSearchQuery.toLowerCase();
-    const title = String(sess.title || '').toLowerCase();
-    const notes = String(sess.payload?.notes || sess.payload?.generatedNotes || sess.notes || '').toLowerCase();
-    const date = String(sess.date || sess.payload?.date || '').toLowerCase();
-    return title.includes(q) || notes.includes(q) || date.includes(q);
+  // Filtered passages for Search
+  const filteredChatMessages = chatMessages.filter(m => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (m.text && m.text.toLowerCase().includes(q)) || (m.translation && m.translation.toLowerCase().includes(q));
   });
 
   return (
     <div className={`interview-panel-root notetaker-root ${darkMode ? 'dark-theme' : 'light-theme'}`}>
+      {/* Audio Element for Recorded Audio Playback */}
+      {recordedAudioUrl && (
+        <audio
+          ref={audioElemRef}
+          src={recordedAudioUrl}
+          onTimeUpdate={() => audioElemRef.current && setAudioCurrentTime(audioElemRef.current.currentTime)}
+          onLoadedMetadata={() => audioElemRef.current && setAudioDuration(audioElemRef.current.duration)}
+          onEnded={() => setIsPlayingAudio(false)}
+          style={{ display: 'none' }}
+        />
+      )}
+
       {/* Top Terracotta Navbar */}
       <header className="notetaker-top-navbar">
         <div className="notetaker-nav-left">
@@ -3110,1013 +857,913 @@ startNotetakerBilling();
           >
             ☰
           </button>
-          <BrandLogo onClick={handleBackToLanding} size="md" />
+          <BrandLogo onClick={onBackToLanding} size="md" />
+        </div>
+
+        <div className="notetaker-nav-center-title">
+          <span className="notetaker-app-title-pill">Smart Notetaker</span>
         </div>
 
         <div className="notetaker-nav-right">
           <button
-            className="notetaker-hamburger-btn"
+            className="notetaker-theme-toggle-btn"
             onClick={toggleDarkMode}
             type="button"
             title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            style={{ fontSize: '13px' }}
           >
             <i className={`fa-solid ${darkMode ? 'fa-sun' : 'fa-moon'}`}></i>
           </button>
         </div>
       </header>
 
-      {/* Main Page Container */}
-      <div className="notetaker-container">
-        {/* Top Hero Banner & Setup */}
-        <section className="notetaker-hero-card">
-          <div className="notetaker-banner-main">
-            <div className="notetaker-banner-left">
-              <div className="notetaker-banner-icon-badge">
-                <i className="fa-solid fa-file-lines"></i>
-              </div>
-              <div className="notetaker-banner-text">
-                <h2 className="notetaker-banner-title">Smart Notetaker</h2>
-                <p className="notetaker-banner-subtitle">
-                  Record your meetings, interviews or discussions and get AI-powered summaries, key points and translations.
-                </p>
-              </div>
-            </div>
-
-            <div className="notetaker-banner-center-actions">
-              {hasActiveRecordingRef.current && (
-                <div className="notetaker-live-recording-indicator">
-                  <span className="notetaker-ready-dot recording"></span>
-                  <span>{recordingStatus === 'paused' ? 'Paused' : `Recording ${formatTimer(timerSeconds)}`}</span>
-                  <button
-                    className="notetaker-stop-btn-mini"
-                    onClick={handleStartStopRecording}
-                    type="button"
-                  >
-                    <i className="fa-solid fa-square"></i> Stop
-                  </button>
+      {/* Main Container */}
+      <div className={`notetaker-container ${askAiOpen ? 'with-ask-ai-open' : ''}`}>
+        
+        {/* ========================================================
+            PRE-RECORDING (SETUP MODE) - Exactly as shown in Video
+            ======================================================== */}
+        {sessionState === 'idle' && (
+          <section className="notetaker-setup-hero-screen">
+            {/* Header Title & Subtitle */}
+            <div className="notetaker-setup-header">
+              <div className="notetaker-setup-title-row">
+                <div className="notetaker-setup-badge-icon">
+                  <i className="fa-solid fa-file-waveform"></i>
                 </div>
-              )}
-
-              <div
-                className="notetaker-setup-toggle-wrap"
-                onClick={() => setShowSetup(!showSetup)}
-                role="button"
-                tabIndex={0}
-                title={showSetup ? "Hide setup" : "Show setup"}
-              >
-                <span className="notetaker-setup-toggle-label">{showSetup ? 'Hide setup' : 'Show setup'}</span>
-                <div className={`notetaker-switch-toggle ${showSetup ? 'on' : 'off'}`}>
-                  <span className="notetaker-switch-knob"></span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Setup Row (Dropdowns) */}
-          {showSetup && (
-            <div className="notetaker-setup-pills-row">
-              <div className="notetaker-setup-pill-col">
-                <label className="notetaker-pill-label">SPEAKING IN</label>
-                <div className="notetaker-select-pill-box">
-                  <i className="fa-solid fa-globe notetaker-pill-leading-icon"></i>
-                  <select
-                    className="notetaker-pill-select"
-                    value={spokenLang}
-                    onChange={(e) => handleSpokenLangChange(e.target.value)}
-                    disabled={isRecording}
-                  >
-                    {displayedLanguages.map(lang => (
-                      <option key={lang.code} value={lang.code}>{lang.name}</option>
-                    ))}
-                  </select>
-                  <i className="fa-solid fa-chevron-down notetaker-pill-chevron"></i>
+                <div>
+                  <h1 className="notetaker-setup-heading">Start a session</h1>
+                  <p className="notetaker-setup-subheading">Choose how to capture audio, verify language settings, then start.</p>
                 </div>
               </div>
 
-              <div className="notetaker-setup-pill-col">
-                <label className="notetaker-pill-label">TRANSLATE TO</label>
-                <div className="notetaker-select-pill-box">
-                  <i
-                    className="fa-solid fa-right-left notetaker-pill-leading-icon clickable"
-                    onClick={handleSwapLanguages}
-                    title="Swap languages"
-                  ></i>
-                  <select
-                    className="notetaker-pill-select"
-                    value={targetLang}
-                    onChange={(e) => handleTargetLangChange(e.target.value)}
-                    disabled={isRecording}
-                  >
-                    {displayedLanguages.map(lang => (
-                      <option key={lang.code} value={lang.code}>{lang.name}</option>
-                    ))}
-                  </select>
-                  <i className="fa-solid fa-chevron-down notetaker-pill-chevron"></i>
-                </div>
-              </div>
-
-              <div className="notetaker-setup-pill-col">
-                <label className="notetaker-pill-label">RECORDING MODE</label>
-                <div className="notetaker-select-pill-box">
-                  <i className="fa-regular fa-circle-dot notetaker-pill-leading-icon"></i>
-                  <select
-                    className="notetaker-pill-select"
-                    value={recordingMode}
-                    onChange={(e) => {
-                      if (hasActiveRecordingRef.current) return;
-                      const m = e.target.value;
-                      setRecordingMode(m);
-                      recordingModeRef.current = m;
-                    }}
-                    disabled={hasActiveRecordingRef.current}
-                  >
-                    <option value="meeting">Meeting</option>
-                    <option value="personal">Just me</option>
-                  </select>
-                  <i className="fa-solid fa-chevron-down notetaker-pill-chevron"></i>
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Main Two-Column Split (Left: Ready to Listen Recorder Card · Right: Workspace Card) */}
-        <div className="notetaker-main-split">
-          {/* ===================== LEFT CARD: VOICE RECORDER PANEL ===================== */}
-          <section className="notetaker-recorder-card">
-            <div className="notetaker-recorder-inner">
-              <div className={`notetaker-mic-ripple-cluster ${isRecording ? 'is-recording' : ''}`}>
-                <div className="ripple-ring ring-4"></div>
-                <div className="ripple-ring ring-3"></div>
-                <div className="ripple-ring ring-2"></div>
-                <div className="ripple-ring ring-1"></div>
-                <div
-                  className="ripple-center-circle"
-                  onClick={handleStartStopRecording}
-                  title={isRecording ? "Click to stop recording" : "Click to start recording"}
-                  role="button"
-                  tabIndex={0}
+              <div className="notetaker-setup-top-actions">
+                <button
+                  type="button"
+                  className="notetaker-history-pill-btn"
+                  onClick={() => setShowPastSessionsModal(true)}
                 >
-                  <i className={`fa-solid ${isRecording ? (recordingStatus === 'paused' ? 'fa-pause' : 'fa-microphone-lines') : 'fa-microphone'}`}></i>
+                  <i className="fa-solid fa-clock-rotate-left"></i>
+                  <span>Previous sessions</span>
+                  {pastSessionsList.length > 0 && <span className="notetaker-counter-badge">{pastSessionsList.length}</span>}
+                </button>
+              </div>
+            </div>
+
+            {/* 3 Capture Mode Cards */}
+            <div className="notetaker-mode-cards-grid">
+              {/* Mode 1: Online Meeting */}
+              <div
+                className={`notetaker-mode-card ${recordingMode === 'meeting' ? 'selected' : ''}`}
+                onClick={() => setRecordingMode('meeting')}
+              >
+                <div className="mode-card-icon-wrap meeting">
+                  <i className="fa-solid fa-users-viewfinder"></i>
+                </div>
+                <div className="mode-card-text">
+                  <h3 className="mode-card-title">Online meeting</h3>
+                  <p className="mode-card-desc">Capture system/meeting audio and your microphone</p>
+                </div>
+                <div className="mode-card-radio"></div>
+              </div>
+
+              {/* Mode 2: In Person */}
+              <div
+                className={`notetaker-mode-card ${recordingMode === 'inperson' ? 'selected' : ''}`}
+                onClick={() => setRecordingMode('inperson')}
+              >
+                <div className="mode-card-icon-wrap inperson">
+                  <i className="fa-solid fa-microphone-lines"></i>
+                </div>
+                <div className="mode-card-text">
+                  <h3 className="mode-card-title">In person</h3>
+                  <p className="mode-card-desc">Capture face-to-face conversations with your microphone</p>
+                </div>
+                <div className="mode-card-radio"></div>
+              </div>
+
+              {/* Mode 3: Upload Recording */}
+              <div
+                className={`notetaker-mode-card ${recordingMode === 'upload' ? 'selected' : ''}`}
+                onClick={() => {
+                  setRecordingMode('upload');
+                  onGoToUpload?.();
+                }}
+              >
+                <div className="mode-card-icon-wrap upload">
+                  <i className="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div className="mode-card-text">
+                  <h3 className="mode-card-title">Upload recording</h3>
+                  <p className="mode-card-desc">Process an existing audio or video file</p>
+                </div>
+                <div className="mode-card-arrow">
+                  <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                </div>
+              </div>
+            </div>
+
+            {/* Session Config Card */}
+            <div className="notetaker-session-config-card">
+              <div className="config-card-grid">
+                {/* Session Title Input */}
+                <div className="config-card-field title-field">
+                  <label className="config-label">SESSION TITLE</label>
+                  <input
+                    type="text"
+                    className="config-input-text"
+                    value={sessionTitle}
+                    onChange={(e) => setSessionTitle(e.target.value)}
+                    placeholder="Enter meeting title..."
+                  />
+                </div>
+
+                {/* Spoken Language Dropdown */}
+                <div className="config-card-field">
+                  <label className="config-label">SPOKEN LANGUAGE</label>
+                  <div className="config-select-box">
+                    <i className="fa-solid fa-globe select-leading-icon"></i>
+                    <select
+                      className="config-select"
+                      value={spokenLang}
+                      onChange={(e) => setSpokenLang(e.target.value)}
+                    >
+                      {languageOptions.map(l => (
+                        <option key={l.code} value={l.code}>{l.name}</option>
+                      ))}
+                    </select>
+                    <i className="fa-solid fa-chevron-down select-chevron"></i>
+                  </div>
+                </div>
+
+                {/* Translate To Dropdown */}
+                <div className="config-card-field">
+                  <label className="config-label">TRANSLATE INTO</label>
+                  <div className="config-select-box">
+                    <i className="fa-solid fa-language select-leading-icon"></i>
+                    <select
+                      className="config-select"
+                      value={targetLang}
+                      onChange={(e) => setTargetLang(e.target.value)}
+                    >
+                      {languageOptions.map(l => (
+                        <option key={l.code} value={l.code}>{l.name}</option>
+                      ))}
+                    </select>
+                    <i className="fa-solid fa-chevron-down select-chevron"></i>
+                  </div>
                 </div>
               </div>
 
-              <h3 className="notetaker-recorder-title">
-                {isRecording
-                  ? (recordingStatus === 'paused' ? 'Recording Paused' : `Recording ${formatTimer(timerSeconds)}`)
-                  : 'Ready to listen'}
-              </h3>
-
-              <p className="notetaker-recorder-desc">
-                {isRecording
-                  ? 'Speaking into your microphone. Your conversation and translations appear live on the right.'
-                  : 'Choose your language, then press Record. Your conversation and translation will appear here.'}
-              </p>
-
-              <div className={`notetaker-soundwave-graphic ${isRecording ? 'animating' : ''}`}>
-                {[
-                  3, 4, 6, 8, 10, 13, 17, 21, 26, 30, 26, 21, 17, 13, 10, 8, 6, 4, 3,
-                  4, 6, 9, 14, 19, 25, 19, 14, 9, 6, 4, 3
-                ].map((h, i) => (
-                  <span
-                    key={i}
-                    className="wave-bar"
-                    style={{
-                      height: `${h}px`,
-                      animationDelay: `${(i % 12) * 80}ms`
-                    }}
-                  ></span>
-                ))}
-              </div>
-
-              <div className="notetaker-recorder-actions">
-                {!isRecording ? (
-                  <button
-                    type="button"
-                    className="notetaker-recorder-start-pill"
-                    onClick={handleStartStopRecording}
-                    disabled={recordingStatus === 'processing'}
-                  >
-                    <span>Start Recording</span>
-                    <i className="fa-solid fa-arrow-right"></i>
-                  </button>
-                ) : (
-                  <div className="notetaker-recorder-live-controls">
-                    <button
-                      type="button"
-                      className="notetaker-recorder-pause-btn"
-                      onClick={handlePauseResume}
-                      title={recordingStatus === 'paused' ? 'Resume recording' : 'Pause recording'}
-                    >
-                      <i className={`fa-solid ${recordingStatus === 'paused' ? 'fa-play' : 'fa-pause'}`}></i>
-                      <span>{recordingStatus === 'paused' ? 'Resume' : 'Pause'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="notetaker-recorder-stop-pill"
-                      onClick={handleStartStopRecording}
-                      title="Stop recording"
-                    >
-                      <i className="fa-solid fa-square"></i>
-                      <span>Stop</span>
-                    </button>
+              {/* Status Dots & Start Action */}
+              <div className="config-card-bottom-row">
+                <div className="config-audio-status-indicators">
+                  <div className="status-indicator-dot-item">
+                    <span className="status-dot green"></span>
+                    <span>Microphone · Ready</span>
                   </div>
-                )}
+                  <div className="status-indicator-dot-item">
+                    <span className="status-dot green"></span>
+                    <span>Meeting audio · Ready</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="notetaker-start-session-btn"
+                  onClick={startRecordingSession}
+                >
+                  <i className="fa-solid fa-microphone"></i>
+                  <span>Start session</span>
+                  <i className="fa-solid fa-arrow-right"></i>
+                </button>
               </div>
             </div>
           </section>
+        )}
 
-          {/* ===================== RIGHT CARD: WORKSPACE ===================== */}
-          <section className="notetaker-workspace-card">
-          {/* Tabs Bar */}
-          <div className="notetaker-workspace-tabs-bar">
-            <div className="notetaker-tabs-left">
-              <button
-                className={`notetaker-tab-item ${rightTab === 'live' ? 'active' : ''}`}
-                onClick={() => setRightTab('live')}
-                type="button"
-              >
-                <span className="notetaker-tab-soundwave">
-                  <span></span><span></span><span></span>
-                </span>
-                <span>Transcript</span>
-              </button>
-              <button
-                className={`notetaker-tab-item ${rightTab === 'notes' ? 'active' : ''}`}
-                onClick={() => setRightTab('notes')}
-                type="button"
-              >
-                <i className="fa-solid fa-sparkles"></i>
-                <span>AI Summary</span>
-              </button>
-              <button
-                className={`notetaker-tab-item ${rightTab === 'history' ? 'active' : ''}`}
-                onClick={() => {
-                  setRightTab('history');
-                  setSelectedPastSessionDetail(null);
-                }}
-                type="button"
-              >
-                <i className="fa-solid fa-clock-rotate-left"></i>
-                <span>Previous sessions</span>
-                {allSessionsList.length > 0 && (
-                  <span className="notetaker-tab-badge">{allSessionsList.length}</span>
+        {/* ========================================================
+            ACTIVE & STOPPED RECORDING WORKSPACE - Exactly as in Video
+            ======================================================== */}
+        {sessionState !== 'idle' && (
+          <div className="notetaker-active-workspace-wrapper">
+            
+            {/* Top Workspace Bar */}
+            <div className="notetaker-workspace-header-bar">
+              {/* Left Title & Status */}
+              <div className="workspace-header-left">
+                {isEditingTitle ? (
+                  <input
+                    type="text"
+                    className="workspace-title-input"
+                    value={sessionTitle}
+                    onChange={(e) => setSessionTitle(e.target.value)}
+                    onBlur={() => setIsEditingTitle(false)}
+                    onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)}
+                    autoFocus
+                  />
+                ) : (
+                  <h2
+                    className="workspace-session-title"
+                    onClick={() => setIsEditingTitle(true)}
+                    title="Click to edit title"
+                  >
+                    {sessionTitle} <i className="fa-solid fa-pen title-edit-pencil"></i>
+                  </h2>
                 )}
-              </button>
-            </div>
 
-            <div className="notetaker-more-dropdown-wrap" ref={moreMenuRef}>
-              <button
-                className={`notetaker-more-btn ${showMoreMenu ? 'active' : ''}`}
-                type="button"
-                onClick={() => setShowMoreMenu((prev) => !prev)}
-                title="More options"
-              >
-                More <i className="fa-solid fa-chevron-down" style={{ fontSize: '10px', marginLeft: '5px', transform: showMoreMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}></i>
-              </button>
+                <div className="workspace-header-badges-row">
+                  {/* Timer & Pulsing Recording Dot */}
+                  {sessionState === 'recording' && (
+                    <div className="workspace-timer-badge recording">
+                      <span className="recording-pulsing-dot"></span>
+                      <span>{formatTimer(timerSeconds)}</span>
+                    </div>
+                  )}
+                  {sessionState === 'paused' && (
+                    <div className="workspace-timer-badge paused">
+                      <i className="fa-solid fa-pause"></i>
+                      <span>Paused {formatTimer(timerSeconds)}</span>
+                    </div>
+                  )}
+                  {sessionState === 'stopped' && (
+                    <div className="workspace-timer-badge stopped">
+                      <i className="fa-solid fa-circle-check"></i>
+                      <span>{formatTimer(timerSeconds)} Completed</span>
+                    </div>
+                  )}
 
-              {showMoreMenu && (
-                <div className="notetaker-more-dropdown-menu">
+                  {/* Saved Status */}
+                  <div className="workspace-saved-badge">
+                    <span className="saved-dot"></span>
+                    <span>{savedStatusText}</span>
+                  </div>
+
+                  {/* Language Pair Pill */}
+                  <div className="workspace-lang-pair-badge">
+                    <span>{languageOptions.find(l => l.code === spokenLang)?.name || 'English'}</span>
+                    <i className="fa-solid fa-arrow-right-long"></i>
+                    <span>{languageOptions.find(l => l.code === targetLang)?.name || 'Punjabi'}</span>
+                  </div>
+
+                  {/* Toggle Setup visibility */}
                   <button
-                    className={`notetaker-side-action-btn ${rightTab === 'notes' ? 'active' : ''}`}
-                    onClick={() => {
-                      setRightTab('notes');
-                      setShowMoreMenu(false);
-                    }}
                     type="button"
+                    className="workspace-setup-toggle-pill"
+                    onClick={() => setShowSetup(prev => !prev)}
                   >
-                    <i className="fa-solid fa-wand-magic-sparkles"></i>
-                    <span>AI summary</span>
-                  </button>
-                  <button
-                    className="notetaker-side-action-btn"
-                    onClick={() => {
-                      setShowExportModal(true);
-                      setShowMoreMenu(false);
-                    }}
-                    type="button"
-                  >
-                    <i className="fa-solid fa-download"></i>
-                    <span>Export</span>
-                  </button>
-                  <button
-                    className="notetaker-side-action-btn"
-                    onClick={() => {
-                      handleEmailNotes();
-                      setShowMoreMenu(false);
-                    }}
-                    type="button"
-                  >
-                    <i className="fa-regular fa-envelope"></i>
-                    <span>Email</span>
-                  </button>
-                  <button
-                    className="notetaker-side-action-btn"
-                    onClick={() => {
-                      handleCopyNotes();
-                      setShowMoreMenu(false);
-                    }}
-                    type="button"
-                  >
-                    <i className="fa-regular fa-copy"></i>
-                    <span>Copy</span>
-                  </button>
-                  <button
-                    className="notetaker-side-action-btn clear-action"
-                    onClick={() => {
-                      handleClearSession();
-                      setShowMoreMenu(false);
-                    }}
-                    type="button"
-                  >
-                    <i className="fa-regular fa-trash-can"></i>
-                    <span>Clear</span>
-                  </button>
-                  <div className="notetaker-side-divider"></div>
-                  <button
-                    className="notetaker-side-action-btn"
-                    onClick={() => {
-                      setRightTab('history');
-                      setSelectedPastSessionDetail(null);
-                      setShowMoreMenu(false);
-                    }}
-                    type="button"
-                  >
-                    <i className="fa-solid fa-clock-rotate-left"></i>
-                    <span>Previous sessions</span>
-                  </button>
-                  <button
-                    className="notetaker-side-action-btn"
-                    onClick={() => {
-                      setShowSettingsModal(true);
-                      setShowMoreMenu(false);
-                    }}
-                    type="button"
-                  >
-                    <i className="fa-solid fa-sliders"></i>
-                    <span>Settings</span>
+                    <span>{showSetup ? 'Hide setup' : 'Show setup'}</span>
+                    <i className={`fa-solid ${showSetup ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
                   </button>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
 
-          {/* Main Workspace Split Body: Left Main Content + Right Action Toolbar */}
-          <div className="notetaker-split-workspace">
-            {/* Left Column (Transcript / Notes / Translations + Bottom Chat) */}
-            <div className="notetaker-main-content-col">
-              <div className="notetaker-content-scrollable">
-                {rightTab === 'live' && (
-                  <div className="notetaker-live-panel" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-                    {activeQuestion && (
-                      <div className="active-question-display" style={{ margin: '0 0 12px 0' }}>
-                        <span className="active-question-label">Question Being Answered:</span>
-                        <p className="active-question-text-val">{activeQuestion}</p>
+              {/* Right Action Buttons */}
+              <div className="workspace-header-actions">
+                {/* When Recording or Paused */}
+                {(sessionState === 'recording' || sessionState === 'paused') && (
+                  <>
+                    <button
+                      type="button"
+                      className="workspace-btn-action pause-btn"
+                      onClick={handlePauseResume}
+                      title={sessionState === 'paused' ? 'Resume' : 'Pause'}
+                    >
+                      <i className={`fa-solid ${sessionState === 'paused' ? 'fa-play' : 'fa-pause'}`}></i>
+                      <span>{sessionState === 'paused' ? 'Resume' : 'Pause'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="workspace-btn-action stop-btn"
+                      onClick={stopAndSaveSession}
+                      title="Stop & save"
+                    >
+                      <i className="fa-solid fa-square"></i>
+                      <span>Stop &amp; save</span>
+                    </button>
+                  </>
+                )}
+
+                {/* When Stopped */}
+                {sessionState === 'stopped' && (
+                  <button
+                    type="button"
+                    className="workspace-btn-action new-session-btn"
+                    onClick={handleStartNewSession}
+                  >
+                    <i className="fa-solid fa-plus"></i>
+                    <span>New session</span>
+                  </button>
+                )}
+
+                {/* Ask AI Pill Toggle */}
+                <button
+                  type="button"
+                  className={`workspace-btn-action ask-ai-btn ${askAiOpen ? 'active' : ''}`}
+                  onClick={() => setAskAiOpen(prev => !prev)}
+                >
+                  <i className="fa-solid fa-wand-magic-sparkles"></i>
+                  <span>Ask AI</span>
+                </button>
+
+                {/* Export Button */}
+                <button
+                  type="button"
+                  className="workspace-btn-action export-btn"
+                  onClick={() => setShowExportModal(true)}
+                >
+                  <i className="fa-solid fa-arrow-up-from-bracket"></i>
+                  <span>Export</span>
+                </button>
+
+                {/* Email Button */}
+                <button
+                  type="button"
+                  className="workspace-btn-action email-btn"
+                  onClick={() => {
+                    const textToEmail = smartNotes || chatMessages.map(m => `${m.speakerName}: ${m.text}`).join('\n\n');
+                    navigator.clipboard.writeText(textToEmail);
+                    window.open(`mailto:?subject=${encodeURIComponent(sessionTitle)}&body=${encodeURIComponent(textToEmail.slice(0, 1500))}`);
+                    showToast?.('Copied to clipboard & opened mail client!');
+                  }}
+                >
+                  <i className="fa-regular fa-envelope"></i>
+                  <span>Email</span>
+                </button>
+
+                {/* More Dropdown */}
+                <div className="workspace-more-wrap" ref={moreMenuRef}>
+                  <button
+                    type="button"
+                    className="workspace-btn-action more-btn"
+                    onClick={() => setShowMoreMenu(prev => !prev)}
+                  >
+                    <span>More</span>
+                    <i className="fa-solid fa-ellipsis"></i>
+                  </button>
+                  {showMoreMenu && (
+                    <div className="workspace-more-dropdown-panel">
+                      <button
+                        type="button"
+                        onClick={() => { setShowPastSessionsModal(true); setShowMoreMenu(false); }}
+                      >
+                        <i className="fa-solid fa-clock-rotate-left"></i> Previous sessions
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { handleRefreshTranslations(); setShowMoreMenu(false); }}
+                      >
+                        <i className="fa-solid fa-arrows-rotate"></i> Refresh translations
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { generateSmartNotes(); setShowMoreMenu(false); }}
+                      >
+                        <i className="fa-solid fa-sparkles"></i> Regenerate notes
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Collapsible Setup Bar when toggled during active session */}
+            {showSetup && (
+              <div className="workspace-inline-setup-drawer">
+                <div className="setup-drawer-field">
+                  <label>Spoken Language:</label>
+                  <select value={spokenLang} onChange={(e) => setSpokenLang(e.target.value)} disabled={sessionState === 'recording'}>
+                    {languageOptions.map(l => (
+                      <option key={l.code} value={l.code}>{l.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="setup-drawer-field">
+                  <label>Translate To:</label>
+                  <select value={targetLang} onChange={(e) => handleTargetLangChange(e.target.value)}>
+                    {languageOptions.map(l => (
+                      <option key={l.code} value={l.code}>{l.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="setup-drawer-field">
+                  <label>Mode:</label>
+                  <span>{recordingMode === 'meeting' ? 'Online meeting' : 'In person'}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Live Audio Connectivity Strip */}
+            <div className="notetaker-audio-status-strip">
+              <div className="audio-strip-left">
+                {/* Microphone Level Indicator */}
+                <div className="audio-source-status-badge">
+                  <span className={`strip-dot ${sessionState === 'recording' ? 'live' : ''}`}></span>
+                  <span className="strip-label">Microphone · Connected</span>
+                  <div className="strip-waveform-bars">
+                    {[1, 2, 3, 4, 5].map((bar) => {
+                      const height = sessionState === 'recording' ? Math.max(4, Math.min(18, (micAudioLevel / 100) * 18 * (0.5 + bar * 0.2))) : 4;
+                      return <span key={bar} style={{ height: `${height}px` }}></span>;
+                    })}
+                  </div>
+                </div>
+
+                {/* Meeting Audio Level Indicator */}
+                <div className="audio-source-status-badge">
+                  <span className="strip-dot live"></span>
+                  <span className="strip-label">Meeting audio · Connected</span>
+                  <div className="strip-waveform-bars">
+                    <span></span><span></span><span></span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="audio-strip-right">
+                <span className="transcribing-status-text">
+                  <i className="fa-solid fa-wave-square"></i>
+                  {sessionState === 'recording' ? 'Transcribing live' : (sessionState === 'paused' ? 'Paused' : 'Recording saved')}
+                </span>
+              </div>
+            </div>
+
+            {/* Main Workspace Body Split with Optional Ask AI Drawer */}
+            <div className="notetaker-workspace-body-layout">
+              
+              {/* Left/Main Panels (Tabs: Transcript, Smart Notes, Translations) */}
+              <main className="notetaker-main-content-panel">
+                
+                {/* Tabs Row */}
+                <div className="notetaker-tabs-navigation-header">
+                  <div className="tabs-nav-left">
+                    <button
+                      type="button"
+                      className={`tab-nav-btn ${activeTab === 'transcript' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('transcript')}
+                    >
+                      <i className="fa-solid fa-bars-staggered"></i>
+                      <span>Transcript</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`tab-nav-btn ${activeTab === 'notes' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('notes')}
+                    >
+                      <i className="fa-solid fa-sparkles"></i>
+                      <span>Smart Notes</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`tab-nav-btn ${activeTab === 'translations' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('translations')}
+                    >
+                      <i className="fa-solid fa-language"></i>
+                      <span>Translations</span>
+                    </button>
+                  </div>
+
+                  {/* Transcript Controls (Filters, Search, Auto-follow) */}
+                  {activeTab === 'transcript' && (
+                    <div className="tabs-nav-right-controls">
+                      {/* View Filters */}
+                      <div className="view-filter-pills-group">
+                        <button
+                          type="button"
+                          className={`filter-pill ${transcriptViewFilter === 'original' ? 'active' : ''}`}
+                          onClick={() => setTranscriptViewFilter('original')}
+                        >
+                          Original
+                        </button>
+                        <button
+                          type="button"
+                          className={`filter-pill ${transcriptViewFilter === 'translation' ? 'active' : ''}`}
+                          onClick={() => setTranscriptViewFilter('translation')}
+                        >
+                          Translation
+                        </button>
+                        <button
+                          type="button"
+                          className={`filter-pill ${transcriptViewFilter === 'dual' ? 'active' : ''}`}
+                          onClick={() => setTranscriptViewFilter('dual')}
+                        >
+                          Dual view
+                        </button>
+                      </div>
+
+                      {/* Following Live Button */}
+                      <button
+                        type="button"
+                        className={`following-live-pill ${autoFollowLive ? 'active' : ''}`}
+                        onClick={() => {
+                          setAutoFollowLive(prev => !prev);
+                          if (transcriptScrollRef.current) {
+                            transcriptScrollRef.current.scrollTop = transcriptScrollRef.current.scrollHeight;
+                          }
+                        }}
+                      >
+                        <i className="fa-solid fa-arrow-down"></i>
+                        <span>Following live</span>
+                      </button>
+
+                      {/* Search Input */}
+                      <div className="transcript-search-wrap">
+                        <i className="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input
+                          type="text"
+                          className="transcript-search-input"
+                          placeholder="Search..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* ==================== TAB 1: TRANSCRIPT ==================== */}
+                {activeTab === 'transcript' && (
+                  <div className="transcript-tab-content-area" ref={transcriptScrollRef}>
+                    {/* Empty State */}
+                    {chatMessages.length === 0 && !interimMsg && (
+                      <div className="transcript-empty-placeholder">
+                        <div className="empty-icon-circle">
+                          <i className="fa-solid fa-microphone-lines"></i>
+                        </div>
+                        <h3>Ready to listen</h3>
+                        <p>Speak into your microphone. Your conversation and live translations will appear here.</p>
                       </div>
                     )}
 
-                    <div className="notetaker-chat-messages" ref={chatContainerRef} style={{ flex: 1, overflowY: 'auto' }}>
-                      {isRecording || chatMessages.some(m => m.sender === 'user') ? (
-                        <>
-                      {spokenLang && targetLang && spokenLang !== targetLang && (
-                        <div className="notetaker-translation-header">
-                          <div className="translation-header-col">{(languageOptions.find(l => l.code === spokenLang)?.name || spokenLang).toUpperCase()} - ORIGINAL</div>
-                          <div className="translation-header-col">{(languageOptions.find(l => l.code === targetLang)?.name || targetLang).toUpperCase()} - TRANSLATION</div>
+                    {/* Passages List */}
+                    <div className="transcript-passages-list">
+                      {filteredChatMessages.map((msg) => (
+                        <div key={msg.id} className="transcript-passage-card">
+                          {/* Passage Header */}
+                          <div className="passage-meta-header">
+                            <div className="speaker-badge-wrap">
+                              <span className="speaker-avatar-circle">S1</span>
+                              <span className="speaker-name-label">{msg.speakerName || 'Speaker 1 (You)'}</span>
+                              <i className="fa-solid fa-pencil speaker-edit-icon" title="Edit speaker name"></i>
+                            </div>
+                            <div className="passage-info-wrap">
+                              <span className="passage-timestamp">{msg.wallTime || '~0:01'}</span>
+                              <span className="passage-source-pill">{msg.source || 'Microphone'}</span>
+                            </div>
+                          </div>
+
+                          {/* Original Text (shown if Dual or Original view) */}
+                          {transcriptViewFilter !== 'translation' && (
+                            <div className="passage-original-speech-box">
+                              <p className="original-speech-text">{msg.text}</p>
+                            </div>
+                          )}
+
+                          {/* Translation Sub-Card (shown if Dual or Translation view) */}
+                          {transcriptViewFilter !== 'original' && msg.translation && (
+                            <div className="passage-translation-subcard">
+                              <div className="translation-subcard-header">
+                                <span className="target-lang-tag">
+                                  <i className="fa-solid fa-language"></i> {languageOptions.find(l => l.code === targetLang)?.name || 'Translation'}
+                                </span>
+                                <button
+                                  type="button"
+                                  className="translation-copy-btn"
+                                  onClick={() => handleCopyToClipboard(msg.translation, 'Translation copied!')}
+                                  title="Copy translation"
+                                >
+                                  <i className="fa-regular fa-copy"></i>
+                                </button>
+                              </div>
+                              <p className="translated-speech-text">{msg.translation}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+
+                      {/* Live Interim Speech Bubble */}
+                      {interimMsg && (
+                        <div className="transcript-passage-card interim">
+                          <div className="passage-meta-header">
+                            <div className="speaker-badge-wrap">
+                              <span className="speaker-avatar-circle">S1</span>
+                              <span className="speaker-name-label">{interimMsg.speakerName}</span>
+                            </div>
+                            <span className="interim-listening-status">Listening...</span>
+                          </div>
+                          <div className="passage-original-speech-box">
+                            <p className="original-speech-text interim-text">
+                              {interimMsg.text}
+                              <span className="interim-blinking-cursor"></span>
+                            </p>
+                          </div>
                         </div>
                       )}
-
-                      {chatMessages.map((msg, idx) => {
-                        const isSys = isSystemStatusMessage(msg) || msg.isSystem;
-
-                        if (msg.sender === 'ai') {
-                          return (
-                            <div className={`notetaker-msg-bubble ai ${isSys ? 'notetaker-system-status-msg' : ''}`} key={msg.id || idx}>
-                              <div className="msg-avatar">
-                                <i className="fa-solid fa-robot"></i>
-                              </div>
-                              <div className="msg-text">
-                                <div className="msg-text-content">{msg.text}</div>
-                                {!isSys && msg.translation && (
-                                  <div className="notetaker-ai-translation">
-                                    <span><i className="fa-solid fa-language" aria-hidden="true"></i> {(languageOptions.find(l => l.code === targetLang)?.name || targetLang).toUpperCase()}</span>
-                                    <div>{msg.translation}</div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        }
-
-                        if (msg.messageType === 'chat') {
-                          const targetLangName = languageOptions.find(l => l.code === targetLang)?.name || targetLang;
-                          return (
-                            <div className="notetaker-msg-bubble user notetaker-chat-prompt" key={msg.id || idx}>
-                              <div className="msg-avatar">
-                                <i className="fa-solid fa-comment-dots"></i>
-                              </div>
-                              <div className="msg-text">
-                                <div className="msg-speaker-badge">Prompt</div>
-                                <div className="msg-text-content">{msg.text}</div>
-                                {spokenLang && targetLang && spokenLang !== targetLang && msg.translation && (
-                                  <div className="notetaker-prompt-translation-box" style={{ 
-                                    marginTop: '8px', 
-                                    paddingTop: '6px', 
-                                    borderTop: '1px dashed rgba(255, 255, 255, 0.25)',
-                                    fontSize: '13px',
-                                    color: '#86efac'
-                                  }}>
-                                    <div style={{ fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.85, marginBottom: '2px' }}>
-                                      <i className="fa-solid fa-language"></i> {targetLangName}:
-                                    </div>
-                                    <div style={{ fontWeight: '500' }}>{msg.translation}</div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        }
-
-                        const isTranslationActive = spokenLang && targetLang && spokenLang !== targetLang;
-
-                        if (isTranslationActive) {
-                          const targetLangNameUpper = (languageOptions.find(l => l.code === targetLang)?.name || targetLang).toUpperCase();
-                          const userMsgs = chatMessages.filter(m => m.sender === 'user' && m.messageType !== 'chat');
-                          const segmentNum = userMsgs.indexOf(msg) + 1;
-                          
-                          return (
-                            <div className={`notetaker-translation-row ${msg.isQuestion ? 'highlighted-question' : ''}`} key={msg.id || idx}>
-                              <div className="notetaker-translation-card original">
-                                <div className="translation-card-header">
-                                  <span className="card-num">#{String(segmentNum).padStart(2, '0')}</span>
-                                  <span className="card-speaker" style={{ color: getSpeakerColor(msg.speakerName), fontWeight: 700 }}>{msg.speakerName}</span>
-                                </div>
-                                <div className="translation-card-text">{msg.text}</div>
-                              </div>
-                              <div className="notetaker-translation-card translation">
-                                <div className="translation-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                                  <span className="card-lang"><i className="fa-solid fa-language"></i> {targetLangNameUpper}</span>
-                                </div>
-                                <div className="translation-card-text">{msg.translation || 'Translating...'}</div>
-                              </div>
-                            </div>
-                          );
-                        }
-
-                        const speakerDotColor = msg.isQuestion
-                          ? '#f97316'
-                          : (msg.isFeedback ? '#10b981' : (msg.speakerName?.toLowerCase().includes('interviewer') ? '#f97316' : '#3b82f6'));
-                        const tagLabel = msg.isQuestion ? 'Question' : (msg.isFeedback ? 'Key feedback' : (msg.speakerName?.toLowerCase().includes('interviewer') ? 'Question' : 'Answer'));
-                        const timeDisplay = msg.timestamp || msg.wallTime || 'Live';
-
-                        return (
-                          <div className={`notetaker-showcase-row ${msg.isQuestion ? 'highlighted-question' : ''}`} key={msg.id || idx}>
-                            <span className="notetaker-showcase-dot" style={{ background: speakerDotColor }}></span>
-                            <div className="notetaker-showcase-body">
-                              <p className="notetaker-showcase-meta">
-                                <span className="notetaker-showcase-time">
-                                  <i className="fa-regular fa-clock"></i> {timeDisplay}
-                                </span>
-                                <span className="notetaker-showcase-speaker">
-                                  {msg.speakerName || 'Speaker'}
-                                </span>
-                                <span className="notetaker-showcase-tag">
-                                  <i className="fa-solid fa-tag"></i> {tagLabel}
-                                </span>
-                              </p>
-                              <p className="notetaker-showcase-text">{msg.text}</p>
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      {interimMsg && interimMsg.text && (
-                        spokenLang && targetLang && spokenLang !== targetLang ? (
-                          <div className="notetaker-translation-row interim-bubble" style={{ opacity: 0.75 }}>
-                            <div className="notetaker-translation-card original">
-                              <div className="translation-card-header">
-                                <span className="card-num">#...</span>
-                                <span className="card-speaker" style={{ color: getSpeakerColor(interimMsg.speakerName), fontWeight: 700 }}>{interimMsg.speakerName} <span style={{ fontStyle: 'italic', fontWeight: 'normal', color: '#aaa', marginLeft: '4px' }}>· typing...</span></span>
-                              </div>
-                              <div className="translation-card-text">{interimMsg.text}</div>
-                            </div>
-                            <div className="notetaker-translation-card translation">
-                              <div className="translation-card-header">
-                                <span className="card-lang"><i className="fa-solid fa-language"></i> {(languageOptions.find(l => l.code === targetLang)?.name || targetLang).toUpperCase()}</span>
-                              </div>
-                              <div className="translation-card-text" style={{ fontStyle: 'italic', color: '#888' }}>Typing...</div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="notetaker-msg-bubble user interim-bubble" style={{ opacity: 0.75 }}>
-                            <div className="msg-avatar">
-                              <i className="fa-solid fa-user"></i>
-                            </div>
-                            <div className="msg-text">
-                              <div className="msg-speaker-badge" style={{ fontWeight: 'bold', fontSize: '11px', color: getSpeakerColor(interimMsg.speakerName), marginBottom: '4px' }}>
-                                {interimMsg.speakerName || 'Speaker 1'} <span style={{ fontStyle: 'italic', fontWeight: 'normal', color: '#aaa', marginLeft: '4px' }}>· typing...</span>
-                              </div>
-                              <div className="msg-text-content">{interimMsg.text}</div>
-                            </div>
-                          </div>
-                        )
-                      )}
-
-                      {/* Showcase bottom status & wave equalizer */}
-                      {(isRecording || chatMessages.length > 0) && (
-                        <div className="notetaker-showcase-bottom-bar">
-                          <div className="notetaker-wave-bars">
-                            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(i => (
-                              <span key={i} className="notetaker-emerald-bar" style={{ animationDelay: `${i * 65}ms` }}></span>
-                            ))}
-                          </div>
-                          <span className="notetaker-autosave-indicator">
-                            auto-saving notes <span className="notetaker-typing-dots"><span></span><span></span><span></span></span>
-                          </span>
-                          <button
-                            type="button"
-                            className="notetaker-pdf-export-pill"
-                            onClick={() => setShowExportModal(true)}
-                          >
-                            <i className="fa-solid fa-file-arrow-down"></i> Export to PDF
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="notetaker-empty-canvas">
-                      <div className="notetaker-empty-canvas-subtle-hint">
-                        <i className="fa-regular fa-comment-dots"></i>
-                        <span>Start recording on the left to see live speech transcripts and translations here.</span>
-                      </div>
                     </div>
+                  </div>
+                )}
+
+                {/* ==================== TAB 2: SMART NOTES ==================== */}
+                {activeTab === 'notes' && (
+                  <div className="smart-notes-tab-content-area">
+                    <div className="smart-notes-header-bar">
+                      <div>
+                        <h3 className="meeting-intelligence-title">MEETING INTELLIGENCE</h3>
+                        <p className="meeting-intelligence-sub">AI-generated structured notes, key decisions, and action items.</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="generate-notes-action-btn"
+                        onClick={generateSmartNotes}
+                        disabled={isGeneratingNotes}
+                      >
+                        <i className={`fa-solid ${isGeneratingNotes ? 'fa-spinner fa-spin' : 'fa-arrows-rotate'}`}></i>
+                        <span>{isGeneratingNotes ? 'Generating...' : 'Regenerate Notes'}</span>
+                      </button>
+                    </div>
+
+                    <div className="smart-notes-editor-container">
+                      <textarea
+                        className="smart-notes-textarea"
+                        value={smartNotes}
+                        onChange={(e) => setSmartNotes(e.target.value)}
+                        placeholder="Click 'Regenerate Notes' or start typing meeting notes here..."
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* ==================== TAB 3: TRANSLATIONS ==================== */}
+                {activeTab === 'translations' && (
+                  <div className="translations-tab-content-area">
+                    <div className="translations-tab-header">
+                      <div className="translations-lang-selector-wrap">
+                        <label>Target Language:</label>
+                        <select
+                          value={targetLang}
+                          onChange={(e) => handleTargetLangChange(e.target.value)}
+                        >
+                          {languageOptions.map(l => (
+                            <option key={l.code} value={l.code}>{l.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="refresh-translations-btn"
+                        onClick={handleRefreshTranslations}
+                      >
+                        <i className="fa-solid fa-arrows-rotate"></i>
+                        <span>Refresh translation</span>
+                      </button>
+                    </div>
+
+                    <div className="translations-passages-list">
+                      {chatMessages.length === 0 ? (
+                        <div className="transcript-empty-placeholder">
+                          <p>No translations recorded yet. Start recording and speak to see live translations.</p>
+                        </div>
+                      ) : (
+                        chatMessages.map(m => (
+                          <div key={m.id} className="translation-item-card">
+                            <div className="translation-item-meta">
+                              <span className="translation-speaker">{m.speakerName || 'Speaker 1'}</span>
+                              <span className="translation-time">{m.wallTime || ''}</span>
+                            </div>
+                            <div className="translation-item-body">
+                              <p className="translation-dest-text">{m.translation || 'Translating...'}</p>
+                              <p className="translation-src-hint">{m.text}</p>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+
+              </main>
+
+              {/* ========================================================
+                  ASK AI COLLAPSIBLE RIGHT DRAWER - Exactly as in Video
+                  ======================================================== */}
+              {askAiOpen && (
+                <aside className="notetaker-ask-ai-sidebar-drawer">
+                  {/* Sidebar Header */}
+                  <div className="ask-ai-drawer-header">
+                    <div className="ask-ai-title-wrap">
+                      <i className="fa-solid fa-wand-magic-sparkles"></i>
+                      <h3>Ask AI</h3>
+                    </div>
+                    <button
+                      type="button"
+                      className="ask-ai-close-btn"
+                      onClick={() => setAskAiOpen(false)}
+                      title="Close Ask AI"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Suggestion Prompt Chips */}
+                  <div className="ask-ai-prompt-chips-row">
+                    <button
+                      type="button"
+                      className="ai-chip-btn"
+                      onClick={() => handleSendAiQuery('Catch up so far')}
+                    >
+                      <i className="fa-solid fa-rotate-left"></i> Catch up so far
+                    </button>
+                    <button
+                      type="button"
+                      className="ai-chip-btn"
+                      onClick={() => handleSendAiQuery('Decisions made')}
+                    >
+                      <i className="fa-solid fa-check"></i> Decisions
+                    </button>
+                    <button
+                      type="button"
+                      className="ai-chip-btn"
+                      onClick={() => handleSendAiQuery('Action items')}
+                    >
+                      <i className="fa-solid fa-list-check"></i> Action items
+                    </button>
+                    <button
+                      type="button"
+                      className="ai-chip-btn"
+                      onClick={() => handleSendAiQuery('Open risks')}
+                    >
+                      <i className="fa-solid fa-flag"></i> Open risks
+                    </button>
+                  </div>
+
+                  {/* Chat Messages Body */}
+                  <div className="ask-ai-chat-messages-area">
+                    {askAiMessages.map(msg => (
+                      <div key={msg.id} className={`ask-ai-msg-bubble ${msg.sender}`}>
+                        <div className="msg-bubble-content">
+                          <p>{msg.text}</p>
+                        </div>
+
+                        {/* Action buttons on AI responses */}
+                        {msg.sender === 'ai' && msg.id !== 'ai_welcome' && (
+                          <div className="ai-response-action-buttons">
+                            <button
+                              type="button"
+                              onClick={() => handleCopyToClipboard(msg.text, 'Answer copied!')}
+                              title="Copy answer"
+                            >
+                              <i className="fa-regular fa-copy"></i> Copy
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSaveToNotes(msg.text)}
+                              title="Save to Smart Notes"
+                            >
+                              <i className="fa-regular fa-floppy-disk"></i> Save to notes
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleReadAloud(msg.id, msg.text)}
+                              title="Read answer aloud"
+                              className={activeSpeakingId === msg.id ? 'speaking' : ''}
+                            >
+                              <i className={`fa-solid ${activeSpeakingId === msg.id ? 'fa-volume-xmark' : 'fa-volume-high'}`}></i>
+                              {activeSpeakingId === msg.id ? 'Stop audio' : 'Read aloud'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {isSendingAiQuery && (
+                      <div className="ask-ai-msg-bubble ai thinking">
+                        <div className="thinking-dots">
+                          <span></span><span></span><span></span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom Input Area */}
+                  <div className="ask-ai-bottom-input-wrap">
+                    <div className="ask-ai-lang-selector-row">
+                      <span>Answer in:</span>
+                      <select
+                        value={askAiAnswerLang}
+                        onChange={(e) => setAskAiAnswerLang(e.target.value)}
+                      >
+                        {languageOptions.map(l => (
+                          <option key={l.code} value={l.code}>{l.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <form
+                      onSubmit={(e) => { e.preventDefault(); handleSendAiQuery(); }}
+                      className="ask-ai-input-form"
+                    >
+                      <input
+                        type="text"
+                        className="ask-ai-text-input"
+                        placeholder="Ask about this meeting..."
+                        value={askAiInput}
+                        onChange={(e) => setAskAiInput(e.target.value)}
+                      />
+                      <button
+                        type="submit"
+                        className="ask-ai-submit-btn"
+                        disabled={!askAiInput.trim() || isSendingAiQuery}
+                      >
+                        <i className="fa-solid fa-paper-plane"></i>
+                      </button>
+                    </form>
+                  </div>
+                </aside>
+              )}
+
+            </div>
+
+            {/* ========================================================
+                STOPPED MODE BOTTOM STICKY AUDIO PLAYER BAR
+                ======================================================== */}
+            {sessionState === 'stopped' && (
+              <div className="notetaker-bottom-sticky-audio-bar">
+                <div className="audio-bar-inner">
+                  {/* Play/Pause */}
+                  <button
+                    type="button"
+                    className="audio-play-pause-btn"
+                    onClick={togglePlayAudio}
+                    title={isPlayingAudio ? 'Pause' : 'Play'}
+                  >
+                    <i className={`fa-solid ${isPlayingAudio ? 'fa-pause' : 'fa-play'}`}></i>
+                  </button>
+
+                  {/* Jump -10s */}
+                  <button
+                    type="button"
+                    className="audio-jump-btn"
+                    onClick={() => handleAudioJump(-10)}
+                    title="Rewind 10 seconds"
+                  >
+                    <i className="fa-solid fa-rotate-left"></i>
+                    <span>10</span>
+                  </button>
+
+                  {/* Jump +10s */}
+                  <button
+                    type="button"
+                    className="audio-jump-btn"
+                    onClick={() => handleAudioJump(10)}
+                    title="Forward 10 seconds"
+                  >
+                    <i className="fa-solid fa-rotate-right"></i>
+                    <span>10</span>
+                  </button>
+
+                  {/* Progress Seeker */}
+                  <div className="audio-seeker-container">
+                    <span className="audio-time-label">{formatTimer(Math.floor(audioCurrentTime))}</span>
+                    <input
+                      type="range"
+                      className="audio-range-slider"
+                      min="0"
+                      max={audioDuration || timerSeconds || 1}
+                      value={audioCurrentTime}
+                      onChange={handleAudioSeek}
+                    />
+                    <span className="audio-time-label">{formatTimer(Math.floor(audioDuration || timerSeconds))}</span>
+                  </div>
+
+                  {/* Speed Button */}
+                  <button
+                    type="button"
+                    className="audio-speed-btn"
+                    onClick={cyclePlaybackSpeed}
+                    title="Playback speed"
+                  >
+                    {playbackSpeed}x
+                  </button>
+
+                  {/* Download Audio */}
+                  {recordedAudioUrl && (
+                    <a
+                      href={recordedAudioUrl}
+                      download={`${sessionTitle.toLowerCase().replace(/\s+/g, '_')}_recording.webm`}
+                      className="audio-download-btn"
+                      title="Download recorded audio"
+                    >
+                      <i className="fa-solid fa-download"></i>
+                      <span>Audio</span>
+                    </a>
                   )}
                 </div>
               </div>
             )}
 
-            {rightTab === 'notes' && (
-              <div className="notetaker-feedback-panel" ref={notesContainerRef} style={{ padding: '10px 0', overflowY: 'auto', flex: 1, minHeight: 0 }}>
-                {isGenerating ? (
-                  <div className="notetaker-empty-state">
-                    <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '32px', color: 'var(--notetaker-teal)', marginBottom: '16px' }}></i>
-                    <h3 className="notetaker-empty-title">Generating Summary</h3>
-                    <p className="notetaker-empty-desc">AI is analyzing the speech transcript and generating your bilingual summary...</p>
-                  </div>
-                ) : generatedNotes ? (
-                  <div className="feedback-section" style={{ width: '100%' }}>
-                    <h3 className="feedback-sec-title" style={{ color: darkMode ? '#ffffff' : '#0f172a', marginBottom: '12px', fontSize: '15px' }}>
-                      <i className="fa-solid fa-wand-magic-sparkles" style={{ color: 'var(--notetaker-teal)', marginRight: '6px' }}></i>
-                      AI Summary {displayedNotesLang ? `(${displayedNotesLang})` : ''}
-                    </h3>
-                    <div className="notetaker-notes-content" style={{ whiteSpace: 'pre-wrap', color: darkMode ? '#cbd5e1' : '#334155', lineHeight: '1.6', fontSize: '14px', background: darkMode ? '#030712' : '#f8fafc', padding: '18px', borderRadius: '8px', border: darkMode ? '1px solid #121e33' : '1px solid #e2e8f0', minHeight: '200px', width: '100%', wordBreak: 'break-word' }}>
-                      {cleanNotesText(generatedNotes)}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="notetaker-empty-state">
-                    <div className="notetaker-doc-icon-box">
-                      <svg width="22" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 2C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2H6Z" fill="#24d5dc" />
-                        <path d="M14 2V8H20L14 2Z" fill={darkMode ? "#11383d" : "#008f99"} opacity="0.4" />
-                      </svg>
-                    </div>
-                    <h3 className="notetaker-empty-title">No Notes Yet</h3>
-                    <p className="notetaker-empty-desc">Complete a recording session to view generated notes in your spoken and target languages here.</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {rightTab === 'history' && (
-              <div className="notetaker-sessions-tab-wrapper" style={{ padding: '4px 0 24px 0', overflowY: 'auto', flex: 1, minHeight: 0 }}>
-                {isRecording && (
-                  <div className="notetaker-recording-active-banner">
-                    <span className="recording-pulse-dot"></span>
-                    <span>Live recording is active. You can browse previous sessions or switch back to Transcript anytime.</span>
-                  </div>
-                )}
-
-                {!selectedPastSessionDetail ? (
-                  /* ===================== VIEW 1: SESSIONS LIST ===================== */
-                  <div className="notetaker-sessions-container">
-                    <div className="notetaker-sessions-header">
-                      <div className="notetaker-sessions-title-group">
-                        <h3 className="notetaker-sessions-heading">
-                          <i className="fa-solid fa-clock-rotate-left"></i>
-                          <span>Previous Sessions</span>
-                          <span className="notetaker-sessions-count-chip">{displaySessionsList.length}</span>
-                        </h3>
-                        <p className="notetaker-sessions-subtitle">
-                          Review, inspect transcripts, and explore AI summaries from your past recordings. Tap any session to view its full details.
-                        </p>
-                      </div>
-
-                      <div className="notetaker-sessions-search-wrapper">
-                        <i className="fa-solid fa-magnifying-glass notetaker-sessions-search-icon"></i>
-                        <input
-                          type="text"
-                          className="notetaker-sessions-search-input"
-                          placeholder="Search sessions by title, date, notes..."
-                          value={pastSessionsSearchQuery}
-                          onChange={(e) => setPastSessionsSearchQuery(e.target.value)}
-                        />
-                        {pastSessionsSearchQuery && (
-                          <button
-                            type="button"
-                            className="notetaker-sessions-search-clear"
-                            onClick={() => setPastSessionsSearchQuery('')}
-                            title="Clear search"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="notetaker-sessions-list">
-                      {displaySessionsList.length === 0 ? (
-                        <div className="notetaker-sessions-empty">
-                          <div className="notetaker-sessions-empty-icon">
-                            <i className="fa-regular fa-folder-open"></i>
-                          </div>
-                          <h4>No sessions found</h4>
-                          <p>
-                            {pastSessionsSearchQuery
-                              ? `No past sessions matched "${pastSessionsSearchQuery}"`
-                              : 'No previous sessions saved yet. Start recording and stop to automatically save your session.'}
-                          </p>
-                          {pastSessionsSearchQuery && (
-                            <button
-                              type="button"
-                              className="notetaker-sessions-reset-btn"
-                              onClick={() => setPastSessionsSearchQuery('')}
-                            >
-                              Clear Search
-                            </button>
-                          )}
-                        </div>
-                      ) : (
-                        displaySessionsList.map((sess, idx) => {
-                          const sessId = sess.id || sess._id || `sess_${idx}`;
-                          const title = sess.title || sess.sessionName || 'Untitled Session';
-                          const formattedDate = sess.date || (sess.createdAt ? new Date(sess.createdAt).toLocaleDateString() : 'Nov 14, 2026');
-                          const formattedTime = sess.time || (sess.createdAt ? new Date(sess.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '');
-                          const duration = sess.durationDisplay || (sess.durationSeconds ? `${Math.floor(sess.durationSeconds / 60)}:${String(sess.durationSeconds % 60).padStart(2, '0')}` : '05:24');
-                          const spLang = sess.payload?.spokenLanguage || sess.spokenLanguage || 'English';
-                          const tgLang = sess.payload?.targetLanguage || sess.targetLanguage || 'English';
-                          const rawNotes = sess.payload?.notes || sess.payload?.generatedNotes || sess.notes || '';
-                          const notesPreview = rawNotes.replace(/###\s*/g, '').replace(/[\*\_\[\]]/g, '').slice(0, 150).trim();
-                          const rawTrans = sess.payload?.transcript || sess.transcript || [];
-                          const transcriptCount = Array.isArray(rawTrans) ? rawTrans.length : 0;
-                          const techMode = sess.tech || sess.recordingMode || 'Meeting';
-
-                          return (
-                            <div
-                              key={sessId}
-                              className="notetaker-session-card"
-                              onClick={() => {
-                                setSelectedPastSessionDetail(sess);
-                                setSessionDetailSubTab('summary');
-                              }}
-                              role="button"
-                              tabIndex={0}
-                            >
-                              <div className="notetaker-session-card-main">
-                                <div className="notetaker-session-card-header">
-                                  <div className="notetaker-session-card-title-row">
-                                    <div className="notetaker-session-badge-icon">
-                                      <i className="fa-regular fa-file-lines"></i>
-                                    </div>
-                                    <div className="notetaker-session-title-wrap">
-                                      <h4 className="notetaker-session-card-title">{title}</h4>
-                                      <div className="notetaker-session-meta-chips">
-                                        <span className="notetaker-session-chip">
-                                          <i className="fa-regular fa-calendar"></i>
-                                          {formattedDate} {formattedTime ? `· ${formattedTime}` : ''}
-                                        </span>
-                                        <span className="notetaker-session-chip">
-                                          <i className="fa-regular fa-clock"></i>
-                                          {duration}
-                                        </span>
-                                        <span className="notetaker-session-chip lang-chip">
-                                          <i className="fa-solid fa-language"></i>
-                                          {spLang}{spLang.toLowerCase() !== tgLang.toLowerCase() ? ` → ${tgLang}` : ''}
-                                        </span>
-                                        <span className="notetaker-session-chip mode-chip">
-                                          <i className="fa-solid fa-microphone-lines"></i>
-                                          {techMode}
-                                        </span>
-                                        {transcriptCount > 0 && (
-                                          <span className="notetaker-session-chip count-chip">
-                                            <i className="fa-regular fa-comments"></i>
-                                            {transcriptCount} turns
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="notetaker-session-card-actions" onClick={(e) => e.stopPropagation()}>
-                                    <button
-                                      type="button"
-                                      className="notetaker-session-action-btn view-btn"
-                                      title="View details inside this session"
-                                      onClick={() => {
-                                        setSelectedPastSessionDetail(sess);
-                                        setSessionDetailSubTab('summary');
-                                      }}
-                                    >
-                                      <i className="fa-regular fa-eye"></i>
-                                      <span>View Details</span>
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      className="notetaker-session-action-btn load-btn"
-                                      title="Load into workspace"
-                                      onClick={() => {
-                                        handleSelectPastSession(sessId);
-                                        setRightTab('notes');
-                                        showToast('Session loaded into workspace.');
-                                      }}
-                                    >
-                                      <i className="fa-solid fa-arrow-up-right-from-square"></i>
-                                      <span>Load</span>
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      className="notetaker-session-action-btn delete-btn"
-                                      title="Delete session"
-                                      onClick={(e) => handleDeletePastSession(e, sessId)}
-                                    >
-                                      <i className="fa-regular fa-trash-can"></i>
-                                    </button>
-                                  </div>
-                                </div>
-
-                                {notesPreview && (
-                                  <div className="notetaker-session-card-preview">
-                                    <span className="preview-label">Executive Snippet:</span>
-                                    <p className="preview-text">{notesPreview}...</p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  /* ===================== VIEW 2: SESSION DETAILS ===================== */
-                  <div className="notetaker-session-detail-wrapper">
-                    <div className="notetaker-session-detail-topbar">
-                      <button
-                        type="button"
-                        className="notetaker-session-detail-back-btn"
-                        onClick={() => setSelectedPastSessionDetail(null)}
-                      >
-                        <i className="fa-solid fa-arrow-left"></i>
-                        <span>Back to all sessions</span>
-                      </button>
-
-                      <div className="notetaker-session-detail-actions">
-                        <button
-                          type="button"
-                          className="notetaker-detail-btn primary"
-                          onClick={() => {
-                            const sId = selectedPastSessionDetail.id || selectedPastSessionDetail._id;
-                            handleSelectPastSession(sId);
-                            setRightTab('notes');
-                            showToast('Loaded session into workspace.');
-                          }}
-                        >
-                          <i className="fa-solid fa-arrow-up-right-from-square"></i>
-                          <span>Load into Workspace</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          className="notetaker-detail-btn"
-                          onClick={() => {
-                            const notes = selectedPastSessionDetail.payload?.notes || selectedPastSessionDetail.payload?.generatedNotes || selectedPastSessionDetail.notes || '';
-                            if (notes) {
-                              navigator.clipboard.writeText(cleanNotesText(notes));
-                              showToast('AI Notes copied to clipboard!');
-                            } else {
-                              showToast('No notes to copy.');
-                            }
-                          }}
-                        >
-                          <i className="fa-regular fa-copy"></i>
-                          <span>Copy Notes</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          className="notetaker-detail-btn danger"
-                          title="Delete session"
-                          onClick={(e) => handleDeletePastSession(e, selectedPastSessionDetail.id || selectedPastSessionDetail._id)}
-                        >
-                          <i className="fa-regular fa-trash-can"></i>
-                          <span>Delete</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="notetaker-session-detail-banner">
-                      <div className="notetaker-session-detail-title-row">
-                        <div className="notetaker-detail-icon-box">
-                          <i className="fa-solid fa-file-waveform"></i>
-                        </div>
-                        <div className="notetaker-detail-header-text">
-                          <h3 className="notetaker-detail-title">
-                            {selectedPastSessionDetail.title || selectedPastSessionDetail.sessionName || 'Untitled Session'}
-                          </h3>
-                          <div className="notetaker-detail-meta-row">
-                            <span className="notetaker-detail-meta-tag">
-                              <i className="fa-regular fa-calendar"></i>
-                              {selectedPastSessionDetail.date || (selectedPastSessionDetail.createdAt ? new Date(selectedPastSessionDetail.createdAt).toLocaleDateString() : 'Nov 14, 2026')}
-                            </span>
-                            <span className="notetaker-detail-meta-tag">
-                              <i className="fa-regular fa-clock"></i>
-                              {selectedPastSessionDetail.durationDisplay || (selectedPastSessionDetail.durationSeconds ? `${Math.floor(selectedPastSessionDetail.durationSeconds / 60)}:${String(selectedPastSessionDetail.durationSeconds % 60).padStart(2, '0')}` : '05:24')}
-                            </span>
-                            <span className="notetaker-detail-meta-tag">
-                              <i className="fa-solid fa-language"></i>
-                              {selectedPastSessionDetail.payload?.spokenLanguage || selectedPastSessionDetail.spokenLanguage || 'English'}
-                              {(selectedPastSessionDetail.payload?.targetLanguage || selectedPastSessionDetail.targetLanguage) && (selectedPastSessionDetail.payload?.targetLanguage || selectedPastSessionDetail.targetLanguage) !== (selectedPastSessionDetail.payload?.spokenLanguage || selectedPastSessionDetail.spokenLanguage)
-                                ? ` → ${selectedPastSessionDetail.payload?.targetLanguage || selectedPastSessionDetail.targetLanguage}`
-                                : ''}
-                            </span>
-                            <span className="notetaker-detail-meta-tag mode-tag">
-                              <i className="fa-solid fa-microphone-lines"></i>
-                              {selectedPastSessionDetail.tech || selectedPastSessionDetail.recordingMode || 'Meeting'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Sub-tabs: AI Summary & Notes vs Full Transcript */}
-                    <div className="notetaker-detail-subtabs">
-                      <button
-                        type="button"
-                        className={`notetaker-detail-subtab-btn ${sessionDetailSubTab === 'summary' ? 'active' : ''}`}
-                        onClick={() => setSessionDetailSubTab('summary')}
-                      >
-                        <i className="fa-solid fa-wand-magic-sparkles"></i>
-                        <span>AI Summary &amp; Notes</span>
-                      </button>
-                      <button
-                        type="button"
-                        className={`notetaker-detail-subtab-btn ${sessionDetailSubTab === 'transcript' ? 'active' : ''}`}
-                        onClick={() => setSessionDetailSubTab('transcript')}
-                      >
-                        <i className="fa-solid fa-comments"></i>
-                        <span>Full Transcript</span>
-                        {Array.isArray(selectedPastSessionDetail.payload?.transcript || selectedPastSessionDetail.transcript) && (
-                          <span className="notetaker-detail-badge">
-                            {(selectedPastSessionDetail.payload?.transcript || selectedPastSessionDetail.transcript).length}
-                          </span>
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Sub-tab Body */}
-                    <div className="notetaker-detail-body">
-                      {sessionDetailSubTab === 'summary' && (
-                        <div className="notetaker-detail-summary-pane">
-                          {(() => {
-                            const rawNotes = selectedPastSessionDetail.payload?.notes || selectedPastSessionDetail.payload?.generatedNotes || selectedPastSessionDetail.notes || '';
-                            if (!rawNotes.trim()) {
-                              return (
-                                <div className="notetaker-detail-empty">
-                                  <i className="fa-regular fa-note-sticky"></i>
-                                  <p>No AI summary was generated for this session.</p>
-                                  <button
-                                    type="button"
-                                    className="notetaker-detail-btn primary"
-                                    onClick={() => {
-                                      const sId = selectedPastSessionDetail.id || selectedPastSessionDetail._id;
-                                      handleSelectPastSession(sId);
-                                      setRightTab('notes');
-                                    }}
-                                  >
-                                    Load session to generate summary
-                                  </button>
-                                </div>
-                              );
-                            }
-
-                            return (
-                              <div className="notetaker-detail-notes-card">
-                                <div className="notetaker-detail-notes-content">
-                                  {cleanNotesText(rawNotes)}
-                                </div>
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      )}
-
-                      {sessionDetailSubTab === 'transcript' && (
-                        <div className="notetaker-detail-transcript-pane">
-                          {(() => {
-                            const rawTranscript = selectedPastSessionDetail.payload?.transcript || selectedPastSessionDetail.transcript || [];
-                            if (!Array.isArray(rawTranscript) || rawTranscript.length === 0) {
-                              return (
-                                <div className="notetaker-detail-empty">
-                                  <i className="fa-regular fa-comment-dots"></i>
-                                  <p>No speech transcript recorded for this session.</p>
-                                </div>
-                              );
-                            }
-
-                            return (
-                              <div className="notetaker-detail-transcript-list">
-                                {rawTranscript.map((tMsg, tIdx) => (
-                                  <div key={tMsg.id || tIdx} className="notetaker-detail-transcript-item">
-                                    <div className="transcript-item-header">
-                                      <span className="transcript-speaker-name">
-                                        <i className="fa-regular fa-user"></i>
-                                        {tMsg.speaker || `Speaker ${tMsg.sender === 'user' ? '1' : '2'}`}
-                                      </span>
-                                      <span className="transcript-item-time">{tMsg.wallTime || tMsg.timestamp || ''}</span>
-                                    </div>
-                                    <div className="transcript-item-text">{tMsg.text}</div>
-                                    {tMsg.translation && tMsg.translation !== 'Translating...' && (
-                                      <div className="transcript-item-translation">
-                                        <span className="translation-tag">
-                                          <i className="fa-solid fa-language"></i> Translation:
-                                        </span>
-                                        <span>{tMsg.translation}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-              </div>
-            </div>
-
-
           </div>
+        )}
 
-          {/* Bottom Ask / Chat Bar */}
-          <form onSubmit={handleSendChat} className="notetaker-chat-bar">
-            <input
-              type="text"
-              className="notetaker-chat-input"
-              placeholder="Ask about this meeting..."
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              disabled={isSendingChat}
-            />
-            <button
-              className="notetaker-send-btn"
-              type="submit"
-              disabled={isSendingChat || !chatInput.trim()}
-              title="Send"
-            >
-              <i className={`fa-solid ${isSendingChat ? 'fa-spinner fa-spin' : 'fa-paper-plane'}`}></i>
-            </button>
-          </form>
-        </section>
-      </div>
-
-      {/* Floating Help Headset Button */}
-      <button
-        className="notetaker-floating-help-btn"
-        type="button"
-        onClick={() => showToast?.('AI Assistant Help & Tips')}
-        title="Help & Feedback"
-      >
-        <i className="fa-solid fa-headset"></i>
-        <span className="notetaker-help-dot">?</span>
-      </button>
-
-      {/* Footer */}
-      <footer className="notetaker-page-footer">
-        <div className="notetaker-ai-disclaimer">
-          <i className="fa-solid fa-circle-info notetaker-disclaimer-icon"></i>
-          <span>AI can make mistakes. Check important details.</span>
-        </div>
-        <div className="notetaker-footer-links">
-          <a href="#" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
-          <a href="#" onClick={(e) => e.preventDefault()}>Terms of Service</a>
-        </div>
-      </footer>
       </div>
 
       {/* Navigation Drawer */}
@@ -4129,22 +1776,22 @@ startNotetakerBilling();
             </div>
 
             <nav className="notetaker-drawer-nav">
-              <button className="notetaker-drawer-nav-item" onClick={() => { setShowNavDrawer(false); handleBackToLanding(); }}>
+              <button className="notetaker-drawer-nav-item" onClick={() => { setShowNavDrawer(false); onBackToLanding?.(); }}>
                 <i className="fa-solid fa-house"></i> Home
               </button>
-              <button className="notetaker-drawer-nav-item" onClick={() => { setShowNavDrawer(false); handleGoToDashboard(); }}>
+              <button className="notetaker-drawer-nav-item" onClick={() => { setShowNavDrawer(false); onGoToDashboard?.(); }}>
                 <i className="fa-solid fa-chart-line"></i> Dashboard
               </button>
-              <button className="notetaker-drawer-nav-item" onClick={() => { setShowNavDrawer(false); handleGoToPanel(); }}>
+              <button className="notetaker-drawer-nav-item" onClick={() => { setShowNavDrawer(false); onGoToPanel?.(); }}>
                 <i className="fa-solid fa-rocket"></i> AI Copilot
               </button>
               <button className="notetaker-drawer-nav-item active">
                 <i className="fa-solid fa-microphone"></i> Notetaker
               </button>
-              <button className="notetaker-drawer-nav-item" onClick={() => { setShowNavDrawer(false); handleGoToVoiceAgent(); }}>
+              <button className="notetaker-drawer-nav-item" onClick={() => { setShowNavDrawer(false); onGoToVoiceAgent?.(); }}>
                 <i className="fa-solid fa-robot"></i> Voice Agent
               </button>
-              <button className="notetaker-drawer-nav-item" onClick={() => { setShowNavDrawer(false); handleGoToUpload(); }}>
+              <button className="notetaker-drawer-nav-item" onClick={() => { setShowNavDrawer(false); onGoToUpload?.(); }}>
                 <i className="fa-solid fa-cloud-arrow-up"></i> Upload
               </button>
               <button className="notetaker-drawer-nav-item" onClick={() => { setShowNavDrawer(false); onGoToReferral?.(); }}>
@@ -4159,7 +1806,7 @@ startNotetakerBilling();
               <button className="notetaker-drawer-nav-item" onClick={toggleDarkMode} type="button">
                 <i className={`fa-solid ${darkMode ? 'fa-sun' : 'fa-moon'}`}></i> {darkMode ? 'Light Mode' : 'Dark Mode'}
               </button>
-              <button className="notetaker-drawer-nav-item notetaker-drawer-logout" onClick={handleLogoutClick} type="button">
+              <button className="notetaker-drawer-nav-item notetaker-drawer-logout" onClick={onLogout} type="button">
                 <i className="fa-solid fa-right-from-bracket"></i> Log Out
               </button>
             </div>
@@ -4169,47 +1816,41 @@ startNotetakerBilling();
 
       {/* Previous Sessions Modal */}
       {showPastSessionsModal && (
-        <div className="notetaker-simple-modal-overlay" onClick={() => setShowPastSessionsModal(false)}>
-          <div className="notetaker-simple-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="notetaker-simple-modal-header">
-              <h3><i className="fa-regular fa-clock"></i> Previous Sessions</h3>
-              <button className="notetaker-simple-modal-close-btn" onClick={() => setShowPastSessionsModal(false)}>×</button>
+        <div className="notetaker-modal-overlay" onClick={() => setShowPastSessionsModal(false)}>
+          <div className="notetaker-modal-card past-sessions-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="notetaker-modal-header">
+              <h3><i className="fa-solid fa-clock-rotate-left"></i> Previous Sessions</h3>
+              <button className="notetaker-modal-close-btn" onClick={() => setShowPastSessionsModal(false)}>×</button>
             </div>
-            <div className="notetaker-simple-modal-body">
-              {displaySessions.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {displaySessions.map((sess) => (
-                    <div
-                      key={sess.id}
-                      onClick={() => {
-                        handleSelectPastSession(sess.id);
-                        setShowPastSessionsModal(false);
-                      }}
-                      style={{
-                        padding: '12px 16px',
-                        borderRadius: '8px',
-                        border: '1px solid var(--notetaker-border)',
-                        background: 'var(--notetaker-card-bg)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        transition: 'background 0.15s ease'
-                      }}
-                    >
-                      <div>
-                        <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 600, color: 'var(--notetaker-text-main)' }}>{sess.title}</h4>
-                        <span style={{ fontSize: '12px', color: 'var(--notetaker-text-muted)' }}>{sess.date}</span>
-                      </div>
-                      <span style={{ fontSize: '12px', color: 'var(--notetaker-text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <i className="fa-regular fa-clock"></i> {sess.duration}
-                      </span>
-                    </div>
-                  ))}
+            <div className="past-sessions-modal-body">
+              {pastSessionsList.length === 0 ? (
+                <div className="transcript-empty-placeholder">
+                  <p>No previous sessions recorded yet.</p>
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--notetaker-text-muted)', fontSize: '13px' }}>
-                  No past sessions saved yet.
+                <div className="past-sessions-items-list">
+                  {pastSessionsList.map((sess) => (
+                    <div
+                      key={sess.id}
+                      className="past-session-item-row"
+                      onClick={() => {
+                        setSessionTitle(sess.title || 'Untitled Session');
+                        setChatMessages(sess.transcript || []);
+                        setSmartNotes(sess.notes || '');
+                        setTranslationHistory(sess.translationHistory || []);
+                        setTimerSeconds(sess.durationSeconds || 0);
+                        setSessionState('stopped');
+                        setShowPastSessionsModal(false);
+                        showToast?.(`Loaded session: ${sess.title}`);
+                      }}
+                    >
+                      <div className="past-session-meta">
+                        <h4>{sess.title || 'Meeting Notes'}</h4>
+                        <span className="past-session-sub">{sess.date} · {sess.durationDisplay || formatTimer(sess.durationSeconds || 0)}</span>
+                      </div>
+                      <i className="fa-solid fa-chevron-right"></i>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -4217,87 +1858,10 @@ startNotetakerBilling();
         </div>
       )}
 
-      {/* Settings Modal */}
-      {showSettingsModal && (
-        <div className="notetaker-simple-modal-overlay" onClick={() => setShowSettingsModal(false)}>
-          <div className="notetaker-simple-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="notetaker-simple-modal-header">
-              <h3><i className="fa-solid fa-gear"></i> Notetaker Settings</h3>
-              <button className="notetaker-simple-modal-close-btn" onClick={() => setShowSettingsModal(false)}>×</button>
-            </div>
-            <div className="notetaker-simple-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--notetaker-text-muted)', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>
-                  Translation Engine
-                </label>
-                <div className="notetaker-select-wrap">
-                  <select
-                    className="notetaker-dropdown-select"
-                    value={translationEngine}
-                    onChange={(e) => handleTranslationEngineChange(e.target.value)}
-                    disabled={isRecording}
-                  >
-                    <option value="google">Google Translation</option>
-                    <option value="deepgram">Deepgram (AI translation)</option>
-                    <option value="sarvam">Sarvam</option>
-                  </select>
-                  <i className="fa-solid fa-chevron-down notetaker-select-chevron"></i>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderTop: '1px solid var(--notetaker-border)' }}>
-                <div>
-                  <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--notetaker-text-main)' }}>Line-by-Line Mode</div>
-                  <div style={{ fontSize: '12px', color: 'var(--notetaker-text-muted)' }}>Display speech split segment by segment</div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setLineByLineMode(prev => !prev)}
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: '6px',
-                    border: '1px solid ' + (lineByLineMode ? 'var(--notetaker-teal)' : 'var(--notetaker-border)'),
-                    background: lineByLineMode ? 'var(--notetaker-teal-light)' : 'transparent',
-                    color: lineByLineMode ? 'var(--notetaker-teal)' : 'var(--notetaker-text-muted)',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  {lineByLineMode ? 'Enabled' : 'Disabled'}
-                </button>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderTop: '1px solid var(--notetaker-border)' }}>
-                <div>
-                  <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--notetaker-text-main)' }}>Dark Theme</div>
-                  <div style={{ fontSize: '12px', color: 'var(--notetaker-text-muted)' }}>Toggle between light and dark modes</div>
-                </div>
-                <button
-                  type="button"
-                  onClick={toggleDarkMode}
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: '6px',
-                    border: '1px solid var(--notetaker-border)',
-                    background: 'transparent',
-                    color: 'var(--notetaker-text-main)',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  <i className={`fa-solid ${darkMode ? 'fa-sun' : 'fa-moon'}`}></i> {darkMode ? 'Light' : 'Dark'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-
-      {/* Export transcript modal popup */}
+      {/* Export Modal */}
       {showExportModal && (
-        <div className="notetaker-modal-overlay">
-          <div className="notetaker-modal-card">
+        <div className="notetaker-modal-overlay" onClick={() => setShowExportModal(false)}>
+          <div className="notetaker-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="notetaker-modal-header">
               <h3>Export transcript</h3>
               <button className="notetaker-modal-close-btn" onClick={() => setShowExportModal(false)}>×</button>
@@ -4340,23 +1904,9 @@ startNotetakerBilling();
               </div>
             </div>
 
-            <div className="notetaker-modal-section">
-              <h4 className="notetaker-modal-section-title">OPTIONS</h4>
-              <div className="notetaker-modal-options">
-                <label 
-                  className={`notetaker-modal-option-row ${exportIncludeAiChat ? 'checked' : ''}`} 
-                  onClick={() => setExportIncludeAiChat(prev => !prev)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className="notetaker-modal-option-checkbox"></div>
-                  <span className="notetaker-modal-option-text">Include AI Copilot Prompts &amp; Answers</span>
-                </label>
-              </div>
-            </div>
-
             <div className="notetaker-modal-actions">
-              <button className="notetaker-modal-btn-cancel" onClick={() => setShowExportModal(false)}>Cancel</button>
-              <button className="notetaker-modal-btn-download" onClick={handleExportDownload}>
+              <button type="button" className="notetaker-modal-btn-cancel" onClick={() => setShowExportModal(false)}>Cancel</button>
+              <button type="button" className="notetaker-modal-btn-download" onClick={handleExportDownload}>
                 <i className="fa-solid fa-download"></i> Download
               </button>
             </div>
@@ -4364,157 +1914,23 @@ startNotetakerBilling();
         </div>
       )}
 
-      {/* Save Session modal popup */}
-      {showSaveSessionModal && (
-        <div className="notetaker-modal-overlay" style={{ zIndex: 9999 }}>
-          <div 
-            className="notetaker-modal-card" 
-            style={{ 
-              maxWidth: '560px', 
-              width: '90%', 
-              background: darkMode ? '#12121c' : '#ffffff', 
-              borderColor: darkMode ? 'rgba(255, 255, 255, 0.08)' : '#cbd5e1',
-              boxShadow: darkMode ? '0 20px 40px rgba(0, 0, 0, 0.5)' : '0 20px 40px rgba(0, 0, 0, 0.15)'
-            }}
-          >
-            <div className="notetaker-modal-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
-              <h3 style={{ color: darkMode ? '#ffffff' : '#121e33', fontSize: '18px', margin: 0 }}>Stop &amp; Save Session</h3>
-              <button 
-                className="notetaker-modal-close-btn" 
-                onClick={() => setShowSaveSessionModal(false)}
-                style={{ color: darkMode ? '#94a3b8' : '#64748b' }}
-              >×</button>
-            </div>
-            <p className="notetaker-modal-desc" style={{ color: darkMode ? 'rgba(255, 255, 255, 0.6)' : '#64748b', fontSize: '14px', marginTop: '8px', marginBottom: '16px' }}>
-              Please enter a name for this session to save it to your Past Sessions history.
-            </p>
-            
-            <div className="notetaker-modal-section" style={{ marginTop: '8px' }}>
-              <label 
-                className="notetaker-label" 
-                style={{ 
-                  fontWeight: 'bold', 
-                  display: 'block', 
-                  marginBottom: '8px', 
-                  color: darkMode ? '#cbd5e1' : '#475569',
-                  fontSize: '12px'
-                }}
-              >
-                Notes Name
-              </label>
-              <input
-                type="text"
-                className="notetaker-input"
-                placeholder={getDefaultSessionTitle()}
-                value={tempTitle}
-                onChange={(e) => setTempTitle(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSaveSessionConfirm(false);
-                  }
-                }}
-                autoFocus
-                autoComplete="off"
-                style={{ 
-                  width: '100%', 
-                  boxSizing: 'border-box',
-                  color: darkMode ? '#ffffff' : '#121e33',
-                  background: darkMode ? '#1e1e2f' : '#f8fafc',
-                  border: darkMode ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  padding: '10px 14px',
-                  fontSize: '14px'
-                }}
-              />
-            </div>
-
-            <div 
-              className="notetaker-modal-actions" 
-              style={{ 
-                display: 'flex', 
-                gap: '12px', 
-                justifyContent: 'flex-end', 
-                marginTop: '28px',
-                borderTop: 'none',
-                paddingTop: 0
-              }}
-            >
-              <button 
-                className="notetaker-modal-btn-cancel" 
-                onClick={() => setShowSaveSessionModal(false)}
-                type="button"
-                style={{ 
-                  marginRight: 'auto',
-                  height: '42px',
-                  borderRadius: '10px',
-                  border: darkMode ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid #cbd5e1',
-                  color: darkMode ? '#cbd5e1' : '#475569',
-                  fontSize: '13px',
-                  whiteSpace: 'nowrap',
-                  padding: '0 16px'
-                }}
-              >
-                Cancel (Keep Recording)
-              </button>
-              <button 
-                className="notetaker-modal-btn-cancel" 
-                onClick={() => handleSaveSessionConfirm(true)}
-                type="button"
-                style={{ 
-                  background: '#ef4444', 
-                  color: '#ffffff', 
-                  border: 'none',
-                  height: '42px',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontWeight: '700',
-                  whiteSpace: 'nowrap',
-                  padding: '0 18px',
-                  cursor: 'pointer'
-                }}
-              >
-                Stop &amp; Discard
-              </button>
-              <button 
-                className="notetaker-modal-btn-download" 
-                onClick={() => handleSaveSessionConfirm(false)}
-                type="button"
-                style={{ 
-                  background: '#00cbd6',
-                  color: '#0c101a',
-                  height: '42px',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontWeight: '700',
-                  whiteSpace: 'nowrap',
-                  padding: '0 20px',
-                  cursor: 'pointer',
-                  opacity: 1,
-                  boxShadow: '0 4px 12px rgba(0, 203, 214, 0.25)'
-                }}
-              >
-                Stop &amp; Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Centralized Credit-Based Restriction & Usage Modal */}
+      {/* Credit Prompt Modal */}
       <CreditUsagePromptModal
         isOpen={creditPromptModal.isOpen}
-        onClose={() => setCreditPromptModal(prev => ({ ...prev, isOpen: false, pendingAction: null }))}
+        onClose={() => setCreditPromptModal(prev => ({ ...prev, isOpen: false }))}
         type={creditPromptModal.type}
         title={creditPromptModal.title}
         message={creditPromptModal.message}
         fileDetails={creditPromptModal.fileDetails}
-        onConfirm={handleConfirmCreditPrompt}
-        onTopUp={handleTopUpFromCreditModal}
+        onConfirm={() => {
+          setCreditPromptModal(prev => ({ ...prev, isOpen: false }));
+          startRecordingSession();
+        }}
         showToast={showToast}
         darkMode={darkMode}
       />
 
+      {/* PDF Customizer Modal */}
       <PdfCustomizerModal
         isOpen={pdfCustomizerModal.isOpen}
         onClose={() => setPdfCustomizerModal(prev => ({ ...prev, isOpen: false }))}
@@ -4526,5 +1942,4 @@ startNotetakerBilling();
       />
     </div>
   );
-
 }

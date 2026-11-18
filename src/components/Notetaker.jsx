@@ -1173,7 +1173,7 @@ export default function Notetaker({
 
                   <button
                     type="button"
-                    className="start-session-primary-purple-btn"
+                    className="start-session-primary-green-btn"
                     onClick={startRecordingSession}
                   >
                     <i className="fa-solid fa-microphone"></i>
@@ -1363,7 +1363,7 @@ export default function Notetaker({
                 </div>
               </div>
 
-              {/* Purple Translation Info Banner */}
+              {/* Emerald Translation Info Banner */}
               <div className="active-translation-banner">
                 <i className="fa-solid fa-language"></i>
                 <span>Confirmed speech will translate to {languageOptions.find(l => l.code === targetLang)?.name || 'Punjabi'}.</span>
@@ -1500,7 +1500,7 @@ export default function Notetaker({
                       <div className="transcript-passages-scroll-pane" ref={transcriptScrollRef}>
                         {chatMessages.length === 0 && !interimMsg ? (
                           <div className="transcript-listening-empty-state">
-                            <div className="empty-purple-mic-circle">
+                            <div className="empty-green-mic-circle">
                               <i className="fa-solid fa-microphone-lines"></i>
                             </div>
                             <h3>Listening for speech</h3>
@@ -1625,7 +1625,7 @@ export default function Notetaker({
 
                         <button
                           type="button"
-                          className="refresh-translation-purple-btn"
+                          className="refresh-translation-green-btn"
                           onClick={() => handleTargetLangChange(targetLang)}
                         >
                           <i className="fa-solid fa-language"></i>

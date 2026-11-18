@@ -184,6 +184,7 @@ export default function Notetaker({
   const [allSessionsList, setAllSessionsList] = useState([]);
   const [sidebarSearchQuery, setSidebarSearchQuery] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showQuickPromptsMenu, setShowQuickPromptsMenu] = useState(false);
   const [showSessionsModal, setShowSessionsModal] = useState(false);
 
   // Top Carousel ("See what Notetaker can do")
@@ -221,6 +222,7 @@ export default function Notetaker({
   const transcriptScrollRef = useRef(null);
   const moreMenuRef = useRef(null);
   const profileMenuRef = useRef(null);
+  const plusMenuRef = useRef(null);
 
   // Sync refs
   useEffect(() => { spokenLangRef.current = spokenLang; }, [spokenLang]);
@@ -230,8 +232,10 @@ export default function Notetaker({
 
   // Format MM:SS
   const formatTimer = (totalSecs) => {
-    const mins = Math.floor(totalSecs / 60);
-    const secs = totalSecs % 60;
+    if (!Number.isFinite(totalSecs) || isNaN(totalSecs) || totalSecs < 0) return '00:00';
+    const total = Math.floor(totalSecs);
+    const mins = Math.floor(total / 60);
+    const secs = total % 60;
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
@@ -298,6 +302,9 @@ export default function Notetaker({
       }
       if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
         setShowProfileMenu(false);
+      }
+      if (plusMenuRef.current && !plusMenuRef.current.contains(e.target)) {
+        setShowQuickPromptsMenu(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -1652,78 +1659,169 @@ export default function Notetaker({
                 {/* Right Drawer: ASK AI */}
                 {askAiOpen && (
                   <aside className="active-ask-ai-drawer">
+                    {/* Sleek Top Header */}
                     <div className="ask-ai-top-bar">
                       <div className="ask-ai-brand-group">
-                        <i className="fa-solid fa-wand-magic-sparkles"></i>
-                        <h3>Ask AI</h3>
+                        <div className="ask-ai-icon-circle">
+                          <i className="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div className="ask-ai-title-wrap">
+                          <h4>Ask AI</h4>
+                          <span>Grounded in meeting transcript</span>
+                        </div>
                       </div>
                       <button
                         type="button"
-                        className="ask-ai-close-icon-btn"
+                        className="ask-ai-collapse-btn"
                         onClick={() => setAskAiOpen(false)}
+                        title="Collapse panel"
                       >
-                        ×
+                        <span>Collapse</span>
+                        <i className="fa-solid fa-chevron-right"></i>
                       </button>
                     </div>
 
-                    <div className="ask-ai-chips-shelf">
-                      <button type="button" onClick={() => handleSendAiQuery('Catch up so far')}>
-                        <i className="fa-solid fa-rotate-left"></i> Catch up so far
-                      </button>
-                      <button type="button" onClick={() => handleSendAiQuery('Decisions made')}>
-                        <i className="fa-solid fa-check"></i> Decisions
-                      </button>
-                      <button type="button" onClick={() => handleSendAiQuery('Action items')}>
-                        <i className="fa-solid fa-list-check"></i> Action items
-                      </button>
-                      <button type="button" onClick={() => handleSendAiQuery('Open risks')}>
-                        <i className="fa-solid fa-flag"></i> Open risks
-                      </button>
-                    </div>
-
+                    {/* Messages Scroll Area */}
                     <div className="ask-ai-messages-scroll-area">
-                      {askAiMessages.map(msg => (
-                        <div key={msg.id} className={`ask-ai-bubble ${msg.sender}`}>
-                          <p>{msg.text}</p>
-                          {msg.sender === 'ai' && msg.id !== 'ai_welcome' && (
-                            <div className="ai-bubble-toolbar">
-                              <button type="button" onClick={() => handleCopyToClipboard(msg.text, 'Answer copied!')}>
-                                <i className="fa-regular fa-copy"></i> Copy
-                              </button>
-                              <button type="button" onClick={() => {
-                                setSmartNotes(prev => `${prev}\n\n### AI Note\n${msg.text}`);
-                                showToast?.('Appended to Smart Notes!');
-                              }}>
-                                <i className="fa-regular fa-floppy-disk"></i> Save to notes
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleReadAloud(msg.id, msg.text)}
-                                className={activeSpeakingId === msg.id ? 'active' : ''}
-                              >
-                                <i className="fa-solid fa-volume-high"></i> {activeSpeakingId === msg.id ? 'Stop audio' : 'Read aloud'}
-                              </button>
-                            </div>
-                          )}
+                      {askAiMessages.length === 0 ? (
+                        <div className="ask-ai-empty-welcome-card">
+                          <div className="welcome-sparkle-badge">
+                            <i className="fa-solid fa-brain"></i>
+                          </div>
+                          <h5>Meeting Assistant</h5>
+                          <p>Ask anything about what was spoken. Answers are grounded in your recorded transcript.</p>
+                          <div className="welcome-hint-pill">
+                            <i className="fa-solid fa-plus"></i> Use the <strong>+ Prompts</strong> button below for quick queries
+                          </div>
                         </div>
-                      ))}
+                      ) : (
+                        askAiMessages.map(msg => (
+                          <div key={msg.id} className={`ask-ai-bubble ${msg.sender}`}>
+                            <div className="bubble-content-text">
+                              <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{msg.text}</p>
+                            </div>
+                            {msg.sender === 'ai' && msg.id !== 'ai_welcome' && (
+                              <div className="ai-bubble-toolbar">
+                                <button type="button" onClick={() => handleCopyToClipboard(msg.text, 'Answer copied!')} title="Copy answer">
+                                  <i className="fa-regular fa-copy"></i> Copy
+                                </button>
+                                <button type="button" onClick={() => {
+                                  setSmartNotes(prev => `${prev}
+
+### AI Note
+${msg.text}`);
+                                  showToast?.('Appended to Smart Notes!');
+                                }} title="Save to notes">
+                                  <i className="fa-regular fa-floppy-disk"></i> Save to notes
+                                </button>
+                                <button type="button" onClick={() => handleReadAloud(msg.id, msg.text)} title="Read aloud">
+                                  <i className={`fa-solid ${activeSpeakingId === msg.id ? 'fa-volume-xmark' : 'fa-volume-high'}`}></i>
+                                  {activeSpeakingId === msg.id ? 'Stop' : 'Read'}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
+
                       {isSendingAiQuery && (
-                        <div className="ask-ai-bubble ai loading">
-                          <span>Thinking...</span>
+                        <div className="ask-ai-bubble ai loading-bubble">
+                          <span className="dot-flashing"></span>
+                          <span>Thinking with transcript context...</span>
                         </div>
                       )}
                     </div>
 
+                    {/* Bottom Form Area with PLUS button & Language selector */}
                     <div className="ask-ai-bottom-form-area">
-                      <div className="ask-ai-answer-lang-row">
-                        <span>Answer in:</span>
-                        <select value={askAiAnswerLang} onChange={(e) => setAskAiAnswerLang(e.target.value)}>
-                          {languageOptions.map(l => (
-                            <option key={l.code} value={l.code}>{l.name}</option>
-                          ))}
-                        </select>
+                      <div className="ask-ai-tools-shelf-row">
+                        {/* PLUS Button for quick prompts popover */}
+                        <div className="ask-ai-plus-menu-wrap" ref={plusMenuRef}>
+                          <button
+                            type="button"
+                            className={`ask-ai-plus-btn ${showQuickPromptsMenu ? 'open' : ''}`}
+                            onClick={() => setShowQuickPromptsMenu(prev => !prev)}
+                            title={showQuickPromptsMenu ? "Close prompt options" : "Choose quick prompt"}
+                          >
+                            <i className={`fa-solid ${showQuickPromptsMenu ? 'fa-xmark' : 'fa-plus'}`}></i>
+                            <span>Prompts</span>
+                          </button>
+
+                          {/* Popover Shelf with the 4 options */}
+                          {showQuickPromptsMenu && (
+                            <div className="ask-ai-prompts-popover-card">
+                              <div className="prompts-popover-header">
+                                <span>Suggested Prompts</span>
+                                <button type="button" onClick={() => setShowQuickPromptsMenu(false)}>✕</button>
+                              </div>
+                              <div className="prompts-popover-list">
+                                <button
+                                  type="button"
+                                  className="prompt-option-item"
+                                  onClick={() => {
+                                    handleSendAiQuery('Catch up so far');
+                                    setShowQuickPromptsMenu(false);
+                                  }}
+                                >
+                                  <i className="fa-solid fa-rotate-left"></i>
+                                  <span>Catch up so far</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="prompt-option-item"
+                                  onClick={() => {
+                                    handleSendAiQuery('Decisions made');
+                                    setShowQuickPromptsMenu(false);
+                                  }}
+                                >
+                                  <i className="fa-solid fa-check"></i>
+                                  <span>Decisions</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="prompt-option-item"
+                                  onClick={() => {
+                                    handleSendAiQuery('Action items');
+                                    setShowQuickPromptsMenu(false);
+                                  }}
+                                >
+                                  <i className="fa-solid fa-list-check"></i>
+                                  <span>Action items</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="prompt-option-item"
+                                  onClick={() => {
+                                    handleSendAiQuery('Open risks');
+                                    setShowQuickPromptsMenu(false);
+                                  }}
+                                >
+                                  <i className="fa-solid fa-flag"></i>
+                                  <span>Open risks</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Language Selector */}
+                        <div className="ask-ai-answer-lang-row">
+                          <span>Answer in:</span>
+                          <div className="mini-lang-select-wrap">
+                            <select
+                              value={askAiAnswerLang}
+                              onChange={(e) => setAskAiAnswerLang(e.target.value)}
+                            >
+                              {languageOptions.map(l => (
+                                <option key={l.code} value={l.code}>{l.name}</option>
+                              ))}
+                            </select>
+                            <i className="fa-solid fa-chevron-down mini-arrow"></i>
+                          </div>
+                        </div>
                       </div>
 
+                      {/* Input Box */}
                       <form
                         onSubmit={(e) => { e.preventDefault(); handleSendAiQuery(); }}
                         className="ask-ai-input-form"
@@ -1739,8 +1837,9 @@ export default function Notetaker({
                           type="submit"
                           className="ask-ai-send-btn"
                           disabled={!askAiInput.trim() || isSendingAiQuery}
+                          title="Send prompt"
                         >
-                          <i className="fa-solid fa-paper-plane"></i>
+                          <i className="fa-solid fa-arrow-up"></i>
                         </button>
                       </form>
                     </div>
@@ -1788,11 +1887,11 @@ export default function Notetaker({
                         type="range"
                         className="player-range-input"
                         min="0"
-                        max={audioDuration || timerSeconds || 1}
+                        max={Number.isFinite(audioDuration) && audioDuration > 0 ? audioDuration : (timerSeconds || 1)}
                         value={audioCurrentTime}
                         onChange={handleAudioSeek}
                       />
-                      <span className="player-time-num">{formatTimer(Math.floor(audioDuration || timerSeconds))}</span>
+                      <span className="player-time-num">{formatTimer(Math.floor(Number.isFinite(audioDuration) && audioDuration > 0 ? audioDuration : (timerSeconds || 0)))}</span>
                     </div>
 
                     <button
